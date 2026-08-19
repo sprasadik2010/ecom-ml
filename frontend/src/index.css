@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+@theme {
+  /* Set Outfit as the default sans font */
+  --font-sans: 'Outfit', sans-serif;
+
+  /* Inverted light theme background & text mapping */
+  --color-slate-50: #1C1917;   /* Very dark charcoal */
+  --color-slate-100: #1C1917;  /* Very dark charcoal */
+  --color-slate-200: #292524;  /* Sub-headings */
+  --color-slate-300: #44403C;  /* Dark stone text */
+  --color-slate-400: #78716C;  /* Muted text */
+  --color-slate-500: #A8A29E;  /* Highly muted text */
+  --color-slate-650: #E7E5E4;  /* Valid color for default gray/beige borders */
+  --color-slate-600: #D6D3D1;  /* Light grey borders */
+  --color-slate-700: #E7E5E4;  /* Very light borders/lines */
+  --color-slate-800: #E7E5E4;  /* Very light borders/lines */
+  --color-slate-850: #F1EDE4;  /* Slightly darker beige background */
+  --color-slate-900: #FFFFFF;  /* Card/Container background (white) */
+  --color-slate-950: #F9F6F0;  /* Page background (warm beige/off-white) */
+
+  /* Map white to real white */
+  --color-white: #FFFFFF;
+
+  /* Map amber-500/600 to crimson/burgundy for primary elements (buttons, badges) */
+  --color-amber-500: #9F1239; /* Premium Crimson Red */
+  --color-amber-600: #881337; /* Darker Crimson Red for hover */
+  
+  /* Map amber-400 to luxury gold for accent texts (BV points, rating stars, wallet balance) */
+  --color-amber-400: #D97706; /* Luxury warm gold */
+
+  /* Map other alerts */
+  --color-emerald-400: #047857; /* Dark green for status/success */
+  --color-emerald-500: #047857;
+  --color-emerald-550: #059669;
+  --color-red-400: #B91C1C; /* Dark red for errors */
+  --color-red-500: #B91C1C;
+}
+
+@layer base {
+  body {
+    @apply bg-slate-950 text-slate-100 antialiased font-sans;
+    background-color: #F9F6F0;
+    color: #1C1917;
+  }
+}
+
+/* Custom class overrides to keep text dark where headings/buttons have conflicting styles */
+.text-white {
+  color: #1C1917 !important; /* Ensure headings and totals are dark charcoal text */
+}
+.text-slate-950 {
+  color: #FAF6F0 !important; /* White text for contrast on crimson/emerald buttons */
+}
+.text-slate-900 {
+  color: #1C1917 !important;
+}
+.text-slate-800 {
+  color: #292524 !important;
+}
+
+/* Custom Scrollbar for premium feel (light mode compatible) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FAF6F0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #E7E5E4;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #A8A29E;
+}

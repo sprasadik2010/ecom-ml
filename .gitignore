@@ -1,0 +1,38 @@
+# Dependency directories
+node_modules/
+venv/
+.venv/
+env/
+__pycache__/
+*.pyc
+
+# Local environment configuration
+.env
+.env.local
+.env.*.local
+
+# Local SQLite databases
+*.db
+*.sqlite
+backend/mlm.db
+backend/test_mlm.db
+mlm.db
+
+# Build outputs
+dist/
+build/
+.svelte-kit/
+.next/
+
+# IDE/Editor folders and files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# OS files
+.DS_Store
+Thumbs.db
