@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export const API_BASE_URL = 'http://localhost:8000';
+export const API_BASE_URL = 'https://ecom-ml-backend.onrender.com';
 
 export interface User {
   id: number;

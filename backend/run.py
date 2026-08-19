@@ -17,6 +17,6 @@ if __name__ == "__main__":
         print(f"Warning/Error seeding database: {e}")
         print("Continuing server startup...")
         
-    print("Starting FastAPI development server on http://localhost:8000...")
+    print("Starting FastAPI development server on Backend...")
     print("=" * 60)
     uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)
