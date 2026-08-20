@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, API_BASE_URL } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { ShoppingCart, LogOut, User as UserIcon, Network, DollarSign, Search, ShieldCheck, Menu, X, Compass, Home } from 'lucide-react';
 
@@ -11,6 +11,25 @@ export const Navbar: React.FC = () => {
   const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [categories, setCategories] = useState<string[]>(['Electronics', 'Wellness', 'Apparel', 'Smart Home']);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/categories`);
+        if (res.ok) {
+          const data = await res.json();
+          const names = data.map((c: any) => c.name);
+          if (names.length > 0) {
+            setCategories(names);
+          }
+        }
+      } catch (e) {
+        console.error('Error loading navbar categories:', e);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const cartCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -72,6 +91,12 @@ export const Navbar: React.FC = () => {
 
             {user ? (
               <>
+                {user.is_admin && (
+                  <Link to="/admin" className="flex items-center gap-1.5 text-rose-500 hover:text-rose-600 font-bold transition-colors">
+                    <ShieldCheck size={15} className="text-rose-500" />
+                    <span>Admin Panel</span>
+                  </Link>
+                )}
                 <Link to="/dashboard" className="flex items-center gap-1.5 text-slate-300 hover:text-amber-500 transition-colors">
                   <ShieldCheck size={15} />
                   <span>Dashboard</span>
@@ -179,6 +204,16 @@ export const Navbar: React.FC = () => {
 
             {user ? (
               <>
+                {user.is_admin && (
+                  <Link
+                    to="/admin"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="px-3 py-2 bg-rose-500/10 hover:bg-rose-500/20 rounded-md text-rose-500 font-bold flex items-center gap-2 transition-colors border border-rose-500/20"
+                  >
+                    <ShieldCheck size={14} className="text-rose-500" />
+                    Admin Panel
+                  </Link>
+                )}
                 <Link
                   to="/dashboard"
                   onClick={() => setIsMobileMenuOpen(false)}
@@ -251,23 +286,16 @@ export const Navbar: React.FC = () => {
 
       {/* Sub-navbar */}
       <div className="bg-slate-950 py-2 px-4 text-xs font-normal border-t border-slate-850 hidden sm:block">
-        <div className="max-w-7xl mx-auto flex items-center gap-6 text-slate-350">
-          <Link to="/" className="font-bold text-slate-200 flex items-center gap-1 hover:text-amber-500 transition-colors">
+        <div className="max-w-7xl mx-auto flex items-center gap-6 text-slate-355 overflow-x-auto scrollbar-none">
+          <Link to="/" className="font-bold text-slate-200 flex items-center gap-1 hover:text-amber-500 transition-colors shrink-0">
             All Products
           </Link>
-          <Link to="/?category=Electronics" className="hover:text-amber-500 transition-colors">
-            Electronics
-          </Link>
-          <Link to="/?category=Wellness" className="hover:text-amber-500 transition-colors">
-            Wellness
-          </Link>
-          <Link to="/?category=Apparel" className="hover:text-amber-500 transition-colors">
-            Apparel
-          </Link>
-          <Link to="/?category=Smart%20Home" className="hover:text-amber-500 transition-colors">
-            Smart Home
-          </Link>
-          <div className="ml-auto text-slate-400 flex items-center gap-1.5 font-mono text-[9px]">
+          {categories.map((cat) => (
+            <Link key={cat} to={`/?category=${encodeURIComponent(cat)}`} className="hover:text-amber-500 transition-colors shrink-0">
+              {cat}
+            </Link>
+          ))}
+          <div className="ml-auto text-slate-400 flex items-center gap-1.5 font-mono text-[9px] shrink-0">
             {user && (
               <>
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>

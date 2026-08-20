@@ -12,6 +12,7 @@ import { TreePage } from './pages/TreePage';
 import { Commissions } from './pages/Commissions';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
+import { AdminPanel } from './pages/AdminPanel';
 
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -28,6 +29,26 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   
   if (!token) {
     return <Navigate to="/login" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
+// Admin Route Component
+const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-105 flex flex-col items-center justify-center gap-4">
+        <div className="h-10 w-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-slate-400 text-xs font-bold font-mono">Verifying authorization...</p>
+      </div>
+    );
+  }
+  
+  if (!user || !user.is_admin) {
+    return <Navigate to="/" replace />;
   }
   
   return <>{children}</>;
@@ -87,6 +108,16 @@ export const App: React.FC = () => {
                     <ProtectedRoute>
                       <Commissions />
                     </ProtectedRoute>
+                  } 
+                />
+                
+                {/* Protected Admin Control routes */}
+                <Route 
+                  path="/admin/*" 
+                  element={
+                    <AdminRoute>
+                      <AdminPanel />
+                    </AdminRoute>
                   } 
                 />
 

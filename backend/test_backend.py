@@ -47,7 +47,8 @@ def run_tests():
             full_name="Root Admin",
             hashed_password="hashedpassword",
             status="active", # Admin starts active
-            personal_sw=100.0
+            personal_sw=100.0,
+            is_admin=True
         )
         db.add(admin)
         db.commit()

@@ -281,37 +281,76 @@ export const Dashboard: React.FC = () => {
                 </Link>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs text-left text-slate-300">
-                  <thead>
-                    <tr className="border-b border-slate-800 text-[10px] text-slate-500 uppercase font-black tracking-wider">
-                      <th className="py-3">Order ID</th>
-                      <th className="py-3">Date</th>
-                      <th className="py-3">Amount</th>
-                      <th className="py-3">SW Volume</th>
-                      <th className="py-3 text-right">Payment Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-850">
-                    {orders.map((ord) => (
-                      <tr key={ord.id} className="hover:bg-slate-950/20 transition-colors">
-                        <td className="py-3 font-mono font-bold text-slate-200">#00{ord.id}</td>
-                        <td className="py-3 text-slate-400">{new Date(ord.created_at).toLocaleDateString()}</td>
-                        <td className="py-3 font-bold font-mono text-white">${ord.total_amount.toFixed(2)}</td>
-                        <td className="py-3 text-amber-400 font-bold font-mono">{ord.total_sw} SW</td>
-                        <td className="py-3 text-right">
-                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                            ord.status === 'completed' 
-                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
-                              : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                          }`}>
-                            {ord.status.toUpperCase()}
-                          </span>
-                        </td>
+              <div>
+                {/* Desktop Table View */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-xs text-left text-slate-300">
+                    <thead>
+                      <tr className="border-b border-slate-800 text-[10px] text-slate-500 uppercase font-black tracking-wider">
+                        <th className="py-3">Order ID</th>
+                        <th className="py-3">Date</th>
+                        <th className="py-3">Amount</th>
+                        <th className="py-3">SW Volume</th>
+                        <th className="py-3 text-right">Payment Status</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-slate-850">
+                      {orders.map((ord) => (
+                        <tr key={ord.id} className="hover:bg-slate-950/20 transition-colors">
+                          <td className="py-3 font-mono font-bold text-slate-200">#00{ord.id}</td>
+                          <td className="py-3 text-slate-400">{new Date(ord.created_at).toLocaleDateString()}</td>
+                          <td className="py-3 font-bold font-mono text-white">${ord.total_amount.toFixed(2)}</td>
+                          <td className="py-3 text-amber-400 font-bold font-mono">{ord.total_sw} SW</td>
+                          <td className="py-3 text-right">
+                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                              ord.status === 'completed' 
+                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                                : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                            }`}>
+                              {ord.status.toUpperCase()}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile Cards View */}
+                <div className="block md:hidden space-y-3">
+                  {orders.map((ord) => (
+                    <div 
+                      key={ord.id} 
+                      className="bg-slate-950/20 border border-slate-850 rounded-xl p-4 shadow-sm hover:border-slate-800 transition-colors"
+                    >
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="font-mono font-bold text-slate-200 text-xs">#00{ord.id}</span>
+                        <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black tracking-wider ${
+                          ord.status === 'completed' 
+                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                            : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                        }`}>
+                          {ord.status.toUpperCase()}
+                        </span>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-[11px] font-normal">
+                        <div className="flex flex-col">
+                          <span className="text-[9px] text-slate-500 uppercase font-black tracking-wider mb-0.5">Date</span>
+                          <span className="text-slate-400">{new Date(ord.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex flex-col text-right">
+                          <span className="text-[9px] text-slate-500 uppercase font-black tracking-wider mb-0.5">Amount</span>
+                          <span className="font-black font-mono text-white">${ord.total_amount.toFixed(2)}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[9px] text-slate-500 uppercase font-black tracking-wider mb-0.5">SW Volume</span>
+                          <span className="text-amber-400 font-bold font-mono">{ord.total_sw} SW</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export const API_BASE_URL = 'https://ecom-ml-backend.onrender.com';
+export const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:8000'
+  : 'https://ecom-ml-backend.onrender.com';
 
 export interface User {
   id: number;
@@ -8,6 +10,7 @@ export interface User {
   email: string;
   full_name: string;
   status: 'active' | 'inactive';
+  is_admin: boolean;
   sponsor_id: number | null;
   parent_id: number | null;
   position: 'left' | 'right' | null;

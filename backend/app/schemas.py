@@ -28,6 +28,7 @@ class UserCreate(BaseModel):
 class UserResponse(UserBase):
     id: int
     status: str
+    is_admin: bool
     sponsor_id: Optional[int] = None
     parent_id: Optional[int] = None
     position: Optional[str] = None
@@ -77,6 +78,15 @@ class ProductBase(BaseModel):
 class ProductCreate(ProductBase):
     pass
 
+class ProductUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    price: Optional[float] = None
+    sw: Optional[int] = None
+    image_url: Optional[str] = None
+    category: Optional[str] = None
+    stock: Optional[int] = None
+
 class ProductResponse(ProductBase):
     id: int
 
@@ -124,6 +134,47 @@ class CommissionResponse(BaseModel):
     type: str
     description: Optional[str] = None
     created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# --- Admin Action Schemas ---
+class UserUpdateStatus(BaseModel):
+    status: str # 'active' or 'inactive'
+
+class UserUpdateWallet(BaseModel):
+    amount: float # Positive to credit, negative to debit
+    description: str
+
+class OrderUpdateStatus(BaseModel):
+    status: str # 'pending', 'completed', 'cancelled'
+
+class AdminStatsResponse(BaseModel):
+    total_users: int
+    active_users: int
+    inactive_users: int
+    total_sales_amount: float
+    total_sales_sw: int
+    total_commissions_amount: float
+    recent_users: List[UserResponse]
+    recent_orders: List[OrderResponse]
+
+
+# --- Category Schemas ---
+class CategoryBase(BaseModel):
+    name: str
+    image_url: Optional[str] = None
+
+class CategoryCreate(CategoryBase):
+    pass
+
+class CategoryUpdate(BaseModel):
+    name: Optional[str] = None
+    image_url: Optional[str] = None
+
+class CategoryResponse(CategoryBase):
+    id: int
 
     class Config:
         from_attributes = True

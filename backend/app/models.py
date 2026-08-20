@@ -1,5 +1,5 @@
 import datetime
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Text
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Text, Boolean
 from sqlalchemy.orm import relationship
 from .database import Base
 
@@ -12,6 +12,7 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     full_name = Column(String, nullable=False)
     status = Column(String, default="inactive") # 'active' or 'inactive'
+    is_admin = Column(Boolean, default=False, nullable=False)
     
     # Direct MLM relationship
     sponsor_id = Column(Integer, ForeignKey("users.id"), nullable=True)
@@ -56,6 +57,14 @@ class Product(Base):
     image_url = Column(String, nullable=True)
     category = Column(String, nullable=True)
     stock = Column(Integer, default=100)
+
+
+class Category(Base):
+    __tablename__ = "categories"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True, nullable=False)
+    image_url = Column(String, nullable=True)
 
 
 class Order(Base):

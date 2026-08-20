@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { User } from '../context/AuthContext';
-import { User as UserIcon, Plus, ArrowUp, Zap, HelpCircle } from 'lucide-react';
+import { User as UserIcon, Plus, ArrowUp, Zap, List, Layers, Move } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export interface TreeData {
@@ -26,11 +26,52 @@ interface BinaryTreeProps {
 
 export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, currentUser }) => {
   const navigate = useNavigate();
+  const [viewMode, setViewMode] = useState<'visual' | 'list'>('visual');
+
+  // Drag scroll ref & states for Visual Tree
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeftVal, setScrollLeftVal] = useState(0);
+
+  // Auto-center root node on data or view mode changes
+  useEffect(() => {
+    if (viewMode === 'visual' && containerRef.current) {
+      const container = containerRef.current;
+      const scrollWidth = container.scrollWidth;
+      const clientWidth = container.clientWidth;
+      if (scrollWidth > clientWidth) {
+        container.scrollLeft = (scrollWidth - clientWidth) / 2;
+      }
+    }
+  }, [data, viewMode]);
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!containerRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - containerRef.current.offsetLeft);
+    setScrollLeftVal(containerRef.current.scrollLeft);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging || !containerRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - containerRef.current.offsetLeft;
+    const walk = (x - startX) * 1.5; // Scroll speed multiplier
+    containerRef.current.scrollLeft = scrollLeftVal - walk;
+  };
 
   // Helper to render a node card
   const renderNodeCard = (node: TreeData) => {
     const isActive = node.status === 'active';
-    const isRootNode = node.username.toLowerCase() === currentUser.username.toLowerCase();
 
     return (
       <div 
@@ -110,12 +151,29 @@ export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, curr
     );
   };
 
+  // Helper to render empty slot list for Directory View
+  const renderEmptySlotList = (parentUsername: string, position: 'left' | 'right') => {
+    const handleRegisterClick = () => {
+      navigate(`/register?sponsor=${parentUsername}&position=${position}`);
+    };
+
+    return (
+      <div 
+        onClick={handleRegisterClick}
+        className="flex items-center gap-2.5 p-2 px-3.5 bg-slate-900 border border-dashed border-slate-700 hover:border-amber-500/50 hover:bg-slate-900/80 rounded-lg cursor-pointer transition-all w-fit group select-none"
+      >
+        <Plus size={12} className="text-slate-500 group-hover:text-amber-500 transition-colors" />
+        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider group-hover:text-slate-200 transition-colors">
+          Add {position} Node under @{parentUsername}
+        </span>
+      </div>
+    );
+  };
+
   // Recursive Tree Renderer
   // We render 3 levels: Root, Children (L1), and Grandchildren (L2)
   const renderTree = (node: TreeData | null, depth = 0): React.ReactNode => {
     if (!node) return null;
-
-    const hasChildren = node.left_child || node.right_child;
 
     return (
       <div className="flex flex-col items-center">
@@ -160,15 +218,157 @@ export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, curr
     );
   };
 
+  // Recursive Directory List Renderer
+  const renderDirectoryListNode = (node: TreeData, depth = 0): React.ReactNode => {
+    const isActive = node.status === 'active';
+    const isRoot = depth === 0;
+
+    return (
+      <div key={node.username} className="flex flex-col w-full">
+        {/* Node card for list */}
+        <div 
+          className={`flex flex-col sm:flex-row sm:items-center justify-between p-3.5 bg-slate-900 border rounded-xl shadow-sm transition-all hover:border-slate-800 select-none ${
+            depth > 0 ? 'ml-6 sm:ml-8 relative' : ''
+          } ${
+            isActive 
+              ? 'border-emerald-500/30' 
+              : 'border-red-500/30'
+          }`}
+        >
+          {/* Connector Line for Indented Nodes */}
+          {depth > 0 && (
+            <div className="absolute left-[-16px] sm:left-[-20px] top-1/2 w-4 sm:w-5 h-0.5 bg-slate-800" />
+          )}
+
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-lg ${isActive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
+              <UserIcon size={16} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span 
+                  onClick={() => onSelectNode(node.username)}
+                  className="font-extrabold text-slate-100 text-xs sm:text-sm hover:underline cursor-pointer"
+                >
+                  @{node.username}
+                </span>
+                <span className={`inline-flex px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider ${
+                  isActive ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                }`}>
+                  {node.status}
+                </span>
+                {node.position && (
+                  <span className="text-[8px] sm:text-[9px] uppercase font-bold text-slate-500 font-mono">
+                    {node.position} leg
+                  </span>
+                )}
+              </div>
+              <div className="text-slate-400 text-[10px] sm:text-xs mt-0.5">{node.full_name}</div>
+            </div>
+          </div>
+
+          <div className="mt-3 sm:mt-0 flex flex-wrap items-center gap-3 text-[10px] font-mono text-slate-400 border-t border-slate-850 pt-2.5 sm:pt-0 sm:border-0">
+            <div className="flex gap-3">
+              <div>
+                <span className="text-slate-500 uppercase text-[8px]">Left:</span>{' '}
+                <span className="font-bold text-slate-200">{node.left_leg_sw} SW</span>
+                <span className="text-slate-500 text-[8px] ml-1">({node.total_left_sw})</span>
+              </div>
+              <div>
+                <span className="text-slate-500 uppercase text-[8px]">Right:</span>{' '}
+                <span className="font-bold text-slate-200">{node.right_leg_sw} SW</span>
+                <span className="text-slate-500 text-[8px] ml-1">({node.total_right_sw})</span>
+              </div>
+            </div>
+            <div className="sm:border-l sm:border-slate-800 sm:pl-3">
+              <span className="text-slate-500 uppercase text-[8px]">Personal:</span>{' '}
+              <span className="font-bold text-amber-400">{node.personal_sw} SW</span>
+            </div>
+            {/* Action to drill down */}
+            {!isRoot && (
+              <button
+                onClick={() => onSelectNode(node.username)}
+                className="ml-auto sm:ml-2 px-2.5 py-1 bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 hover:border-slate-600 rounded text-[9px] font-bold transition-colors cursor-pointer"
+              >
+                Focus
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Children section wrapper */}
+        {depth < 2 && (
+          <div className="flex flex-col relative mt-2 mb-2 pl-6 sm:pl-8">
+            {/* Vertical connector line joining left and right children */}
+            <div className="absolute left-[9px] top-0 bottom-6 w-0.5 bg-slate-800" />
+
+            {/* Left child */}
+            <div className="flex flex-col w-full my-1">
+              {node.left_child ? (
+                renderDirectoryListNode(node.left_child, depth + 1)
+              ) : (
+                <div className="ml-6 sm:ml-8 relative py-1">
+                  <div className="absolute left-[-16px] sm:left-[-20px] top-1/2 w-4 sm:w-5 h-0.5 bg-slate-800" />
+                  {renderEmptySlotList(node.username, 'left')}
+                </div>
+              )}
+            </div>
+
+            {/* Right child */}
+            <div className="flex flex-col w-full my-1">
+              {node.right_child ? (
+                renderDirectoryListNode(node.right_child, depth + 1)
+              ) : (
+                <div className="ml-6 sm:ml-8 relative py-1">
+                  <div className="absolute left-[-16px] sm:left-[-20px] top-1/2 w-4 sm:w-5 h-0.5 bg-slate-800" />
+                  {renderEmptySlotList(node.username, 'right')}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
-    <div className="w-full py-8 flex flex-col items-center px-2 sm:px-4">
+    <div className="w-full py-6 flex flex-col items-center px-2 sm:px-4">
       {/* Legend & Instructions */}
-      <div className="max-w-xl bg-slate-900 border border-slate-800 rounded-lg p-3.5 mb-6 text-xs text-slate-300 w-full">
-        <h4 className="font-bold text-slate-100 mb-2.5 flex items-center gap-1.5">
-          <Zap size={14} className="text-amber-500" />
-          Binary Genealogy Tree Guide
-        </h4>
-        <div className="flex flex-wrap gap-x-5 gap-y-2 text-[11px] mb-2">
+      <div className="max-w-xl bg-slate-900 border border-slate-800 rounded-lg p-3.5 mb-6 text-xs text-slate-300 w-full flex flex-col gap-3">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+          <h4 className="font-bold text-slate-100 flex items-center gap-1.5">
+            <Zap size={14} className="text-amber-500" />
+            Binary Genealogy Tree Guide
+          </h4>
+
+          {/* View Mode Toggle */}
+          <div className="flex items-center bg-slate-950 p-1 rounded-lg border border-slate-800">
+            <button
+              onClick={() => setViewMode('visual')}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-bold transition-all cursor-pointer ${
+                viewMode === 'visual'
+                  ? 'bg-amber-500 text-slate-950 shadow'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Layers size={12} />
+              Visual Tree
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-bold transition-all cursor-pointer ${
+                viewMode === 'list'
+                  ? 'bg-amber-500 text-slate-950 shadow'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <List size={12} />
+              Directory List
+            </button>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-x-5 gap-y-2 text-[11px] border-t border-slate-850 pt-2.5">
           <div className="flex items-center gap-2">
             <span className="h-3 w-3 rounded-full bg-emerald-500 block"></span>
             <span>Active Member</span>
@@ -182,17 +382,49 @@ export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, curr
             <span>Available Slot</span>
           </div>
         </div>
-        <p className="text-[10px] text-slate-500 mt-2 border-t border-slate-850 pt-2">
-          💡 **Navigation**: Click any user card to set them as the temporary root and explore their downline down to 3 levels.
-        </p>
-      </div>
 
-      {/* Render the Tree Hierarchy inside a scrollable container */}
-      <div className="w-full overflow-x-auto flex justify-start md:justify-center p-4">
-        <div className="min-w-[800px] flex justify-center py-2">
-          {renderTree(data)}
+        <div className="text-[10px] text-slate-500 mt-1 border-t border-slate-850 pt-2 flex flex-col gap-1">
+          <p>💡 **Navigation**: Click any user card (or focus button) to drill down and explore their downline up to 3 levels.</p>
+          {viewMode === 'visual' && (
+            <p className="flex items-center gap-1 text-[9px] text-slate-500 font-mono mt-0.5">
+              <Move size={10} className="text-amber-500 animate-pulse" />
+              Tip: You can drag/swipe the tree horizontally to pan.
+            </p>
+          )}
         </div>
       </div>
+
+      {viewMode === 'visual' ? (
+        <div className="w-full relative">
+          {/* Scroll indicators/hints for mobile in visual mode */}
+          <div className="absolute left-2 top-1/2 -translate-y-1/2 bg-slate-900/80 border border-slate-800 p-1.5 rounded-full shadow-md pointer-events-none md:hidden animate-pulse">
+            <ArrowUp className="-rotate-90 text-amber-500 animate-pulse" size={14} />
+          </div>
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 bg-slate-900/80 border border-slate-800 p-1.5 rounded-full shadow-md pointer-events-none md:hidden animate-pulse">
+            <ArrowUp className="rotate-90 text-amber-500 animate-pulse" size={14} />
+          </div>
+
+          {/* Render the Tree Hierarchy inside a scrollable container */}
+          <div 
+            ref={containerRef}
+            onMouseDown={handleMouseDown}
+            onMouseLeave={handleMouseLeave}
+            onMouseUp={handleMouseUp}
+            onMouseMove={handleMouseMove}
+            className={`w-full overflow-x-auto flex justify-start p-4 ${
+              isDragging ? 'cursor-grabbing select-none' : 'cursor-grab'
+            }`}
+          >
+            <div className="min-w-[800px] flex justify-center py-2 mx-auto">
+              {renderTree(data)}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="w-full max-w-4xl p-4 bg-slate-950 rounded-xl border border-slate-900">
+          {renderDirectoryListNode(data)}
+        </div>
+      )}
     </div>
   );
 };

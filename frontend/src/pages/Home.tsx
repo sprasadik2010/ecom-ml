@@ -6,6 +6,7 @@ import { API_BASE_URL } from '../context/AuthContext';
 import { ShoppingBag, Tag, Compass } from 'lucide-react';
 
 export const Home: React.FC = () => {
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -22,29 +23,15 @@ export const Home: React.FC = () => {
   }, [categoryQuery]);
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchAllProducts = async () => {
       setLoading(true);
       try {
-        let url = `${API_BASE_URL}/products`;
-        if (activeCategory) {
-          url += `?category=${encodeURIComponent(activeCategory)}`;
-        }
-        const response = await fetch(url);
+        const response = await fetch(`${API_BASE_URL}/products`);
         if (!response.ok) {
           throw new Error('Failed to load products');
         }
         const data = await response.json();
-        
-        // Client side filter for search query
-        if (searchQuery.trim()) {
-          const filtered = data.filter((p: Product) =>
-            p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            p.description.toLowerCase().includes(searchQuery.toLowerCase())
-          );
-          setProducts(filtered);
-        } else {
-          setProducts(data);
-        }
+        setAllProducts(data);
         setError('');
       } catch (err: any) {
         console.error('Error fetching products:', err);
@@ -54,15 +41,49 @@ export const Home: React.FC = () => {
       }
     };
 
-    fetchProducts();
-  }, [activeCategory, searchQuery]);
+    fetchAllProducts();
+  }, []);
 
-    const categoriesList = [
+  useEffect(() => {
+    let filtered = allProducts;
+
+    if (activeCategory) {
+      filtered = filtered.filter((p) => p.category === activeCategory);
+    }
+
+    if (searchQuery.trim()) {
+      filtered = filtered.filter((p) =>
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+    }
+
+    setProducts(filtered);
+  }, [allProducts, activeCategory, searchQuery]);
+  const [categories, setCategories] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/categories`);
+        if (response.ok) {
+          const data = await response.json();
+          setCategories(data);
+        }
+      } catch (err) {
+        console.error('Error loading categories:', err);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  const categoriesList = [
     { name: '', label: 'All Items', img: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=120&h=120&q=80' },
-    { name: 'Apparel', label: 'Apparel', img: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=120&h=120&q=80' },
-    { name: 'Electronics', label: 'Electronics', img: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&w=120&h=120&q=80' },
-    { name: 'Wellness', label: 'Wellness', img: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=120&h=120&q=80' },
-    { name: 'Smart Home', label: 'Smart Home', img: 'https://images.unsplash.com/photo-1558002038-1055907df827?auto=format&fit=crop&w=120&h=120&q=80' }
+    ...categories.map((c) => ({
+      name: c.name,
+      label: c.name,
+      img: c.image_url || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=120&h=120&q=80'
+    }))
   ];
 
   return (

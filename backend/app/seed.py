@@ -1,7 +1,7 @@
 import logging
 from sqlalchemy.orm import Session
 from .database import engine, Base, SessionLocal
-from .models import User, Product
+from .models import User, Product, Category
 from .auth import get_password_hash
 
 logging.basicConfig(level=logging.INFO)
@@ -83,6 +83,25 @@ PRODUCTS = [
     }
 ]
 
+CATEGORIES = [
+    {
+        "name": "Apparel",
+        "image_url": "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=500&q=80"
+    },
+    {
+        "name": "Electronics",
+        "image_url": "https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&w=500&q=80"
+    },
+    {
+        "name": "Wellness",
+        "image_url": "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=500&q=80"
+    },
+    {
+        "name": "Smart Home",
+        "image_url": "https://images.unsplash.com/photo-1558002038-1055907df827?auto=format&fit=crop&w=500&q=80"
+    }
+]
+
 def seed_db():
     logger.info("Initializing tables...")
     Base.metadata.create_all(bind=engine)
@@ -100,7 +119,8 @@ def seed_db():
                 hashed_password=get_password_hash("admin123"),
                 status="active", # Root user is active by default
                 personal_sw=100.0,
-                wallet_balance=0.0
+                wallet_balance=0.0,
+                is_admin=True
             )
             db.add(admin)
             db.commit()
@@ -109,7 +129,20 @@ def seed_db():
         else:
             logger.info("Root user 'admin' already exists.")
             
-        # 2. Seed Products
+        # 2. Seed Categories
+        logger.info("Seeding categories catalog...")
+        for c_data in CATEGORIES:
+            category = db.query(Category).filter(Category.name == c_data["name"]).first()
+            if not category:
+                category = Category(**c_data)
+                db.add(category)
+                logger.info(f"Seeded category: {c_data['name']}")
+            else:
+                category.image_url = c_data["image_url"]
+                db.add(category)
+        db.commit()
+            
+        # 3. Seed Products
         logger.info("Seeding products catalog...")
         for p_data in PRODUCTS:
             product = db.query(Product).filter(Product.name == p_data["name"]).first()

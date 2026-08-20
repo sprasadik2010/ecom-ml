@@ -141,37 +141,76 @@ export const Commissions: React.FC = () => {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left text-slate-300">
-              <thead>
-                <tr className="border-b border-slate-800 text-[10px] text-slate-500 uppercase font-black tracking-wider">
-                  <th className="py-3">Transaction</th>
-                  <th className="py-3">Date</th>
-                  <th className="py-3">Type</th>
-                  <th className="py-3">Description</th>
-                  <th className="py-3 text-right">Credit Amount</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-850">
-                {commissions.map((comm) => (
-                  <tr key={comm.id} className="hover:bg-slate-950/20 transition-colors font-normal text-slate-300">
-                    <td className="py-3.5 font-mono font-bold text-slate-400">#TXN{1000 + comm.id}</td>
-                    <td className="py-3.5 text-slate-400">{new Date(comm.created_at).toLocaleString()}</td>
-                    <td className="py-3.5">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${
-                        comm.type === 'direct_referral'
-                          ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                          : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                      }`}>
-                        {comm.type.replace('_', ' ')}
-                      </span>
-                    </td>
-                    <td className="py-3.5 text-slate-400 max-w-sm pr-4">{comm.description}</td>
-                    <td className="py-3.5 text-right font-black font-mono text-emerald-400">+${comm.amount.toFixed(2)}</td>
+          <div>
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-xs text-left text-slate-300">
+                <thead>
+                  <tr className="border-b border-slate-800 text-[10px] text-slate-500 uppercase font-black tracking-wider">
+                    <th className="py-3">Transaction</th>
+                    <th className="py-3">Date</th>
+                    <th className="py-3">Type</th>
+                    <th className="py-3">Description</th>
+                    <th className="py-3 text-right">Credit Amount</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-850">
+                  {commissions.map((comm) => (
+                    <tr key={comm.id} className="hover:bg-slate-950/20 transition-colors font-normal text-slate-300">
+                      <td className="py-3.5 font-mono font-bold text-slate-400">#TXN{1000 + comm.id}</td>
+                      <td className="py-3.5 text-slate-400">{new Date(comm.created_at).toLocaleString()}</td>
+                      <td className="py-3.5">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${
+                          comm.type === 'direct_referral'
+                            ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                            : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                        }`}>
+                          {comm.type.replace('_', ' ')}
+                        </span>
+                      </td>
+                      <td className="py-3.5 text-slate-400 max-w-sm pr-4">{comm.description}</td>
+                      <td className="py-3.5 text-right font-black font-mono text-emerald-400">+${comm.amount.toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Cards View */}
+            <div className="block md:hidden space-y-3">
+              {commissions.map((comm) => (
+                <div 
+                  key={comm.id} 
+                  className="bg-slate-950/20 border border-slate-850 rounded-xl p-4 shadow-sm hover:border-slate-800 transition-colors"
+                >
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="font-mono font-bold text-slate-400 text-xs">#TXN{1000 + comm.id}</span>
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${
+                      comm.type === 'direct_referral'
+                        ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                        : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                    }`}>
+                      {comm.type.replace('_', ' ')}
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-2 text-[11px] font-normal text-slate-400">
+                    <div className="flex justify-between">
+                      <span className="text-[9px] text-slate-500 uppercase font-black tracking-wider">Date</span>
+                      <span>{new Date(comm.created_at).toLocaleString()}</span>
+                    </div>
+                    <div className="flex flex-col pt-1.5 border-t border-slate-850">
+                      <span className="text-[9px] text-slate-500 uppercase font-black tracking-wider mb-0.5">Description</span>
+                      <span className="text-slate-300 leading-normal">{comm.description}</span>
+                    </div>
+                    <div className="flex justify-between items-center pt-2 border-t border-slate-850">
+                      <span className="text-[9px] text-slate-500 uppercase font-black tracking-wider">Credit Amount</span>
+                      <span className="font-black font-mono text-sm text-emerald-400">+${comm.amount.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
