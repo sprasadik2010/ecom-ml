@@ -105,16 +105,20 @@ export const Navbar: React.FC = () => {
                   <Network size={15} />
                   <span>Binary Tree</span>
                 </Link>
-                <Link to="/commissions" className="flex items-center gap-1.5 text-slate-300 hover:text-amber-500 transition-colors">
-                  <DollarSign size={15} />
-                  <span>Commissions</span>
-                </Link>
+                {!user.is_admin && (
+                  <Link to="/commissions" className="flex items-center gap-1.5 text-slate-300 hover:text-amber-500 transition-colors">
+                    <DollarSign size={15} />
+                    <span>Commissions</span>
+                  </Link>
+                )}
 
                 {/* Wallet Pill */}
-                <div className="bg-slate-950 border border-amber-400/20 px-3 py-1 rounded-full flex items-center gap-1.5 text-amber-400 text-xs font-bold font-mono">
-                  <span className="text-[9px] text-slate-400 uppercase font-sans font-bold">Wallet:</span>
-                  ${user.wallet_balance.toFixed(2)}
-                </div>
+                {!user.is_admin && (
+                  <div className="bg-slate-950 border border-amber-400/20 px-3 py-1 rounded-full flex items-center gap-1.5 text-amber-400 text-xs font-bold font-mono">
+                    <span className="text-[9px] text-slate-400 uppercase font-sans font-bold">Wallet:</span>
+                    ${user.wallet_balance.toFixed(2)}
+                  </div>
+                )}
 
                 {/* User Dropdown/Pill */}
                 <div className="flex items-center gap-2 border-l border-slate-700 pl-3">
@@ -149,15 +153,17 @@ export const Navbar: React.FC = () => {
             )}
           </div>
 
-          {/* Cart Icon (Always visible) */}
-          <Link to="/cart" className="relative p-2 text-slate-300 hover:text-amber-500 transition-colors flex items-center">
-            <ShoppingCart size={18} />
-            {cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-amber-500 text-slate-950 text-[9px] font-black rounded-full h-4.5 w-4.5 flex items-center justify-center border border-white">
-                {cartCount}
-              </span>
-            )}
-          </Link>
+          {/* Cart Icon (Only visible to non-admins) */}
+          {(!user || !user.is_admin) && (
+            <Link to="/cart" className="relative p-2 text-slate-300 hover:text-amber-500 transition-colors flex items-center">
+              <ShoppingCart size={18} />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-amber-500 text-slate-950 text-[9px] font-black rounded-full h-4.5 w-4.5 flex items-center justify-center border border-white">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
+          )}
 
           {/* Mobile Menu Button (Hamburger) */}
           <button
@@ -230,14 +236,16 @@ export const Navbar: React.FC = () => {
                   <Network size={14} className="text-amber-500" />
                   Binary Tree
                 </Link>
-                <Link
-                  to="/commissions"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="px-3 py-2 bg-slate-950/20 hover:bg-slate-950/50 rounded-md text-slate-300 hover:text-amber-500 flex items-center gap-2 transition-colors"
-                >
-                  <DollarSign size={14} className="text-amber-500" />
-                  Commissions Ledger
-                </Link>
+                {!user.is_admin && (
+                  <Link
+                    to="/commissions"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="px-3 py-2 bg-slate-950/20 hover:bg-slate-950/50 rounded-md text-slate-300 hover:text-amber-500 flex items-center gap-2 transition-colors"
+                  >
+                    <DollarSign size={14} className="text-amber-500" />
+                    Commissions Ledger
+                  </Link>
+                )}
 
                 <div className="border-t border-slate-700 my-2" />
 
@@ -247,9 +255,11 @@ export const Navbar: React.FC = () => {
                     <span className="text-[9px] text-slate-400 uppercase">Logged in as</span>
                     <span className="font-bold text-slate-200">@{user.username}</span>
                   </div>
-                  <div className="bg-slate-950 border border-amber-400/20 px-2.5 py-1 rounded text-amber-400 font-bold font-mono">
-                    Wallet: ${user.wallet_balance.toFixed(2)}
-                  </div>
+                  {!user.is_admin && (
+                    <div className="bg-slate-950 border border-amber-400/20 px-2.5 py-1 rounded text-amber-400 font-bold font-mono">
+                      Wallet: ${user.wallet_balance.toFixed(2)}
+                    </div>
+                  )}
                 </div>
 
                 <button

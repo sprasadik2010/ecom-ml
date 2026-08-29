@@ -193,6 +193,11 @@ def place_order(
     current_user: models.User = Depends(auth.get_current_user), 
     db: Session = Depends(get_db)
 ):
+    if current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Administrators cannot place orders or purchase products."
+        )
     try:
         order = crud.create_order(db, current_user, order_data)
         return order
@@ -249,9 +254,9 @@ def get_admin_stats(
     current_admin: models.User = Depends(auth.get_current_admin),
     db: Session = Depends(get_db)
 ):
-    total_users = db.query(models.User).count()
-    active_users = db.query(models.User).filter(models.User.status == "active").count()
-    inactive_users = db.query(models.User).filter(models.User.status == "inactive").count()
+    total_users = db.query(models.User).filter(models.User.is_admin == False).count()
+    active_users = db.query(models.User).filter(models.User.status == "active", models.User.is_admin == False).count()
+    inactive_users = db.query(models.User).filter(models.User.status == "inactive", models.User.is_admin == False).count()
     
     completed_orders = db.query(models.Order).filter(models.Order.status == "completed").all()
     total_sales_amount = sum(order.total_amount for order in completed_orders)
@@ -260,7 +265,7 @@ def get_admin_stats(
     commissions = db.query(models.Commission).all()
     total_commissions_amount = sum(c.amount for c in commissions)
     
-    recent_users = db.query(models.User).order_by(models.User.created_at.desc()).limit(5).all()
+    recent_users = db.query(models.User).filter(models.User.is_admin == False).order_by(models.User.created_at.desc()).limit(5).all()
     recent_orders = db.query(models.Order).order_by(models.Order.created_at.desc()).limit(5).all()
     
     return {
@@ -323,7 +328,7 @@ def admin_get_users(
     current_admin: models.User = Depends(auth.get_current_admin),
     db: Session = Depends(get_db)
 ):
-    return db.query(models.User).order_by(models.User.id.asc()).all()
+    return db.query(models.User).filter(models.User.is_admin == False).order_by(models.User.id.asc()).all()
 
 @app.put("/admin/users/{user_id}/status", response_model=schemas.UserResponse)
 def admin_update_user_status(
