@@ -88,7 +88,7 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Conditional Warning for Inactive Members */}
-      {!isActive && (
+      {!isActive && !user.is_admin && (
         <div className="bg-red-950/20 border border-red-900/50 rounded-lg p-5 mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="flex-1">
             <h4 className="font-extrabold text-sm text-red-200 mb-1">Your Account is Currently Inactive!</h4>
@@ -190,77 +190,98 @@ export const Dashboard: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Side: Referral code & Upline info */}
+        {/* Left Side: Referral code & Upline info or Admin panel overview */}
         <div className="lg:col-span-4 space-y-6">
-          {/* Referral link box */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-md">
-            <h3 className="font-extrabold text-sm text-slate-100 uppercase tracking-wider mb-3.5 flex items-center gap-2">
-              <Share2 size={16} className="text-amber-500" />
-              Referral Link
-            </h3>
-            <p className="text-[11px] text-slate-400 leading-normal mb-4 font-normal">
-              Share your custom registration referral link. Direct recruits are auto-positioned down your binary tree legs!
-            </p>
-            
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                readOnly
-                className="bg-slate-950 border border-slate-800 rounded text-[10px] font-mono text-slate-300 px-2.5 py-2 flex-1 focus:outline-none"
-                value={referralLink}
-              />
-              <button
-                onClick={handleCopyLink}
-                className="p-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded transition-colors active:scale-95 cursor-pointer"
-                title="Copy link"
+          {user.is_admin ? (
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-md relative">
+              <div className="absolute top-0 left-0 right-0 h-1 rounded-t-lg bg-rose-500" />
+              <h3 className="font-extrabold text-sm text-slate-100 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <ShieldCheck size={16} className="text-rose-500" />
+                Administrator Mode
+              </h3>
+              <p className="text-[11px] text-slate-400 leading-normal mb-4 font-normal">
+                You are logged in as the System Administrator. You have full system privileges to audit sales, adjust wallets, edit categories, and manage products.
+              </p>
+              <Link
+                to="/admin"
+                className="w-full py-2.5 bg-rose-500 hover:bg-rose-600 text-slate-950 rounded-md font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
               >
-                <Clipboard size={14} />
-              </button>
+                Go to Admin Panel
+              </Link>
             </div>
-            {copied && <span className="text-[10px] text-emerald-400 font-bold block mt-1">Copied to clipboard!</span>}
+          ) : (
+            <>
+              {/* Referral link box */}
+              <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-md">
+                <h3 className="font-extrabold text-sm text-slate-100 uppercase tracking-wider mb-3.5 flex items-center gap-2">
+                  <Share2 size={16} className="text-amber-500" />
+                  Referral Link
+                </h3>
+                <p className="text-[11px] text-slate-400 leading-normal mb-4 font-normal">
+                  Share your custom registration referral link. Direct recruits are auto-positioned down your binary tree legs!
+                </p>
+                
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    className="bg-slate-950 border border-slate-800 rounded text-[10px] font-mono text-slate-300 px-2.5 py-2 flex-1 focus:outline-none"
+                    value={referralLink}
+                  />
+                  <button
+                    onClick={handleCopyLink}
+                    className="p-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded transition-colors active:scale-95 cursor-pointer"
+                    title="Copy link"
+                  >
+                    <Clipboard size={14} />
+                  </button>
+                </div>
+                {copied && <span className="text-[10px] text-emerald-400 font-bold block mt-1">Copied to clipboard!</span>}
 
-            <div className="border-t border-slate-850 my-4" />
+                <div className="border-t border-slate-850 my-4" />
 
-            <Link
-              to="/tree"
-              className="w-full py-2 bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 rounded-md font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
-            >
-              <Users size={14} />
-              View Binary downline
-            </Link>
-          </div>
+                <Link
+                  to="/tree"
+                  className="w-full py-2 bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 rounded-md font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+                >
+                  <Users size={14} />
+                  View Binary downline
+                </Link>
+              </div>
 
-          {/* Placement Details Box */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-md">
-            <h3 className="font-extrabold text-sm text-slate-100 uppercase tracking-wider mb-4">Upline Placement</h3>
-            
-            <div className="divide-y divide-slate-850 text-xs font-normal">
-              <div className="py-2.5 flex justify-between">
-                <span className="text-slate-500">Direct Sponsor</span>
-                <span className="font-bold text-slate-200">
-                  {user.sponsor_id ? '@upline_sponsor' : 'Root Company Administrator'}
-                </span>
+              {/* Placement Details Box */}
+              <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-md">
+                <h3 className="font-extrabold text-sm text-slate-100 uppercase tracking-wider mb-4">Upline Placement</h3>
+                
+                <div className="divide-y divide-slate-850 text-xs font-normal">
+                  <div className="py-2.5 flex justify-between">
+                    <span className="text-slate-500">Direct Sponsor</span>
+                    <span className="font-bold text-slate-200">
+                      {user.sponsor_id ? '@upline_sponsor' : 'Root Company Administrator'}
+                    </span>
+                  </div>
+                  <div className="py-2.5 flex justify-between">
+                    <span className="text-slate-500">Binary Tree Parent</span>
+                    <span className="font-bold text-slate-200">
+                      {user.parent_id ? '@parent_placement' : 'None (Root Node)'}
+                    </span>
+                  </div>
+                  <div className="py-2.5 flex justify-between">
+                    <span className="text-slate-500">Placement Side</span>
+                    <span className="font-bold text-amber-500 capitalize">
+                      {user.position ? `${user.position} side` : 'None (Root Node)'}
+                    </span>
+                  </div>
+                  <div className="py-2.5 flex justify-between">
+                    <span className="text-slate-500">Account Created</span>
+                    <span className="font-mono text-[10px] text-slate-400">
+                      {new Date(user.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div className="py-2.5 flex justify-between">
-                <span className="text-slate-500">Binary Tree Parent</span>
-                <span className="font-bold text-slate-200">
-                  {user.parent_id ? '@parent_placement' : 'None (Root Node)'}
-                </span>
-              </div>
-              <div className="py-2.5 flex justify-between">
-                <span className="text-slate-500">Placement Side</span>
-                <span className="font-bold text-amber-500 capitalize">
-                  {user.position ? `${user.position} side` : 'None (Root Node)'}
-                </span>
-              </div>
-              <div className="py-2.5 flex justify-between">
-                <span className="text-slate-500">Account Created</span>
-                <span className="font-mono text-[10px] text-slate-400">
-                  {new Date(user.created_at).toLocaleDateString()}
-                </span>
-              </div>
-            </div>
-          </div>
+            </>
+          )}
         </div>
 
         {/* Right Side: Recent Orders Table */}
