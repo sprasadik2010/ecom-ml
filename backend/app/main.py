@@ -61,7 +61,7 @@ def read_root():
 
 @app.get("/auth/has-users")
 def has_users(db: Session = Depends(get_db)):
-    count = db.query(models.User).count()
+    count = db.query(models.User).filter(models.User.is_admin == False).count()
     return {"has_users": count > 0}
 
 
@@ -141,19 +141,28 @@ def get_downline_tree(
     Returns the binary genealogy tree starting from current user, 
     or starting from a specified downline username.
     """
-    target_user = current_user
-    
-    if username and username.lower() != current_user.username.lower():
-        target_user = crud.get_user_by_username(db, username)
-        if not target_user:
-            raise HTTPException(status_code=404, detail=f"User '{username}' not found.")
-            
-        # Verify permissions: target user must be in the downline of the logged-in user
-        if not is_user_in_downline(db, current_user.id, target_user.id):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, 
-                detail=f"Access Denied: '{username}' is not in your downline binary tree."
-            )
+    if current_user.is_admin:
+        if username:
+            target_user = crud.get_user_by_username(db, username)
+            if not target_user:
+                raise HTTPException(status_code=404, detail=f"User '{username}' not found.")
+        else:
+            target_user = crud.get_user_by_username(db, "rootuser")
+            if not target_user:
+                raise HTTPException(status_code=404, detail="Root genealogy user ('rootuser') not found.")
+    else:
+        target_user = current_user
+        if username and username.lower() != current_user.username.lower():
+            target_user = crud.get_user_by_username(db, username)
+            if not target_user:
+                raise HTTPException(status_code=404, detail=f"User '{username}' not found.")
+                
+            # Verify permissions: target user must be in the downline of the logged-in user
+            if not is_user_in_downline(db, current_user.id, target_user.id):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN, 
+                    detail=f"Access Denied: '{username}' is not in your downline binary tree."
+                )
             
     tree = crud.get_genealogy_tree(db, target_user.id, current_depth=0)
     if not tree:

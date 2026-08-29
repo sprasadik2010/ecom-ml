@@ -67,7 +67,7 @@ export const Login: React.FC = () => {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               disabled={submitting}
-              placeholder="e.g. admin"
+              placeholder="e.g. admin or rootuser"
             />
           </div>
 
@@ -108,7 +108,7 @@ export const Login: React.FC = () => {
 
       {/* Quick Credentials Seeding Prompt helper */}
       {/* <div className="bg-slate-900/30 border border-slate-850 rounded-lg p-3.5 mt-4 text-center text-[10px] text-slate-500 leading-normal max-w-xs mx-auto">
-        💡 **Demo Accounts**: You can sign in as the root admin using username: <code className="text-amber-500/80 font-bold font-mono bg-slate-950 px-1 py-0.5 rounded">admin</code> and password: <code className="text-amber-500/80 font-bold font-mono bg-slate-950 px-1 py-0.5 rounded">admin123</code>.
+        💡 **Demo Accounts**: You can sign in as the root admin using username: <code className="text-amber-500/80 font-bold font-mono bg-slate-950 px-1 py-0.5 rounded">admin</code> and password: <code className="text-amber-500/80 font-bold font-mono bg-slate-950 px-1 py-0.5 rounded">admin123</code> or the genealogy root user using username: <code className="text-amber-500/80 font-bold font-mono bg-slate-950 px-1 py-0.5 rounded">rootuser</code> and password: <code className="text-amber-500/80 font-bold font-mono bg-slate-950 px-1 py-0.5 rounded">user@root.123</code>.
       </div> */}
     </div>
   );

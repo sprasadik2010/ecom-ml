@@ -128,13 +128,13 @@ export const Register: React.FC = () => {
               value={sponsorUsername}
               onChange={(e) => setSponsorUsername(e.target.value)}
               disabled={submitting}
-              placeholder="Sponsor username (e.g. admin)"
+              placeholder="Sponsor username (e.g. rootuser)"
               required={hasUsers}
             />
             <p className="text-[10px] text-slate-500 mt-1 leading-normal">
               {hasUsers
                 ? 'Referral sponsor is required to place you in the network tree.'
-                : 'Leave blank if you are the root administrator (first user). Otherwise, a sponsor is required.'}
+                : 'Leave blank if you are the root genealogy user (first user). Otherwise, a sponsor is required.'}
             </p>
           </div>
 

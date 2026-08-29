@@ -36,6 +36,9 @@ def create_user(db: Session, user_data: UserCreate) -> User:
         sponsor = get_user_by_username(db, sponsor_username)
         if not sponsor:
             raise ValueError(f"Referral sponsor with username '{sponsor_username}' does not exist.")
+            
+        if sponsor.is_admin:
+            raise ValueError("Admin cannot sponsor users in the network tree.")
         
         # Determine binary parent using spillover logic
         parent, actual_position = find_binary_placement(db, sponsor.id, user_data.position)

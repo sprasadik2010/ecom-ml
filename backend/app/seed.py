@@ -128,6 +128,27 @@ def seed_db():
             logger.info("Root user 'admin' created successfully.")
         else:
             logger.info("Root user 'admin' already exists.")
+
+        # 1b. Seed Genealogy Mother Node (rootuser)
+        rootuser = db.query(User).filter(User.username == "rootuser").first()
+        if not rootuser:
+            logger.info("Seeding root genealogy node 'rootuser'...")
+            rootuser = User(
+                username="rootuser",
+                email="rootuser@mlm-amazon.com",
+                full_name="Root User",
+                hashed_password=get_password_hash("user@root.123"),
+                status="active", # Root user of tree is active by default
+                personal_sw=100.0,
+                wallet_balance=0.0,
+                is_admin=False
+            )
+            db.add(rootuser)
+            db.commit()
+            db.refresh(rootuser)
+            logger.info("Genealogy root user 'rootuser' created successfully.")
+        else:
+            logger.info("Genealogy root user 'rootuser' already exists.")
             
         # 2. Seed Categories
         logger.info("Seeding categories catalog...")
