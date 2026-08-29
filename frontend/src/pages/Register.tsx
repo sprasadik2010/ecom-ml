@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, API_BASE_URL } from '../context/AuthContext';
 import { ShieldAlert, UserPlus, ArrowLeft, CheckCircle2 } from 'lucide-react';
 
 export const Register: React.FC = () => {
@@ -14,10 +14,27 @@ export const Register: React.FC = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [hasUsers, setHasUsers] = useState<boolean>(true); // default to true to be safe
 
   const { register } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
+  // Check if there are users in the system to determine if sponsor is required
+  useEffect(() => {
+    const checkUsers = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/auth/has-users`);
+        if (response.ok) {
+          const data = await response.json();
+          setHasUsers(data.has_users);
+        }
+      } catch (err) {
+        console.error('Failed to check if users exist:', err);
+      }
+    };
+    checkUsers();
+  }, []);
 
   // Pre-populate sponsor and position from URL query params (referrals or visual tree clicks!)
   useEffect(() => {
@@ -35,6 +52,12 @@ export const Register: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (hasUsers && !sponsorUsername.trim()) {
+      setError('Referral sponsor username is required.');
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -106,9 +129,12 @@ export const Register: React.FC = () => {
               onChange={(e) => setSponsorUsername(e.target.value)}
               disabled={submitting}
               placeholder="Sponsor username (e.g. admin)"
+              required={hasUsers}
             />
             <p className="text-[10px] text-slate-500 mt-1 leading-normal">
-              Leave blank if you are the root administrator (first user). Otherwise, a sponsor is required.
+              {hasUsers
+                ? 'Referral sponsor is required to place you in the network tree.'
+                : 'Leave blank if you are the root administrator (first user). Otherwise, a sponsor is required.'}
             </p>
           </div>
 

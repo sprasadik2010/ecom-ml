@@ -28,15 +28,14 @@ def create_user(db: Session, user_data: UserCreate) -> User:
     actual_position = None
     
     if user_count > 0:
-        # Determine the sponsor (default to first/admin user if not provided)
+        # Determine the sponsor (sponsor is strictly required if there are existing users)
         sponsor_username = user_data.sponsor_username
-        if not sponsor_username:
-            sponsor = db.query(User).order_by(User.id.asc()).first()
-            logger.info(f"Sponsor not specified. Defaulting to root user: {sponsor.username}")
-        else:
-            sponsor = get_user_by_username(db, sponsor_username)
-            if not sponsor:
-                raise ValueError(f"Referral sponsor with username '{sponsor_username}' does not exist.")
+        if not sponsor_username or not sponsor_username.strip():
+            raise ValueError("Referral sponsor username is required.")
+            
+        sponsor = get_user_by_username(db, sponsor_username)
+        if not sponsor:
+            raise ValueError(f"Referral sponsor with username '{sponsor_username}' does not exist.")
         
         # Determine binary parent using spillover logic
         parent, actual_position = find_binary_placement(db, sponsor.id, user_data.position)

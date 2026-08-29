@@ -59,6 +59,12 @@ def read_root():
 
 # --- Auth Endpoints ---
 
+@app.get("/auth/has-users")
+def has_users(db: Session = Depends(get_db)):
+    count = db.query(models.User).count()
+    return {"has_users": count > 0}
+
+
 @app.post("/auth/register", response_model=schemas.UserResponse, status_code=status.HTTP_201_CREATED)
 def register_user(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
     # Check if username or email already exists

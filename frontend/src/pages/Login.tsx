@@ -8,7 +8,7 @@ export const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  
+
   const { login, user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -40,7 +40,7 @@ export const Login: React.FC = () => {
     <div className="max-w-md mx-auto px-4 py-20 flex flex-col justify-center">
       <div className="bg-slate-900 border border-slate-800 rounded-lg p-8 shadow-md relative">
         <div className="absolute top-0 left-0 right-0 h-1 rounded-t-lg bg-amber-500" />
-        
+
         <div className="text-center mb-6">
           <h2 className="text-2xl font-black text-white tracking-tight flex items-center justify-center gap-1">
             Sign In
@@ -87,9 +87,8 @@ export const Login: React.FC = () => {
           <button
             type="submit"
             disabled={submitting}
-            className={`w-full py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-md font-extrabold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
-              submitting ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'
-            }`}
+            className={`w-full py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-md font-extrabold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${submitting ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'
+              }`}
           >
             {submitting ? 'Signing in...' : 'Sign In'}
             <LogIn size={14} />
@@ -106,11 +105,11 @@ export const Login: React.FC = () => {
           </Link>
         </div>
       </div>
-      
+
       {/* Quick Credentials Seeding Prompt helper */}
-      <div className="bg-slate-900/30 border border-slate-850 rounded-lg p-3.5 mt-4 text-center text-[10px] text-slate-500 leading-normal max-w-xs mx-auto">
+      {/* <div className="bg-slate-900/30 border border-slate-850 rounded-lg p-3.5 mt-4 text-center text-[10px] text-slate-500 leading-normal max-w-xs mx-auto">
         💡 **Demo Accounts**: You can sign in as the root admin using username: <code className="text-amber-500/80 font-bold font-mono bg-slate-950 px-1 py-0.5 rounded">admin</code> and password: <code className="text-amber-500/80 font-bold font-mono bg-slate-950 px-1 py-0.5 rounded">admin123</code>.
-      </div>
+      </div> */}
     </div>
   );
 };
