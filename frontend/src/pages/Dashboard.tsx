@@ -257,13 +257,13 @@ export const Dashboard: React.FC = () => {
                   <div className="py-2.5 flex justify-between">
                     <span className="text-slate-500">Direct Sponsor</span>
                     <span className="font-bold text-slate-200">
-                      {user.sponsor_id ? '@upline_sponsor' : 'Root Company Administrator'}
+                      {user.sponsor_id ? `@${user.sponsor_username || user.sponsor_id}` : 'Root Company Administrator'}
                     </span>
                   </div>
                   <div className="py-2.5 flex justify-between">
                     <span className="text-slate-500">Binary Tree Parent</span>
                     <span className="font-bold text-slate-200">
-                      {user.parent_id ? '@parent_placement' : 'None (Root Node)'}
+                      {user.parent_id ? `@${user.parent_username || user.parent_id}` : 'None (Root Node)'}
                     </span>
                   </div>
                   <div className="py-2.5 flex justify-between">

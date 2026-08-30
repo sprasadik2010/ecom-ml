@@ -45,6 +45,15 @@ class User(Base):
     orders = relationship("Order", back_populates="user")
     commissions = relationship("Commission", back_populates="user")
 
+    @property
+    def sponsor_username(self):
+        return self.sponsor.username if self.sponsor else None
+
+    @property
+    def parent_username(self):
+        return self.parent.username if self.parent else None
+
+
 
 class Product(Base):
     __tablename__ = "products"

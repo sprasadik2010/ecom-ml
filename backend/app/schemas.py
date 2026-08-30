@@ -31,6 +31,8 @@ class UserResponse(UserBase):
     is_admin: bool
     sponsor_id: Optional[int] = None
     parent_id: Optional[int] = None
+    sponsor_username: Optional[str] = None
+    parent_username: Optional[str] = None
     position: Optional[str] = None
     left_child_id: Optional[int] = None
     right_child_id: Optional[int] = None

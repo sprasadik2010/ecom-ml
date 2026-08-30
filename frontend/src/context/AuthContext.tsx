@@ -13,6 +13,8 @@ export interface User {
   is_admin: boolean;
   sponsor_id: number | null;
   parent_id: number | null;
+  sponsor_username: string | null;
+  parent_username: string | null;
   position: 'left' | 'right' | null;
   left_child_id: number | null;
   right_child_id: number | null;
