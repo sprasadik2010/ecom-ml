@@ -80,7 +80,7 @@ export const Cart: React.FC = () => {
 
                     {/* Unit Price */}
                     <div className="col-span-2 text-center font-mono font-bold text-slate-300">
-                      ${item.product.price.toFixed(2)}
+                      ₹{item.product.price.toFixed(2)}
                     </div>
 
                     {/* Quantity Selector */}
@@ -108,7 +108,7 @@ export const Cart: React.FC = () => {
 
                     {/* Item Total */}
                     <div className="col-span-2 text-right font-mono font-bold text-white">
-                      ${(item.product.price * item.quantity).toFixed(2)}
+                      ₹{(item.product.price * item.quantity).toFixed(2)}
                       <span className="block text-[8px] text-amber-500 font-bold mt-0.5">{(item.product.sw * item.quantity)} SW</span>
                     </div>
                   </div>
@@ -152,7 +152,7 @@ export const Cart: React.FC = () => {
                       {/* Price per Unit */}
                       <div className="flex flex-col">
                         <span className="text-[9px] text-slate-500 uppercase font-sans">Price</span>
-                        <span className="text-slate-300 font-bold">${item.product.price.toFixed(2)}</span>
+                        <span className="text-slate-300 font-bold">₹{item.product.price.toFixed(2)}</span>
                       </div>
 
                       {/* Quantity dropdown */}
@@ -174,7 +174,7 @@ export const Cart: React.FC = () => {
                       {/* Total details */}
                       <div className="flex flex-col text-right">
                         <span className="text-[9px] text-slate-500 uppercase font-sans">Total</span>
-                        <span className="text-white font-extrabold">${(item.product.price * item.quantity).toFixed(2)}</span>
+                        <span className="text-white font-extrabold">₹{(item.product.price * item.quantity).toFixed(2)}</span>
                         <span className="text-[9px] text-amber-500 font-bold font-sans">{(item.product.sw * item.quantity)} SW</span>
                       </div>
                     </div>
@@ -210,7 +210,7 @@ export const Cart: React.FC = () => {
 
             <div className="border-t border-slate-850 pt-4 flex justify-between items-baseline">
               <span className="text-slate-200 font-bold">Subtotal:</span>
-              <span className="text-2xl font-black text-white font-mono">${totalAmount.toFixed(2)}</span>
+              <span className="text-2xl font-black text-white font-mono">₹{totalAmount.toFixed(2)}</span>
             </div>
 
             {/* MLM Info Blurb */}

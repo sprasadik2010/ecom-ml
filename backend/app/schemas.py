@@ -16,14 +16,17 @@ class UserBase(BaseModel):
     username: str
     email: EmailStr
     full_name: str
+    phone_number: Optional[str] = None
 
 class UserCreate(BaseModel):
     username: str
     email: EmailStr
     password: str
     full_name: str
+    phone_number: str
     sponsor_username: Optional[str] = None
     position: Optional[str] = "left" # 'left' or 'right'
+    signature: Optional[str] = None
 
 class UserResponse(UserBase):
     id: int
@@ -43,6 +46,8 @@ class UserResponse(UserBase):
     total_right_sw: float
     wallet_balance: float
     created_at: datetime
+    ref_signature_left: Optional[str] = None
+    ref_signature_right: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -62,6 +67,8 @@ class TreeNodeResponse(BaseModel):
     total_right_sw: float
     left_child: Optional["TreeNodeResponse"] = None
     right_child: Optional["TreeNodeResponse"] = None
+    left_child_signature: Optional[str] = None
+    right_child_signature: Optional[str] = None
 
     class Config:
         from_attributes = True

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../context/AuthContext';
-import { DollarSign, Landmark, ArrowRight, Award, Compass, HelpCircle } from 'lucide-react';
+import { IndianRupee, Landmark, ArrowRight, Award, Compass, HelpCircle } from 'lucide-react';
 
 interface Commission {
   id: number;
@@ -75,11 +75,11 @@ export const Commissions: React.FC = () => {
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
           <div className="flex justify-between items-start">
             <div>
-              <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Total Lifetime Commissions</span>
-              <div className="text-2xl font-black text-white font-mono mt-1.5">${totalEarned.toFixed(2)}</div>
+              <span className="text-slate-555 text-[10px] uppercase font-bold tracking-wider">Total Lifetime Commissions</span>
+              <div className="text-2xl font-black text-white font-mono mt-1.5">₹{totalEarned.toFixed(2)}</div>
             </div>
             <div className="p-2 bg-slate-950 text-amber-400 rounded-lg border border-slate-800">
-              <DollarSign size={20} />
+              <IndianRupee size={20} />
             </div>
           </div>
           <div className="mt-3 pt-3 border-t border-slate-850 flex items-center justify-between text-[10px] text-slate-400">
@@ -92,8 +92,8 @@ export const Commissions: React.FC = () => {
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
           <div className="flex justify-between items-start">
             <div>
-              <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Direct Referral Bonus</span>
-              <div className="text-2xl font-black text-slate-200 font-mono mt-1.5">${totalDirect.toFixed(2)}</div>
+              <span className="text-slate-505 text-[10px] uppercase font-bold tracking-wider">Direct Referral Bonus</span>
+              <div className="text-2xl font-black text-slate-200 font-mono mt-1.5">₹{totalDirect.toFixed(2)}</div>
             </div>
             <div className="p-2 bg-slate-950 text-amber-400/80 rounded-lg border border-slate-800">
               <Award size={20} />
@@ -109,8 +109,8 @@ export const Commissions: React.FC = () => {
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
           <div className="flex justify-between items-start">
             <div>
-              <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Team Binary Match Bonus</span>
-              <div className="text-2xl font-black text-slate-200 font-mono mt-1.5">${totalMatching.toFixed(2)}</div>
+              <span className="text-slate-505 text-[10px] uppercase font-bold tracking-wider">Team Binary Match Bonus</span>
+              <div className="text-2xl font-black text-slate-200 font-mono mt-1.5">₹{totalMatching.toFixed(2)}</div>
             </div>
             <div className="p-2 bg-slate-950 text-emerald-400 rounded-lg border border-slate-800">
               <Landmark size={20} />
@@ -169,7 +169,7 @@ export const Commissions: React.FC = () => {
                         </span>
                       </td>
                       <td className="py-3.5 text-slate-400 max-w-sm pr-4">{comm.description}</td>
-                      <td className="py-3.5 text-right font-black font-mono text-emerald-400">+${comm.amount.toFixed(2)}</td>
+                      <td className="py-3.5 text-right font-black font-mono text-emerald-400">+₹{comm.amount.toFixed(2)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -205,7 +205,7 @@ export const Commissions: React.FC = () => {
                     </div>
                     <div className="flex justify-between items-center pt-2 border-t border-slate-850">
                       <span className="text-[9px] text-slate-500 uppercase font-black tracking-wider">Credit Amount</span>
-                      <span className="font-black font-mono text-sm text-emerald-400">+${comm.amount.toFixed(2)}</span>
+                      <span className="font-black font-mono text-sm text-emerald-400">+₹{comm.amount.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth, API_BASE_URL } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import { ShoppingCart, LogOut, User as UserIcon, Network, DollarSign, Search, ShieldCheck, Menu, X, Compass, Home } from 'lucide-react';
+import { ShoppingCart, LogOut, User as UserIcon, Network, IndianRupee, Search, ShieldCheck, Menu, X, Compass, Home } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -105,9 +105,9 @@ export const Navbar: React.FC = () => {
                   <Network size={15} />
                   <span>Binary Tree</span>
                 </Link>
-                {!user.is_admin && (
+                 {!user.is_admin && (
                   <Link to="/commissions" className="flex items-center gap-1.5 text-slate-300 hover:text-amber-500 transition-colors">
-                    <DollarSign size={15} />
+                    <IndianRupee size={15} />
                     <span>Commissions</span>
                   </Link>
                 )}
@@ -116,7 +116,7 @@ export const Navbar: React.FC = () => {
                 {!user.is_admin && (
                   <div className="bg-slate-950 border border-amber-400/20 px-3 py-1 rounded-full flex items-center gap-1.5 text-amber-400 text-xs font-bold font-mono">
                     <span className="text-[9px] text-slate-400 uppercase font-sans font-bold">Wallet:</span>
-                    ${user.wallet_balance.toFixed(2)}
+                    ₹{user.wallet_balance.toFixed(2)}
                   </div>
                 )}
 
@@ -242,7 +242,7 @@ export const Navbar: React.FC = () => {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="px-3 py-2 bg-slate-950/20 hover:bg-slate-950/50 rounded-md text-slate-300 hover:text-amber-500 flex items-center gap-2 transition-colors"
                   >
-                    <DollarSign size={14} className="text-amber-500" />
+                    <IndianRupee size={14} className="text-amber-500" />
                     Commissions Ledger
                   </Link>
                 )}
@@ -257,7 +257,7 @@ export const Navbar: React.FC = () => {
                   </div>
                   {!user.is_admin && (
                     <div className="bg-slate-950 border border-amber-400/20 px-2.5 py-1 rounded text-amber-400 font-bold font-mono">
-                      Wallet: ${user.wallet_balance.toFixed(2)}
+                      Wallet: ₹{user.wallet_balance.toFixed(2)}
                     </div>
                   )}
                 </div>
@@ -309,7 +309,7 @@ export const Navbar: React.FC = () => {
             {user && (
               <>
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>Referral Link: <span className="text-amber-400">{window.location.origin}/register?ref={user.username}</span></span>
+                <span>Referral Links: <Link to="/dashboard" className="text-amber-400 hover:text-amber-300 transition-colors underline font-bold font-sans">Copy from Dashboard</Link></span>
               </>
             )}
           </div>

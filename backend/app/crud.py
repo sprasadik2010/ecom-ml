@@ -53,6 +53,7 @@ def create_user(db: Session, user_data: UserCreate) -> User:
         email=user_data.email,
         full_name=user_data.full_name,
         hashed_password=get_password_hash(user_data.password),
+        phone_number=user_data.phone_number,
         sponsor_id=sponsor.id if sponsor else None,
         parent_id=parent.id if parent else None,
         position=actual_position,
@@ -192,7 +193,9 @@ def get_genealogy_tree(db: Session, root_user_id: int, current_depth: int = 0, m
         "total_left_sw": user.total_left_sw,
         "total_right_sw": user.total_right_sw,
         "left_child": None,
-        "right_child": None
+        "right_child": None,
+        "left_child_signature": user.ref_signature_left if not user.left_child_id else None,
+        "right_child_signature": user.ref_signature_right if not user.right_child_id else None
     }
     
     if user.left_child_id:

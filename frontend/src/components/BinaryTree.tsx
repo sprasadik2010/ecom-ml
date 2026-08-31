@@ -16,6 +16,8 @@ export interface TreeData {
   total_right_sw: number;
   left_child: TreeData | null;
   right_child: TreeData | null;
+  left_child_signature?: string;
+  right_child_signature?: string;
 }
 
 interface BinaryTreeProps {
@@ -129,10 +131,11 @@ export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, curr
   };
 
   // Helper to render an empty registerable slot
-  const renderEmptySlot = (parentUsername: string, position: 'left' | 'right') => {
+  const renderEmptySlot = (parentUsername: string, position: 'left' | 'right', signature?: string) => {
     const handleRegisterClick = () => {
       // Redirect to register page pre-populating sponsor and parent positions
-      navigate(`/register?sponsor=${parentUsername}&position=${position}`);
+      const signatureParam = signature ? `&signature=${signature}` : '';
+      navigate(`/register?sponsor=${parentUsername}&position=${position}${signatureParam}`);
     };
 
     return (
@@ -140,7 +143,7 @@ export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, curr
         onClick={handleRegisterClick}
         className="w-52 p-4 bg-slate-900/40 border border-dashed border-slate-700 hover:border-amber-500/50 hover:bg-slate-900/80 rounded-lg shadow-sm flex flex-col items-center justify-center cursor-pointer transition-all hover:scale-105 group"
       >
-        <div className="p-1.5 bg-slate-850 group-hover:bg-amber-500/10 group-hover:text-amber-400 text-slate-500 rounded-full mb-1 transition-colors">
+        <div className="p-1.5 bg-slate-850 group-hover:bg-amber-500/10 group-hover:text-amber-400 text-slate-505 rounded-full mb-1 transition-colors">
           <Plus size={16} />
         </div>
         <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider group-hover:text-slate-200 transition-colors">
@@ -152,9 +155,10 @@ export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, curr
   };
 
   // Helper to render empty slot list for Directory View
-  const renderEmptySlotList = (parentUsername: string, position: 'left' | 'right') => {
+  const renderEmptySlotList = (parentUsername: string, position: 'left' | 'right', signature?: string) => {
     const handleRegisterClick = () => {
-      navigate(`/register?sponsor=${parentUsername}&position=${position}`);
+      const signatureParam = signature ? `&signature=${signature}` : '';
+      navigate(`/register?sponsor=${parentUsername}&position=${position}${signatureParam}`);
     };
 
     return (
@@ -199,7 +203,7 @@ export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, curr
                 {node.left_child ? (
                   renderTree(node.left_child, depth + 1)
                 ) : (
-                  renderEmptySlot(node.username, 'left')
+                  renderEmptySlot(node.username, 'left', node.left_child_signature)
                 )}
               </div>
 
@@ -208,7 +212,7 @@ export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, curr
                 {node.right_child ? (
                   renderTree(node.right_child, depth + 1)
                 ) : (
-                  renderEmptySlot(node.username, 'right')
+                  renderEmptySlot(node.username, 'right', node.right_child_signature)
                 )}
               </div>
             </div>
@@ -309,7 +313,7 @@ export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, curr
               ) : (
                 <div className="ml-6 sm:ml-8 relative py-1">
                   <div className="absolute left-[-16px] sm:left-[-20px] top-1/2 w-4 sm:w-5 h-0.5 bg-slate-800" />
-                  {renderEmptySlotList(node.username, 'left')}
+                  {renderEmptySlotList(node.username, 'left', node.left_child_signature)}
                 </div>
               )}
             </div>
@@ -321,7 +325,7 @@ export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, curr
               ) : (
                 <div className="ml-6 sm:ml-8 relative py-1">
                   <div className="absolute left-[-16px] sm:left-[-20px] top-1/2 w-4 sm:w-5 h-0.5 bg-slate-800" />
-                  {renderEmptySlotList(node.username, 'right')}
+                  {renderEmptySlotList(node.username, 'right', node.right_child_signature)}
                 </div>
               )}
             </div>

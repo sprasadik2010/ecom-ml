@@ -112,9 +112,9 @@ export const ProductDetails: React.FC = () => {
           {/* Price */}
           <div className="mb-4">
             <span className="text-slate-400 text-xs uppercase font-bold tracking-wider block mb-1">Price</span>
-            <span className="text-3xl font-black text-[#9F1239] font-mono leading-none">${product.price.toFixed(2)}</span>
+            <span className="text-3xl font-black text-[#9F1239] font-mono leading-none">₹{product.price.toFixed(2)}</span>
             <div className="flex items-center gap-2 mt-2">
-              <span className="text-sm text-slate-400 line-through font-mono leading-none">${(product.price * 1.54).toFixed(2)}</span>
+              <span className="text-sm text-slate-400 line-through font-mono leading-none">₹{(product.price * 1.54).toFixed(2)}</span>
               <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-extrabold text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full">35% OFF</span>
             </div>
           </div>
@@ -158,7 +158,7 @@ export const ProductDetails: React.FC = () => {
           <div className="bg-slate-900 border border-slate-800 rounded-lg p-6 shadow-md">
             <div className="mb-4">
               <span className="text-slate-400 text-xs font-semibold">Total Price:</span>
-              <div className="text-2xl font-black text-white mt-1 font-mono">${(product.price * quantity).toFixed(2)}</div>
+              <div className="text-2xl font-black text-white mt-1 font-mono">₹{(product.price * quantity).toFixed(2)}</div>
             </div>
 
             <div className="border-t border-slate-800 my-4" />
@@ -210,7 +210,7 @@ export const ProductDetails: React.FC = () => {
               {/* WhatsApp Order CTA (Look 3 style) */}
               <a
                 href={`https://wa.me/919876543210?text=${encodeURIComponent(
-                  `Hello ApexZone! I'm interested in ordering: "${product.name}" (ID: #${product.id}, Category: ${product.category}, Price: $${product.price.toFixed(2)}). Please help me place this order.`
+                  `Hello ApexZone! I'm interested in ordering: "${product.name}" (ID: #${product.id}, Category: ${product.category}, Price: ₹${product.price.toFixed(2)}). Please help me place this order.`
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"

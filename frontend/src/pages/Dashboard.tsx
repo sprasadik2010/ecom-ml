@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
-import { DollarSign, Award, Users, Share2, Clipboard, ShieldCheck, ShieldAlert, ShoppingBag, Landmark, ArrowRight, UserPlus } from 'lucide-react';
+import { IndianRupee, Award, Users, Share2, Clipboard, ShieldCheck, ShieldAlert, ShoppingBag, Landmark, ArrowRight, UserPlus } from 'lucide-react';
 import { API_BASE_URL } from '../context/AuthContext';
 
 interface Order {
@@ -15,7 +15,8 @@ interface Order {
 export const Dashboard: React.FC = () => {
   const { user, token } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
-  const [copied, setCopied] = useState(false);
+  const [copiedLeft, setCopiedLeft] = useState(false);
+  const [copiedRight, setCopiedRight] = useState(false);
   const [loadingOrders, setLoadingOrders] = useState(true);
 
   useEffect(() => {
@@ -49,12 +50,21 @@ export const Dashboard: React.FC = () => {
     );
   }
 
-  const referralLink = `${window.location.origin}/register?ref=${user.username}`;
+  if (!user) return null; // safety fallback
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(referralLink);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const leftReferralLink = `${window.location.origin}/register?ref=${user.username}&position=left&signature=${user.ref_signature_left || ''}`;
+  const rightReferralLink = `${window.location.origin}/register?ref=${user.username}&position=right&signature=${user.ref_signature_right || ''}`;
+
+  const handleCopyLeft = () => {
+    navigator.clipboard.writeText(leftReferralLink);
+    setCopiedLeft(true);
+    setTimeout(() => setCopiedLeft(false), 2000);
+  };
+
+  const handleCopyRight = () => {
+    navigator.clipboard.writeText(rightReferralLink);
+    setCopiedRight(true);
+    setTimeout(() => setCopiedRight(false), 2000);
   };
 
   const isActive = user.status === 'active';
@@ -122,8 +132,8 @@ export const Dashboard: React.FC = () => {
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm relative group hover:border-slate-700 transition-colors">
           <div className="flex justify-between items-start">
             <div className="flex flex-col">
-              <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Withdrawable Wallet</span>
-              <span className="text-2xl font-black text-white font-mono mt-1.5">${user.wallet_balance.toFixed(2)}</span>
+              <span className="text-slate-505 text-[10px] uppercase font-bold tracking-wider">Withdrawable Wallet</span>
+              <span className="text-2xl font-black text-white font-mono mt-1.5">₹{user.wallet_balance.toFixed(2)}</span>
             </div>
             <div className="p-2 bg-slate-950 text-amber-400 rounded-lg border border-slate-800">
               <Landmark size={20} />
@@ -215,28 +225,55 @@ export const Dashboard: React.FC = () => {
               <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-md">
                 <h3 className="font-extrabold text-sm text-slate-100 uppercase tracking-wider mb-3.5 flex items-center gap-2">
                   <Share2 size={16} className="text-amber-500" />
-                  Referral Link
+                  Referral Links
                 </h3>
                 <p className="text-[11px] text-slate-400 leading-normal mb-4 font-normal">
-                  Share your custom registration referral link. Direct recruits are auto-positioned down your binary tree legs!
+                  Share your signed referral links. Placement side is secured and verified by the system tree.
                 </p>
                 
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    readOnly
-                    className="bg-slate-950 border border-slate-800 rounded text-[10px] font-mono text-slate-300 px-2.5 py-2 flex-1 focus:outline-none"
-                    value={referralLink}
-                  />
-                  <button
-                    onClick={handleCopyLink}
-                    className="p-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded transition-colors active:scale-95 cursor-pointer"
-                    title="Copy link"
-                  >
-                    <Clipboard size={14} />
-                  </button>
+                <div className="space-y-4">
+                  {/* Left Link */}
+                  <div>
+                    <label className="text-[9px] text-slate-500 uppercase font-black block mb-1">Left Leg Placement Link</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        readOnly
+                        className="bg-slate-950 border border-slate-800 rounded text-[10px] font-mono text-slate-300 px-2.5 py-2 flex-1 focus:outline-none"
+                        value={leftReferralLink}
+                      />
+                      <button
+                        onClick={handleCopyLeft}
+                        className="p-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded transition-colors active:scale-95 cursor-pointer"
+                        title="Copy Left link"
+                      >
+                        <Clipboard size={14} />
+                      </button>
+                    </div>
+                    {copiedLeft && <span className="text-[10px] text-emerald-400 font-bold block mt-1">Left link copied!</span>}
+                  </div>
+
+                  {/* Right Link */}
+                  <div>
+                    <label className="text-[9px] text-slate-505 uppercase font-black block mb-1">Right Leg Placement Link</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        readOnly
+                        className="bg-slate-950 border border-slate-800 rounded text-[10px] font-mono text-slate-300 px-2.5 py-2 flex-1 focus:outline-none"
+                        value={rightReferralLink}
+                      />
+                      <button
+                        onClick={handleCopyRight}
+                        className="p-2 bg-amber-500 hover:bg-amber-600 text-slate-955 rounded transition-colors active:scale-95 cursor-pointer"
+                        title="Copy Right link"
+                      >
+                        <Clipboard size={14} />
+                      </button>
+                    </div>
+                    {copiedRight && <span className="text-[10px] text-emerald-400 font-bold block mt-1">Right link copied!</span>}
+                  </div>
                 </div>
-                {copied && <span className="text-[10px] text-emerald-400 font-bold block mt-1">Copied to clipboard!</span>}
 
                 <div className="border-t border-slate-850 my-4" />
 
@@ -320,7 +357,7 @@ export const Dashboard: React.FC = () => {
                         <tr key={ord.id} className="hover:bg-slate-950/20 transition-colors">
                           <td className="py-3 font-mono font-bold text-slate-200">#00{ord.id}</td>
                           <td className="py-3 text-slate-400">{new Date(ord.created_at).toLocaleDateString()}</td>
-                          <td className="py-3 font-bold font-mono text-white">${ord.total_amount.toFixed(2)}</td>
+                          <td className="py-3 font-bold font-mono text-white">₹{ord.total_amount.toFixed(2)}</td>
                           <td className="py-3 text-amber-400 font-bold font-mono">{ord.total_sw} SW</td>
                           <td className="py-3 text-right">
                             <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
@@ -362,7 +399,7 @@ export const Dashboard: React.FC = () => {
                         </div>
                         <div className="flex flex-col text-right">
                           <span className="text-[9px] text-slate-500 uppercase font-black tracking-wider mb-0.5">Amount</span>
-                          <span className="font-black font-mono text-white">${ord.total_amount.toFixed(2)}</span>
+                          <span className="font-black font-mono text-white">₹{ord.total_amount.toFixed(2)}</span>
                         </div>
                         <div className="flex flex-col">
                           <span className="text-[9px] text-slate-500 uppercase font-black tracking-wider mb-0.5">SW Volume</span>

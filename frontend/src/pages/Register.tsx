@@ -8,8 +8,10 @@ export const Register: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [sponsorUsername, setSponsorUsername] = useState('');
   const [position, setPosition] = useState<'left' | 'right'>('left');
+  const [signature, setSignature] = useState('');
   
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -40,6 +42,7 @@ export const Register: React.FC = () => {
   useEffect(() => {
     const urlSponsor = searchParams.get('sponsor') || searchParams.get('ref') || '';
     const urlPosition = searchParams.get('position') || 'left';
+    const urlSignature = searchParams.get('signature') || '';
     
     if (urlSponsor) {
       setSponsorUsername(urlSponsor);
@@ -47,21 +50,30 @@ export const Register: React.FC = () => {
     if (urlPosition === 'left' || urlPosition === 'right') {
       setPosition(urlPosition);
     }
+    if (urlSignature) {
+      setSignature(urlSignature);
+    }
   }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (hasUsers && !sponsorUsername.trim()) {
-      setError('Referral sponsor username is required.');
-      return;
+    if (hasUsers) {
+      if (!sponsorUsername.trim()) {
+        setError('Referral sponsor username is required.');
+        return;
+      }
+      if (!signature.trim()) {
+        setError('A valid signed referral link is required. You cannot register directly without one.');
+        return;
+      }
     }
 
     setSubmitting(true);
 
     try {
-      await register(username, email, password, fullName, sponsorUsername, position);
+      await register(username, email, password, fullName, phoneNumber, sponsorUsername, position, signature);
       setSuccess(true);
       setSubmitting(false);
     } catch (err: any) {
@@ -124,10 +136,10 @@ export const Register: React.FC = () => {
             <label className="text-amber-500 font-bold block mb-1">Referral Sponsor Username</label>
             <input
               type="text"
-              className="w-full bg-slate-950 border border-slate-850 rounded p-2 focus:outline-none focus:border-amber-500 text-slate-200"
+              className="w-full bg-slate-950 border border-slate-850 rounded p-2 focus:outline-none focus:border-amber-500 text-slate-200 disabled:opacity-75 disabled:cursor-not-allowed"
               value={sponsorUsername}
               onChange={(e) => setSponsorUsername(e.target.value)}
-              disabled={submitting}
+              disabled={submitting || (hasUsers && !!searchParams.get('ref')) || (hasUsers && !!searchParams.get('sponsor'))}
               placeholder="Sponsor username (e.g. rootuser)"
               required={hasUsers}
             />
@@ -143,11 +155,11 @@ export const Register: React.FC = () => {
             <div className="bg-slate-950/20 p-3 rounded border border-slate-850">
               <label className="text-slate-400 block mb-1.5 font-bold">Placement Leg Position</label>
               <div className="grid grid-cols-2 gap-3">
-                <label className={`flex items-center justify-center gap-2 p-2 rounded border cursor-pointer select-none transition-colors ${
+                <label className={`flex items-center justify-center gap-2 p-2 rounded border select-none transition-colors ${
                   position === 'left' 
                     ? 'border-amber-500 bg-amber-500/10 text-amber-400 font-bold' 
                     : 'border-slate-800 bg-slate-950 text-slate-400'
-                }`}>
+                } ${signature ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'}`}>
                   <input
                     type="radio"
                     name="position"
@@ -155,14 +167,15 @@ export const Register: React.FC = () => {
                     value="left"
                     checked={position === 'left'}
                     onChange={() => setPosition('left')}
+                    disabled={!!signature || submitting}
                   />
                   Left Leg
                 </label>
-                <label className={`flex items-center justify-center gap-2 p-2 rounded border cursor-pointer select-none transition-colors ${
+                <label className={`flex items-center justify-center gap-2 p-2 rounded border select-none transition-colors ${
                   position === 'right' 
                     ? 'border-amber-500 bg-amber-500/10 text-amber-400 font-bold' 
                     : 'border-slate-800 bg-slate-950 text-slate-400'
-                }`}>
+                } ${signature ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'}`}>
                   <input
                     type="radio"
                     name="position"
@@ -170,12 +183,15 @@ export const Register: React.FC = () => {
                     value="right"
                     checked={position === 'right'}
                     onChange={() => setPosition('right')}
+                    disabled={!!signature || submitting}
                   />
                   Right Leg
                 </label>
               </div>
               <p className="text-[9px] text-slate-500 mt-1.5 leading-normal">
-                💡 **Spillover**: Placement is search-traverse down the extreme {position} leg of the sponsor tree.
+                {signature 
+                  ? '🔒 Placement is locked by the sponsor referral link.' 
+                  : `💡 **Spillover**: Placement is search-traverse down the extreme ${position} leg of the sponsor tree.`}
               </p>
             </div>
           )}
@@ -192,6 +208,19 @@ export const Register: React.FC = () => {
               className="w-full bg-slate-950 border border-slate-850 rounded p-2 focus:outline-none focus:border-amber-500 text-slate-200"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
+              disabled={submitting}
+            />
+          </div>
+
+          <div>
+            <label className="text-slate-400 block mb-1">Phone Number</label>
+            <input
+              type="tel"
+              required
+              placeholder="e.g. +91 98765 43210"
+              className="w-full bg-slate-950 border border-slate-850 rounded p-2 focus:outline-none focus:border-amber-500 text-slate-200"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
               disabled={submitting}
             />
           </div>

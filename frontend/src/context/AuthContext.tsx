@@ -9,6 +9,7 @@ export interface User {
   username: string;
   email: string;
   full_name: string;
+  phone_number: string | null;
   status: 'active' | 'inactive';
   is_admin: boolean;
   sponsor_id: number | null;
@@ -25,6 +26,8 @@ export interface User {
   total_right_sw: number;
   wallet_balance: number;
   created_at: string;
+  ref_signature_left?: string;
+  ref_signature_right?: string;
 }
 
 interface AuthContextType {
@@ -38,8 +41,10 @@ interface AuthContextType {
     email: string,
     password: string,
     fullName: string,
+    phoneNumber: string,
     sponsorUsername: string,
-    position: 'left' | 'right'
+    position: 'left' | 'right',
+    signature?: string
   ) => Promise<User>;
   refreshUser: () => Promise<User | null>;
 }
@@ -126,16 +131,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     email: string,
     password: string,
     fullName: string,
+    phoneNumber: string,
     sponsorUsername: string,
-    position: 'left' | 'right'
+    position: 'left' | 'right',
+    signature?: string
   ): Promise<User> => {
     const payload = {
       username,
       email,
       password,
       full_name: fullName,
+      phone_number: phoneNumber,
       sponsor_username: sponsorUsername || null,
       position,
+      signature: signature || null,
     };
 
     const response = await fetch(`${API_BASE_URL}/auth/register`, {

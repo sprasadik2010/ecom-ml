@@ -30,7 +30,7 @@ def on_startup():
     logger.info("Ensuring database tables are created...")
     Base.metadata.create_all(bind=engine)
     
-    # Safe SQLite/PostgreSQL migration for is_admin column
+    # Safe SQLite/PostgreSQL migration for columns
     from sqlalchemy import text
     from .database import SessionLocal
     db = SessionLocal()
@@ -40,7 +40,15 @@ def on_startup():
         logger.info("Added is_admin column to users table.")
     except Exception as e:
         db.rollback()
-        # Column already exists
+        
+    try:
+        db.execute(text("ALTER TABLE users ADD COLUMN phone_number VARCHAR"))
+        db.commit()
+        logger.info("Added phone_number column to users table.")
+    except Exception as e:
+        db.rollback()
+    finally:
+        db.close()
 
 # Enable CORS for frontend integration
 app.add_middleware(
@@ -75,6 +83,24 @@ def register_user(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
     db_email = crud.get_user_by_email(db, user_data.email)
     if db_email:
         raise HTTPException(status_code=400, detail="Email already registered.")
+        
+    # Check signature validation if there are existing non-admin users in the system
+    user_count = db.query(models.User).filter(models.User.is_admin == False).count()
+    if user_count > 0:
+        if not user_data.sponsor_username:
+            raise HTTPException(status_code=400, detail="Referral sponsor username is required.")
+        if not user_data.position or user_data.position not in ["left", "right"]:
+            raise HTTPException(status_code=400, detail="Placement position ('left' or 'right') is required.")
+        if not user_data.signature:
+            raise HTTPException(status_code=400, detail="Referral link signature is required.")
+        
+        # Verify cryptographic signature using server's SECRET_KEY
+        import hmac
+        import hashlib
+        message = f"{user_data.sponsor_username}:{user_data.position}".encode('utf-8')
+        expected_sig = hmac.new(settings.SECRET_KEY.encode('utf-8'), message, hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(expected_sig, user_data.signature):
+            raise HTTPException(status_code=400, detail="Invalid or tampered referral link. Positioning cannot be changed.")
         
     try:
         new_user = crud.create_user(db, user_data)

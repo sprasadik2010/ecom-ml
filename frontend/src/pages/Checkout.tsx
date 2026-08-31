@@ -250,7 +250,7 @@ export const Checkout: React.FC = () => {
                     <span className="text-slate-500 text-[10px]">Qty: {item.quantity}</span>
                   </div>
                   <span className="font-mono text-slate-300 font-bold whitespace-nowrap">
-                    ${(item.product.price * item.quantity).toFixed(2)}
+                    ₹{(item.product.price * item.quantity).toFixed(2)}
                   </span>
                 </div>
               ))}
@@ -265,7 +265,7 @@ export const Checkout: React.FC = () => {
 
             <div className="border-t border-slate-850 pt-4 flex justify-between items-baseline">
               <span className="text-slate-200 font-bold">Total Price:</span>
-              <span className="text-2xl font-black text-white font-mono">${totalAmount.toFixed(2)}</span>
+              <span className="text-2xl font-black text-white font-mono">₹{totalAmount.toFixed(2)}</span>
             </div>
 
             <button

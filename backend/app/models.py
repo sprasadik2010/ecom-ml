@@ -11,6 +11,7 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     full_name = Column(String, nullable=False)
+    phone_number = Column(String, nullable=True)
     status = Column(String, default="inactive") # 'active' or 'inactive'
     is_admin = Column(Boolean, default=False, nullable=False)
     
@@ -52,6 +53,22 @@ class User(Base):
     @property
     def parent_username(self):
         return self.parent.username if self.parent else None
+
+    @property
+    def ref_signature_left(self):
+        from .config import settings
+        import hmac
+        import hashlib
+        message = f"{self.username}:left".encode('utf-8')
+        return hmac.new(settings.SECRET_KEY.encode('utf-8'), message, hashlib.sha256).hexdigest()
+
+    @property
+    def ref_signature_right(self):
+        from .config import settings
+        import hmac
+        import hashlib
+        message = f"{self.username}:right".encode('utf-8')
+        return hmac.new(settings.SECRET_KEY.encode('utf-8'), message, hashlib.sha256).hexdigest()
 
 
 

@@ -12,7 +12,7 @@ PRODUCTS = [
     {
         "name": "Vortex Pro Smart Watch",
         "description": "Premium health tracking smart watch with a vibrant AMOLED display, heart rate monitor, sleep tracking, and up to 7 days battery life. Water resistant up to 50m.",
-        "price": 149.99,
+        "price": 12999.0,
         "sw": 100,
         "category": "Electronics",
         "image_url": "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=500&auto=format&fit=crop&q=60",
@@ -21,7 +21,7 @@ PRODUCTS = [
     {
         "name": "SyncWave ANC Wireless Headphones",
         "description": "Active Noise Cancelling over-ear headphones with high-fidelity audio, 40 hours of wireless playback, memory foam earcups, and crystal-clear voice calls.",
-        "price": 99.99,
+        "price": 7999.0,
         "sw": 70,
         "category": "Electronics",
         "image_url": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&auto=format&fit=crop&q=60",
@@ -30,7 +30,7 @@ PRODUCTS = [
     {
         "name": "AuraGlow Smart LED Bedside Lamp",
         "description": "Dimmable smart bedside lamp compatible with voice control. Offers 16 million colors, schedule timers, and dynamic color-changing scenes for your bedroom or office.",
-        "price": 39.99,
+        "price": 2499.0,
         "sw": 25,
         "category": "Smart Home",
         "image_url": "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=500&auto=format&fit=crop&q=60",
@@ -39,7 +39,7 @@ PRODUCTS = [
     {
         "name": "TerraShield Canvas Backpack",
         "description": "Vintage water-resistant waxed canvas backpack with padded laptop compartment, leather details, and ergonomic shoulder straps. Perfect for daily commute or weekend hiking.",
-        "price": 69.99,
+        "price": 3499.0,
         "sw": 50,
         "category": "Apparel",
         "image_url": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500&auto=format&fit=crop&q=60",
@@ -48,7 +48,7 @@ PRODUCTS = [
     {
         "name": "NutraPure Organic Whey Protein",
         "description": "100% grass-fed organic whey protein isolate. 25g protein per serving, zero artificial sweeteners or fillers. Delicious chocolate fudge flavor. 2.2 lbs.",
-        "price": 49.99,
+        "price": 3999.0,
         "sw": 40,
         "category": "Wellness",
         "image_url": "https://images.unsplash.com/photo-1579758629938-03607ccdbaba?w=500&auto=format&fit=crop&q=60",
@@ -57,7 +57,7 @@ PRODUCTS = [
     {
         "name": "FlexiFlex Non-Slip Yoga Mat",
         "description": "Extra thick 6mm eco-friendly TPE yoga mat with alignment lines, texture surface for superior grip, and carrying strap. Lightweight and durable.",
-        "price": 29.99,
+        "price": 1499.0,
         "sw": 20,
         "category": "Wellness",
         "image_url": "https://images.unsplash.com/photo-1592432678016-e910b452f9a2?w=500&auto=format&fit=crop&q=60",
@@ -66,7 +66,7 @@ PRODUCTS = [
     {
         "name": "HydroGuard Double-Wall Flask",
         "description": "32oz vacuum-insulated stainless steel water bottle. Keeps drinks cold for up to 24 hours or hot for 12 hours. Sweat-proof finish and leak-proof straw lid.",
-        "price": 19.99,
+        "price": 999.0,
         "sw": 10,
         "category": "Wellness",
         "image_url": "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=500&auto=format&fit=crop&q=60",
@@ -75,7 +75,7 @@ PRODUCTS = [
     {
         "name": "AeroPosture Ergonomic Office Chair",
         "description": "Ergonomic mesh office chair with adjustable lumbar support, 3D armrests, headrest, tilt mechanism, and smooth-rolling nylon casters. Rated for up to 300 lbs.",
-        "price": 199.99,
+        "price": 15999.0,
         "sw": 150,
         "category": "Smart Home",
         "image_url": "https://images.unsplash.com/photo-1580481072645-022f9a6dbf27?w=500&auto=format&fit=crop&q=60",
@@ -106,8 +106,22 @@ def seed_db():
     logger.info("Initializing tables...")
     Base.metadata.create_all(bind=engine)
     
+    # Safe migration for phone_number and is_admin columns
+    from sqlalchemy import text
     db: Session = SessionLocal()
     try:
+        db.execute(text("ALTER TABLE users ADD COLUMN phone_number VARCHAR"))
+        db.commit()
+        logger.info("Added phone_number column to users table during seeding.")
+    except Exception as e:
+        db.rollback()
+        
+    try:
+        db.execute(text("ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT FALSE"))
+        db.commit()
+        logger.info("Added is_admin column to users table during seeding.")
+    except Exception as e:
+        db.rollback()
         # 1. Seed Root Administrator Member
         admin = db.query(User).filter(User.username == "admin").first()
         if not admin:
@@ -117,6 +131,7 @@ def seed_db():
                 email="admin@mlm-amazon.com",
                 full_name="System Administrator",
                 hashed_password=get_password_hash("admin123"),
+                phone_number="+919876543210",
                 status="active", # Root user is active by default
                 personal_sw=100.0,
                 wallet_balance=0.0,
@@ -138,6 +153,7 @@ def seed_db():
                 email="rootuser@mlm-amazon.com",
                 full_name="Root User",
                 hashed_password=get_password_hash("user@root.123"),
+                phone_number="+919876543211",
                 status="active", # Root user of tree is active by default
                 personal_sw=100.0,
                 wallet_balance=0.0,

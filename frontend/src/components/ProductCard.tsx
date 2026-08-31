@@ -71,11 +71,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           {/* Price Layout (Look 1 Style) */}
           <div className="flex flex-col">
             <span className="text-[11px] font-black text-[#9F1239] font-mono leading-none">
-              ${product.price.toFixed(2)}
+              ₹{product.price.toFixed(2)}
             </span>
             <div className="flex items-center gap-1.5 mt-1">
               <span className="text-[9px] text-slate-400 line-through font-mono leading-none">
-                ${originalPrice.toFixed(2)}
+                ₹{originalPrice.toFixed(2)}
               </span>
               <span className="text-[8px] font-black text-emerald-400 leading-none">
                 {discountPercent}% OFF

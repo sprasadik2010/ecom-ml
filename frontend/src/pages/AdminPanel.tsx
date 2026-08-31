@@ -4,7 +4,7 @@ import {
   TrendingUp,
   Users,
   ShoppingBag,
-  DollarSign,
+  IndianRupee,
   Plus,
   Edit2,
   Trash2,
@@ -738,12 +738,12 @@ export const AdminPanel: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Sales $ amount */}
+                {/* Sales ₹ amount */}
                 <div className="bg-slate-900 border border-slate-850 p-5 rounded-2xl shadow-sm flex items-center justify-between">
                   <div className="space-y-1">
                     <span className="text-[10px] uppercase font-bold text-slate-500">Gross Sales</span>
                     <h3 className="text-2xl font-black text-white font-mono">
-                      ${stats.total_sales_amount.toFixed(2)}
+                      ₹{stats.total_sales_amount.toFixed(2)}
                     </h3>
                     <p className="text-[10px] text-slate-400">Total payments collected</p>
                   </div>
@@ -757,12 +757,12 @@ export const AdminPanel: React.FC = () => {
                   <div className="space-y-1">
                     <span className="text-[10px] uppercase font-bold text-slate-500">Commissions Paid</span>
                     <h3 className="text-2xl font-black text-white font-mono">
-                      ${stats.total_commissions_amount.toFixed(2)}
+                      ₹{stats.total_commissions_amount.toFixed(2)}
                     </h3>
                     <p className="text-[10px] text-slate-400">Total MLM network referral payouts</p>
                   </div>
                   <div className="p-3 bg-amber-400/10 text-amber-400 rounded-xl border border-amber-450/10">
-                    <DollarSign size={20} />
+                    <IndianRupee size={20} />
                   </div>
                 </div>
               </div>
@@ -841,7 +841,7 @@ export const AdminPanel: React.FC = () => {
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="font-mono text-xs text-slate-200 font-bold">${o.total_amount.toFixed(2)}</div>
+                            <div className="font-mono text-xs text-slate-200 font-bold">₹{o.total_amount.toFixed(2)}</div>
                             <span
                               className={`text-[9px] font-bold ${
                                 o.status === 'completed'
@@ -931,7 +931,7 @@ export const AdminPanel: React.FC = () => {
                           </td>
                           <td className="py-3 px-4 text-slate-350">{p.category || 'N/A'}</td>
                           <td className="py-3 px-4 text-right font-mono font-bold text-slate-200">
-                            ${p.price.toFixed(2)}
+                            ₹{p.price.toFixed(2)}
                           </td>
                           <td className="py-3 px-4 text-center font-mono font-bold text-amber-400">
                             {p.sw} SW
@@ -1001,7 +1001,7 @@ export const AdminPanel: React.FC = () => {
 
                       <div className="flex items-center justify-between pt-2 border-t border-slate-850 text-xs font-sans">
                         <div className="space-y-0.5">
-                          <div className="font-bold text-slate-350">Price: <span className="font-mono text-slate-200 font-bold">${p.price.toFixed(2)}</span></div>
+                          <div className="font-bold text-slate-350">Price: <span className="font-mono text-slate-200 font-bold">₹{p.price.toFixed(2)}</span></div>
                           <div className="font-bold text-amber-500 font-mono">{p.sw} SW</div>
                         </div>
                         <div className="text-right space-y-1.5">
@@ -1218,7 +1218,7 @@ export const AdminPanel: React.FC = () => {
                               </div>
                             </td>
                             <td className="py-3 px-4 text-center font-mono font-bold text-amber-400">
-                              ${u.wallet_balance.toFixed(2)}
+                              ₹{u.wallet_balance.toFixed(2)}
                             </td>
                             <td className="py-3 px-4 text-center font-mono text-slate-200">
                               {u.personal_sw} SW
@@ -1308,7 +1308,7 @@ export const AdminPanel: React.FC = () => {
                           </div>
                           <div>
                             <span className="text-slate-500 block uppercase text-[8px] font-bold">Wallet Balance</span>
-                            <span className="font-bold font-mono text-amber-400">${u.wallet_balance.toFixed(2)}</span>
+                            <span className="font-bold font-mono text-amber-400">₹{u.wallet_balance.toFixed(2)}</span>
                           </div>
                           <div>
                             <span className="text-slate-500 block uppercase text-[8px] font-bold">Personal Volume</span>
@@ -1408,7 +1408,7 @@ export const AdminPanel: React.FC = () => {
                               </div>
                             </td>
                             <td className="py-3 px-4 text-right font-mono font-bold text-slate-200">
-                              ${o.total_amount.toFixed(2)}
+                              ₹{o.total_amount.toFixed(2)}
                             </td>
                             <td className="py-3 px-4 text-center font-mono font-bold text-amber-400">
                               {o.total_sw} SW
@@ -1492,7 +1492,7 @@ export const AdminPanel: React.FC = () => {
                             <div className="text-[10px] text-slate-400 space-y-1 font-normal">
                               {o.items.map((item, idx) => (
                                 <div key={idx} className="line-clamp-1">
-                                  {item.quantity}x {item.product ? item.product.name : `Product ${item.product_id}`} (${item.price.toFixed(2)})
+                                  {item.quantity}x {item.product ? item.product.name : `Product ${item.product_id}`} (₹{item.price.toFixed(2)})
                                 </div>
                               ))}
                             </div>
@@ -1501,7 +1501,7 @@ export const AdminPanel: React.FC = () => {
 
                         <div className="flex items-center justify-between pt-2.5 border-t border-slate-850/60 text-[10px]">
                           <div className="space-y-0.5">
-                            <div className="font-bold text-slate-350">Gross Price: <span className="font-mono text-slate-200 font-bold">${o.total_amount.toFixed(2)}</span></div>
+                            <div className="font-bold text-slate-350">Gross Price: <span className="font-mono text-slate-200 font-bold">₹{o.total_amount.toFixed(2)}</span></div>
                             <div className="font-bold text-amber-500 font-mono">{o.total_sw} SW</div>
                           </div>
 
@@ -1573,7 +1573,7 @@ export const AdminPanel: React.FC = () => {
                               </div>
                             </td>
                             <td className="py-3 px-4 text-right font-mono font-bold text-emerald-555">
-                              +${c.amount.toFixed(2)}
+                              +₹{c.amount.toFixed(2)}
                             </td>
                             <td className="py-3 px-4 font-bold">
                               <span
@@ -1619,7 +1619,7 @@ export const AdminPanel: React.FC = () => {
                             <span className="font-bold text-slate-200">{userRec ? userRec.full_name : `User ID ${c.user_id}`}</span>{' '}
                             <span className="text-slate-450 font-normal">(@{userRec ? userRec.username : ''})</span>
                           </div>
-                          <span className="font-mono font-bold text-emerald-555 text-sm">+${c.amount.toFixed(2)}</span>
+                          <span className="font-mono font-bold text-emerald-555 text-sm">+₹{c.amount.toFixed(2)}</span>
                         </div>
 
                         <div className="space-y-1.5 text-[11px] font-normal text-slate-350">
@@ -1710,7 +1710,7 @@ export const AdminPanel: React.FC = () => {
 
                 {/* Price */}
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-400 uppercase">Price (USD)</label>
+                  <label className="text-[10px] text-slate-400 uppercase">Price (INR)</label>
                   <input
                     type="number"
                     step="0.01"
@@ -1901,13 +1901,12 @@ export const AdminPanel: React.FC = () => {
         </div>
       )}
 
-      {/* WALLET BALANCE ADJUSTMENT MODAL OVERLAY */}
       {isWalletModalOpen && walletTargetUser && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-slate-900 border border-slate-850 rounded-2xl max-w-sm w-full overflow-hidden shadow-2xl animate-scale-up">
             <div className="flex items-center justify-between border-b border-slate-850 px-6 py-4 bg-slate-950/60 font-sans">
               <h3 className="text-sm font-black text-white flex items-center gap-1.5">
-                <DollarSign size={16} className="text-amber-500" />
+                <IndianRupee size={16} className="text-amber-500" />
                 <span>Adjust Wallet Balance</span>
               </h3>
               <button
@@ -1925,18 +1924,18 @@ export const AdminPanel: React.FC = () => {
                 <div className="font-mono text-[10px] text-slate-400 font-normal">@{walletTargetUser.username}</div>
                 <div className="text-[10px] mt-1 pt-1.5 border-t border-slate-850 flex justify-between items-center text-slate-350 font-normal">
                   <span>Current Wallet Balance:</span>
-                  <span className="font-bold font-mono text-amber-500">${walletTargetUser.wallet_balance.toFixed(2)}</span>
+                  <span className="font-bold font-mono text-amber-500">₹{walletTargetUser.wallet_balance.toFixed(2)}</span>
                 </div>
               </div>
 
               {/* Amount */}
               <div className="space-y-1 font-sans">
-                <label className="text-[10px] text-slate-450 uppercase flex items-center justify-between">
+                <label className="text-[10px] text-slate-455 uppercase flex items-center justify-between">
                   <span>Adjustment Amount</span>
                   <span className="text-[8px] text-slate-500 font-normal">Use negative value to subtract</span>
                 </label>
                 <div className="relative flex items-center">
-                  <span className="absolute left-3.5 text-slate-450">$</span>
+                  <span className="absolute left-3.5 text-slate-455">₹</span>
                   <input
                     type="number"
                     step="0.01"
