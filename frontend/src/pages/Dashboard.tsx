@@ -52,8 +52,8 @@ export const Dashboard: React.FC = () => {
 
   if (!user) return null; // safety fallback
 
-  const leftReferralLink = `${window.location.origin}/register?ref=${user.username}&position=left&signature=${user.ref_signature_left || ''}`;
-  const rightReferralLink = `${window.location.origin}/register?ref=${user.username}&position=right&signature=${user.ref_signature_right || ''}`;
+  const leftReferralLink = `${window.location.origin}/register?token=${user.ref_token_left || ''}`;
+  const rightReferralLink = `${window.location.origin}/register?token=${user.ref_token_right || ''}`;
 
   const handleCopyLeft = () => {
     navigator.clipboard.writeText(leftReferralLink);

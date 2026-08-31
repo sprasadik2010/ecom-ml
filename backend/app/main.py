@@ -73,6 +73,35 @@ def has_users(db: Session = Depends(get_db)):
     return {"has_users": count > 0}
 
 
+def decrypt_referral(token: str) -> tuple[str, str]:
+    import hashlib
+    import base64
+    from cryptography.fernet import Fernet
+    key_bytes = hashlib.sha256(settings.SECRET_KEY.encode('utf-8')).digest()
+    fernet_key = base64.urlsafe_b64encode(key_bytes)
+    f = Fernet(fernet_key)
+    try:
+        decrypted = f.decrypt(token.encode('utf-8')).decode('utf-8')
+        sponsor, position = decrypted.split(":")
+        return sponsor, position
+    except Exception:
+        raise ValueError("Invalid or tampered referral token.")
+
+
+@app.get("/auth/verify-referral")
+def verify_referral(token: str, db: Session = Depends(get_db)):
+    try:
+        sponsor, position = decrypt_referral(token)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+        
+    db_sponsor = crud.get_user_by_username(db, sponsor)
+    if not db_sponsor:
+        raise HTTPException(status_code=400, detail="Referral sponsor does not exist.")
+        
+    return {"sponsor": sponsor, "position": position}
+
+
 @app.post("/auth/register", response_model=schemas.UserResponse, status_code=status.HTTP_201_CREATED)
 def register_user(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
     # Check if username or email already exists
@@ -84,23 +113,18 @@ def register_user(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
     if db_email:
         raise HTTPException(status_code=400, detail="Email already registered.")
         
-    # Check signature validation if there are existing non-admin users in the system
+    # Check token validation if there are existing non-admin users in the system
     user_count = db.query(models.User).filter(models.User.is_admin == False).count()
     if user_count > 0:
-        if not user_data.sponsor_username:
-            raise HTTPException(status_code=400, detail="Referral sponsor username is required.")
-        if not user_data.position or user_data.position not in ["left", "right"]:
-            raise HTTPException(status_code=400, detail="Placement position ('left' or 'right') is required.")
-        if not user_data.signature:
-            raise HTTPException(status_code=400, detail="Referral link signature is required.")
+        if not user_data.token:
+            raise HTTPException(status_code=400, detail="Referral token is required for registration.")
         
-        # Verify cryptographic signature using server's SECRET_KEY
-        import hmac
-        import hashlib
-        message = f"{user_data.sponsor_username}:{user_data.position}".encode('utf-8')
-        expected_sig = hmac.new(settings.SECRET_KEY.encode('utf-8'), message, hashlib.sha256).hexdigest()
-        if not hmac.compare_digest(expected_sig, user_data.signature):
-            raise HTTPException(status_code=400, detail="Invalid or tampered referral link. Positioning cannot be changed.")
+        try:
+            sponsor, position = decrypt_referral(user_data.token)
+            user_data.sponsor_username = sponsor
+            user_data.position = position
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
         
     try:
         new_user = crud.create_user(db, user_data)

@@ -11,12 +11,13 @@ export const Register: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [sponsorUsername, setSponsorUsername] = useState('');
   const [position, setPosition] = useState<'left' | 'right'>('left');
-  const [signature, setSignature] = useState('');
+  const [token, setToken] = useState('');
   
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [hasUsers, setHasUsers] = useState<boolean>(true); // default to true to be safe
+  const [isLinkInvalid, setIsLinkInvalid] = useState(false);
 
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -40,18 +41,40 @@ export const Register: React.FC = () => {
 
   // Pre-populate sponsor and position from URL query params (referrals or visual tree clicks!)
   useEffect(() => {
-    const urlSponsor = searchParams.get('sponsor') || searchParams.get('ref') || '';
-    const urlPosition = searchParams.get('position') || 'left';
-    const urlSignature = searchParams.get('signature') || '';
+    const urlToken = searchParams.get('token') || '';
     
-    if (urlSponsor) {
-      setSponsorUsername(urlSponsor);
-    }
-    if (urlPosition === 'left' || urlPosition === 'right') {
-      setPosition(urlPosition);
-    }
-    if (urlSignature) {
-      setSignature(urlSignature);
+    if (urlToken) {
+      setToken(urlToken);
+      const verifyLink = async () => {
+        try {
+          const response = await fetch(
+            `${API_BASE_URL}/auth/verify-referral?token=${encodeURIComponent(urlToken)}`
+          );
+          if (!response.ok) {
+            const errData = await response.json();
+            setError(errData.detail || 'Invalid or tampered referral link. Positioning cannot be changed.');
+            setIsLinkInvalid(true);
+          } else {
+            const data = await response.json();
+            setSponsorUsername(data.sponsor);
+            setPosition(data.position);
+            setIsLinkInvalid(false);
+          }
+        } catch (err) {
+          console.error('Failed to verify referral link:', err);
+          setError('Failed to connect to verification server. Please reload the page.');
+        }
+      };
+      verifyLink();
+    } else {
+      const urlSponsor = searchParams.get('sponsor') || searchParams.get('ref') || '';
+      const urlPosition = searchParams.get('position') || 'left';
+      if (urlSponsor) {
+        setSponsorUsername(urlSponsor);
+      }
+      if (urlPosition === 'left' || urlPosition === 'right') {
+        setPosition(urlPosition);
+      }
     }
   }, [searchParams]);
 
@@ -59,13 +82,18 @@ export const Register: React.FC = () => {
     e.preventDefault();
     setError('');
 
+    if (isLinkInvalid) {
+      setError('Cannot submit. The referral link is tampered or invalid.');
+      return;
+    }
+
     if (hasUsers) {
       if (!sponsorUsername.trim()) {
         setError('Referral sponsor username is required.');
         return;
       }
-      if (!signature.trim()) {
-        setError('A valid signed referral link is required. You cannot register directly without one.');
+      if (!token.trim()) {
+        setError('A valid encrypted referral link is required. You cannot register directly without one.');
         return;
       }
     }
@@ -73,7 +101,7 @@ export const Register: React.FC = () => {
     setSubmitting(true);
 
     try {
-      await register(username, email, password, fullName, phoneNumber, sponsorUsername, position, signature);
+      await register(username, email, password, fullName, phoneNumber, sponsorUsername, position, token);
       setSuccess(true);
       setSubmitting(false);
     } catch (err: any) {
@@ -139,7 +167,7 @@ export const Register: React.FC = () => {
               className="w-full bg-slate-950 border border-slate-850 rounded p-2 focus:outline-none focus:border-amber-500 text-slate-200 disabled:opacity-75 disabled:cursor-not-allowed"
               value={sponsorUsername}
               onChange={(e) => setSponsorUsername(e.target.value)}
-              disabled={submitting || (hasUsers && !!searchParams.get('ref')) || (hasUsers && !!searchParams.get('sponsor'))}
+              disabled={submitting || (hasUsers && !!searchParams.get('token'))}
               placeholder="Sponsor username (e.g. rootuser)"
               required={hasUsers}
             />
@@ -159,7 +187,7 @@ export const Register: React.FC = () => {
                   position === 'left' 
                     ? 'border-amber-500 bg-amber-500/10 text-amber-400 font-bold' 
                     : 'border-slate-800 bg-slate-950 text-slate-400'
-                } ${signature ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'}`}>
+                } ${token ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'}`}>
                   <input
                     type="radio"
                     name="position"
@@ -167,7 +195,7 @@ export const Register: React.FC = () => {
                     value="left"
                     checked={position === 'left'}
                     onChange={() => setPosition('left')}
-                    disabled={!!signature || submitting}
+                    disabled={!!token || submitting}
                   />
                   Left Leg
                 </label>
@@ -175,7 +203,7 @@ export const Register: React.FC = () => {
                   position === 'right' 
                     ? 'border-amber-500 bg-amber-500/10 text-amber-400 font-bold' 
                     : 'border-slate-800 bg-slate-950 text-slate-400'
-                } ${signature ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'}`}>
+                } ${token ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'}`}>
                   <input
                     type="radio"
                     name="position"
@@ -183,13 +211,13 @@ export const Register: React.FC = () => {
                     value="right"
                     checked={position === 'right'}
                     onChange={() => setPosition('right')}
-                    disabled={!!signature || submitting}
+                    disabled={!!token || submitting}
                   />
                   Right Leg
                 </label>
               </div>
               <p className="text-[9px] text-slate-500 mt-1.5 leading-normal">
-                {signature 
+                {token 
                   ? '🔒 Placement is locked by the sponsor referral link.' 
                   : `💡 **Spillover**: Placement is search-traverse down the extreme ${position} leg of the sponsor tree.`}
               </p>
@@ -266,9 +294,9 @@ export const Register: React.FC = () => {
 
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || isLinkInvalid}
             className={`w-full py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-md font-extrabold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
-              submitting ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'
+              submitting || isLinkInvalid ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'
             }`}
           >
             {submitting ? 'Creating member...' : 'Register'}

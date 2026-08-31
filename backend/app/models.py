@@ -55,20 +55,26 @@ class User(Base):
         return self.parent.username if self.parent else None
 
     @property
-    def ref_signature_left(self):
+    def ref_token_left(self):
         from .config import settings
-        import hmac
         import hashlib
-        message = f"{self.username}:left".encode('utf-8')
-        return hmac.new(settings.SECRET_KEY.encode('utf-8'), message, hashlib.sha256).hexdigest()
+        import base64
+        from cryptography.fernet import Fernet
+        key_bytes = hashlib.sha256(settings.SECRET_KEY.encode('utf-8')).digest()
+        fernet_key = base64.urlsafe_b64encode(key_bytes)
+        f = Fernet(fernet_key)
+        return f.encrypt(f"{self.username}:left".encode('utf-8')).decode('utf-8')
 
     @property
-    def ref_signature_right(self):
+    def ref_token_right(self):
         from .config import settings
-        import hmac
         import hashlib
-        message = f"{self.username}:right".encode('utf-8')
-        return hmac.new(settings.SECRET_KEY.encode('utf-8'), message, hashlib.sha256).hexdigest()
+        import base64
+        from cryptography.fernet import Fernet
+        key_bytes = hashlib.sha256(settings.SECRET_KEY.encode('utf-8')).digest()
+        fernet_key = base64.urlsafe_b64encode(key_bytes)
+        f = Fernet(fernet_key)
+        return f.encrypt(f"{self.username}:right".encode('utf-8')).decode('utf-8')
 
 
 

@@ -26,8 +26,8 @@ export interface User {
   total_right_sw: number;
   wallet_balance: number;
   created_at: string;
-  ref_signature_left?: string;
-  ref_signature_right?: string;
+  ref_token_left?: string;
+  ref_token_right?: string;
 }
 
 interface AuthContextType {
@@ -44,7 +44,7 @@ interface AuthContextType {
     phoneNumber: string,
     sponsorUsername: string,
     position: 'left' | 'right',
-    signature?: string
+    token?: string
   ) => Promise<User>;
   refreshUser: () => Promise<User | null>;
 }
@@ -134,7 +134,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     phoneNumber: string,
     sponsorUsername: string,
     position: 'left' | 'right',
-    signature?: string
+    token?: string
   ): Promise<User> => {
     const payload = {
       username,
@@ -144,7 +144,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       phone_number: phoneNumber,
       sponsor_username: sponsorUsername || null,
       position,
-      signature: signature || null,
+      token: token || null,
     };
 
     const response = await fetch(`${API_BASE_URL}/auth/register`, {

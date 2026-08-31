@@ -194,8 +194,8 @@ def get_genealogy_tree(db: Session, root_user_id: int, current_depth: int = 0, m
         "total_right_sw": user.total_right_sw,
         "left_child": None,
         "right_child": None,
-        "left_child_signature": user.ref_signature_left if not user.left_child_id else None,
-        "right_child_signature": user.ref_signature_right if not user.right_child_id else None
+        "left_child_token": user.ref_token_left if not user.left_child_id else None,
+        "right_child_token": user.ref_token_right if not user.right_child_id else None
     }
     
     if user.left_child_id:

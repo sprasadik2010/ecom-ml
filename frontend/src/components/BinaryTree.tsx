@@ -16,8 +16,8 @@ export interface TreeData {
   total_right_sw: number;
   left_child: TreeData | null;
   right_child: TreeData | null;
-  left_child_signature?: string;
-  right_child_signature?: string;
+  left_child_token?: string;
+  right_child_token?: string;
 }
 
 interface BinaryTreeProps {
@@ -131,11 +131,11 @@ export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, curr
   };
 
   // Helper to render an empty registerable slot
-  const renderEmptySlot = (parentUsername: string, position: 'left' | 'right', signature?: string) => {
+  const renderEmptySlot = (parentUsername: string, position: 'left' | 'right', token?: string) => {
     const handleRegisterClick = () => {
-      // Redirect to register page pre-populating sponsor and parent positions
-      const signatureParam = signature ? `&signature=${signature}` : '';
-      navigate(`/register?sponsor=${parentUsername}&position=${position}${signatureParam}`);
+      // Redirect to register page using the encrypted referral token
+      const tokenParam = token ? `?token=${token}` : `?sponsor=${parentUsername}&position=${position}`;
+      navigate(`/register${tokenParam}`);
     };
 
     return (
@@ -155,10 +155,10 @@ export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, curr
   };
 
   // Helper to render empty slot list for Directory View
-  const renderEmptySlotList = (parentUsername: string, position: 'left' | 'right', signature?: string) => {
+  const renderEmptySlotList = (parentUsername: string, position: 'left' | 'right', token?: string) => {
     const handleRegisterClick = () => {
-      const signatureParam = signature ? `&signature=${signature}` : '';
-      navigate(`/register?sponsor=${parentUsername}&position=${position}${signatureParam}`);
+      const tokenParam = token ? `?token=${token}` : `?sponsor=${parentUsername}&position=${position}`;
+      navigate(`/register${tokenParam}`);
     };
 
     return (
@@ -203,7 +203,7 @@ export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, curr
                 {node.left_child ? (
                   renderTree(node.left_child, depth + 1)
                 ) : (
-                  renderEmptySlot(node.username, 'left', node.left_child_signature)
+                  renderEmptySlot(node.username, 'left', node.left_child_token)
                 )}
               </div>
 
@@ -212,7 +212,7 @@ export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, curr
                 {node.right_child ? (
                   renderTree(node.right_child, depth + 1)
                 ) : (
-                  renderEmptySlot(node.username, 'right', node.right_child_signature)
+                  renderEmptySlot(node.username, 'right', node.right_child_token)
                 )}
               </div>
             </div>
@@ -313,7 +313,7 @@ export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, curr
               ) : (
                 <div className="ml-6 sm:ml-8 relative py-1">
                   <div className="absolute left-[-16px] sm:left-[-20px] top-1/2 w-4 sm:w-5 h-0.5 bg-slate-800" />
-                  {renderEmptySlotList(node.username, 'left', node.left_child_signature)}
+                  {renderEmptySlotList(node.username, 'left', node.left_child_token)}
                 </div>
               )}
             </div>
@@ -325,7 +325,7 @@ export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, curr
               ) : (
                 <div className="ml-6 sm:ml-8 relative py-1">
                   <div className="absolute left-[-16px] sm:left-[-20px] top-1/2 w-4 sm:w-5 h-0.5 bg-slate-800" />
-                  {renderEmptySlotList(node.username, 'right', node.right_child_signature)}
+                  {renderEmptySlotList(node.username, 'right', node.right_child_token)}
                 </div>
               )}
             </div>
