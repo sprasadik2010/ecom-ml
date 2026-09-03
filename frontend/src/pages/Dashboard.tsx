@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
-import { IndianRupee, Award, Users, Share2, Clipboard, ShieldCheck, ShieldAlert, ShoppingBag, Landmark, ArrowRight, UserPlus } from 'lucide-react';
+import { IndianRupee, Award, Users, Share2, Clipboard, ShieldCheck, ShieldAlert, ShoppingBag, Landmark, ArrowRight, Star, Zap, Calendar, CheckCircle2, TrendingUp, Sparkles } from 'lucide-react';
 import { API_BASE_URL } from '../context/AuthContext';
 
 interface Order {
@@ -12,33 +12,56 @@ interface Order {
   created_at: string;
 }
 
+interface RankReward {
+  id: number;
+  user_id: number;
+  level: number;
+  level_name: string;
+  monthly_amount: number;
+  total_months: number;
+  months_paid: number;
+  status: string;
+  created_at: string;
+  last_payout_at: string | null;
+  next_payout_at: string | null;
+}
+
 export const Dashboard: React.FC = () => {
   const { user, token } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [rewards, setRewards] = useState<RankReward[]>([]);
   const [copiedLeft, setCopiedLeft] = useState(false);
   const [copiedRight, setCopiedRight] = useState(false);
   const [loadingOrders, setLoadingOrders] = useState(true);
 
   useEffect(() => {
-    const fetchOrders = async () => {
+    const fetchOrdersAndRewards = async () => {
       if (!token) return;
       try {
-        const response = await fetch(`${API_BASE_URL}/orders/my`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setOrders(data.slice(0, 5)); // Keep top 5 recent orders
+        const [ordRes, rewRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/orders/my`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${API_BASE_URL}/rewards/my`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+
+        if (ordRes.ok) {
+          const ordData = await ordRes.json();
+          setOrders(ordData.slice(0, 5));
+        }
+        if (rewRes.ok) {
+          const rewData = await rewRes.json();
+          setRewards(rewData);
         }
       } catch (error) {
-        console.error('Error fetching orders:', error);
+        console.error('Error fetching dashboard data:', error);
       } finally {
         setLoadingOrders(false);
       }
     };
-    fetchOrders();
+    fetchOrdersAndRewards();
   }, [token]);
 
   if (!user) {
@@ -49,8 +72,6 @@ export const Dashboard: React.FC = () => {
       </div>
     );
   }
-
-  if (!user) return null; // safety fallback
 
   const leftReferralLink = `${window.location.origin}/register?token=${user.ref_token_left || ''}`;
   const rightReferralLink = `${window.location.origin}/register?token=${user.ref_token_right || ''}`;
@@ -69,14 +90,36 @@ export const Dashboard: React.FC = () => {
 
   const isActive = user.status === 'active';
   const progressPercent = Math.min((user.personal_sw / 50) * 100, 100);
+  const matchedSW = user.total_matched_sw || 0;
+  const level1Progress = Math.min((matchedSW / 100) * 100, 100);
+
+  const getLevelBadgeColor = (lvl: number) => {
+    switch (lvl) {
+      case 1: return 'from-amber-700 to-amber-500 text-amber-100 border-amber-500/40';
+      case 2: return 'from-slate-400 to-slate-200 text-slate-900 border-slate-300';
+      case 3: return 'from-yellow-500 to-amber-300 text-slate-950 border-yellow-300';
+      case 4: return 'from-cyan-500 to-blue-400 text-slate-950 border-cyan-300';
+      case 5: return 'from-purple-500 to-pink-500 text-white border-purple-300';
+      case 6: return 'from-emerald-500 to-teal-400 text-slate-950 border-emerald-300';
+      default: return 'from-slate-800 to-slate-700 text-slate-300 border-slate-700';
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* Top Banner: Welcome & Status */}
+      {/* Top Banner: Welcome, Rank & Status */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-6 bg-slate-900 border border-slate-800 rounded-xl mb-8 shadow-md">
         <div>
-          <h1 className="text-xl md:text-2xl font-black text-white">Hello, {user.full_name}!</h1>
-          <p className="text-slate-400 text-xs mt-0.5">Welcome to your network dashboard. Monitor your volumes and team growth.</p>
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-xl md:text-2xl font-black text-white">Hello, {user.full_name}!</h1>
+            {user.current_level > 0 && (
+              <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-gradient-to-r ${getLevelBadgeColor(user.current_level)} border shadow-sm flex items-center gap-1.5`}>
+                <Star size={13} className="fill-current" />
+                {user.level_name || `Level ${user.current_level}`}
+              </span>
+            )}
+          </div>
+          <p className="text-slate-400 text-xs mt-1">Welcome to your network dashboard. Track 1:1 binary matching pairs and progressive monthly royalties.</p>
         </div>
 
         {/* Member Status Pill */}
@@ -103,7 +146,7 @@ export const Dashboard: React.FC = () => {
           <div className="flex-1">
             <h4 className="font-extrabold text-sm text-red-200 mb-1">Your Account is Currently Inactive!</h4>
             <p className="text-xs text-slate-400 leading-normal max-w-2xl font-normal">
-              You are currently placed in the binary tree but **cannot earn network commission matchings** from child leg transactions. Buy products to accumulate at least <span className="text-amber-400 font-bold">50 SW Points</span> to activate your commissions dashboard!
+              You are currently placed in the binary tree but **cannot earn binary matching matchings (₹10/SW)** from child leg transactions. Buy products to accumulate at least <span className="text-amber-400 font-bold">50 SW Points</span> to activate your commissions!
             </p>
             {/* Progress Bar */}
             <div className="mt-3 max-w-sm">
@@ -132,7 +175,7 @@ export const Dashboard: React.FC = () => {
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm relative group hover:border-slate-700 transition-colors">
           <div className="flex justify-between items-start">
             <div className="flex flex-col">
-              <span className="text-slate-505 text-[10px] uppercase font-bold tracking-wider">Withdrawable Wallet</span>
+              <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Withdrawable Wallet</span>
               <span className="text-2xl font-black text-white font-mono mt-1.5">₹{user.wallet_balance.toFixed(2)}</span>
             </div>
             <div className="p-2 bg-slate-950 text-amber-400 rounded-lg border border-slate-800">
@@ -142,25 +185,25 @@ export const Dashboard: React.FC = () => {
           <div className="mt-4 pt-3 border-t border-slate-850 flex items-center justify-between text-[10px] text-slate-400">
             <span>Commission Wallet Balance</span>
             <Link to="/commissions" className="text-amber-500 hover:text-amber-400 font-bold transition-colors">
-              Ledger
+              Ledger &rarr;
             </Link>
           </div>
         </div>
 
-        {/* Personal SW */}
+        {/* Matched SW Points */}
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm relative group hover:border-slate-700 transition-colors">
           <div className="flex justify-between items-start">
             <div className="flex flex-col">
-              <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Personal SW</span>
-              <span className="text-2xl font-black text-white font-mono mt-1.5">{user.personal_sw} SW</span>
+              <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Matched Sales Points</span>
+              <span className="text-2xl font-black text-amber-400 font-mono mt-1.5">{matchedSW} SW</span>
             </div>
             <div className="p-2 bg-slate-950 text-amber-400 rounded-lg border border-slate-800">
-              <Award size={20} />
+              <Zap size={20} />
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-slate-850 flex items-center justify-between text-[10px] text-slate-400">
-            <span>Own purchases accumulated</span>
-            <span className="text-emerald-400 font-bold">{isActive ? 'Activated' : 'Inactive'}</span>
+            <span>Earned ₹{(matchedSW * 10).toFixed(0)} @ ₹10/SW</span>
+            <span className="text-emerald-400 font-bold">1:1 Matched</span>
           </div>
         </div>
 
@@ -168,7 +211,7 @@ export const Dashboard: React.FC = () => {
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm relative group hover:border-slate-700 transition-colors">
           <div className="flex justify-between items-start">
             <div className="flex flex-col">
-              <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Left Leg unmatched</span>
+              <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Left Leg Carryforward</span>
               <span className="text-2xl font-black text-slate-200 font-mono mt-1.5">{user.left_leg_sw} SW</span>
             </div>
             <div className="p-2 bg-slate-950 text-slate-400 rounded-lg border border-slate-800">
@@ -177,7 +220,7 @@ export const Dashboard: React.FC = () => {
           </div>
           <div className="mt-4 pt-3 border-t border-slate-850 flex items-center justify-between text-[10px] text-slate-400 font-mono">
             <span>Lifetime: {user.total_left_sw} SW</span>
-            <span>Left Branch</span>
+            <span className="text-slate-400">Left Leg</span>
           </div>
         </div>
 
@@ -185,7 +228,7 @@ export const Dashboard: React.FC = () => {
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm relative group hover:border-slate-700 transition-colors">
           <div className="flex justify-between items-start">
             <div className="flex flex-col">
-              <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Right Leg unmatched</span>
+              <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Right Leg Carryforward</span>
               <span className="text-2xl font-black text-slate-200 font-mono mt-1.5">{user.right_leg_sw} SW</span>
             </div>
             <div className="p-2 bg-slate-950 text-slate-400 rounded-lg border border-slate-800">
@@ -194,10 +237,184 @@ export const Dashboard: React.FC = () => {
           </div>
           <div className="mt-4 pt-3 border-t border-slate-850 flex items-center justify-between text-[10px] text-slate-400 font-mono">
             <span>Lifetime: {user.total_right_sw} SW</span>
-            <span>Right Branch</span>
+            <span className="text-slate-400">Right Leg</span>
           </div>
         </div>
       </div>
+
+      {/* Rank Progression & Royalty Streams Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
+        {/* Left: Rank & Milestone Ladder Progress */}
+        <div className="lg:col-span-6 bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-md">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-extrabold text-sm text-slate-100 uppercase tracking-wider flex items-center gap-2">
+              <TrendingUp size={18} className="text-amber-500" />
+              Rank & Royalty Progression Ladder
+            </h3>
+            <span className="text-[11px] font-mono text-amber-400 font-bold">
+              Current: {user.level_name || 'Member'}
+            </span>
+          </div>
+
+          <p className="text-xs text-slate-400 leading-normal mb-5 font-normal">
+            For every 1 matching point on Left & Right legs you earn <span className="text-emerald-400 font-bold">₹10</span>. In addition, unlock monthly royalties starting at <span className="text-amber-400 font-bold">₹1,000/mo</span> up to <span className="text-amber-400 font-bold">₹10,000/mo</span> as your team advances!
+          </p>
+
+          {/* Level 1 Milestone Progress Bar */}
+          <div className="bg-slate-950/40 border border-slate-800/80 rounded-lg p-4 mb-4">
+            <div className="flex justify-between items-center text-xs mb-1.5">
+              <span className="font-bold text-slate-200 flex items-center gap-1.5">
+                <Star size={14} className="text-amber-500" />
+                Level 1 Qualification (100 Matching SW)
+              </span>
+              <span className="font-mono text-amber-400 font-bold">{matchedSW} / 100 SW ({level1Progress.toFixed(0)}%)</span>
+            </div>
+            <div className="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+              <div
+                className="h-full bg-gradient-to-r from-amber-600 to-amber-400 rounded-full transition-all duration-500"
+                style={{ width: `${level1Progress}%` }}
+              />
+            </div>
+            <div className="mt-2 flex justify-between items-center text-[10px] text-slate-400">
+              <span>Reward: <strong className="text-emerald-400">₹1,000/mo for 2 Months</strong> (Total ₹2,000)</span>
+              {matchedSW >= 100 ? (
+                <span className="text-emerald-400 font-bold flex items-center gap-1">
+                  <CheckCircle2 size={12} /> Achieved!
+                </span>
+              ) : (
+                <span className="text-slate-500 font-mono">{100 - matchedSW} SW remaining</span>
+              )}
+            </div>
+          </div>
+
+          {/* Rank Roadmap Table */}
+          <div className="space-y-2 text-xs">
+            <div className={`p-2.5 rounded-lg border flex items-center justify-between ${user.current_level >= 1 ? 'bg-amber-950/20 border-amber-800/40 text-amber-200' : 'bg-slate-950/20 border-slate-850 text-slate-400'}`}>
+              <div className="flex items-center gap-2">
+                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${user.current_level >= 1 ? 'bg-amber-500 text-slate-950' : 'bg-slate-800 text-slate-400'}`}>1</span>
+                <div>
+                  <div className="font-bold text-slate-200">Level 1 (Bronze Star)</div>
+                  <div className="text-[10px] text-slate-500">100 Matched Sales Points on each leg</div>
+                </div>
+              </div>
+              <div className="text-right">
+                <span className="font-bold text-emerald-400 font-mono">₹1,000 / mo</span>
+                <div className="text-[10px] text-slate-500">for 2 months</div>
+              </div>
+            </div>
+
+            <div className={`p-2.5 rounded-lg border flex items-center justify-between ${user.current_level >= 2 ? 'bg-slate-800/40 border-slate-600 text-slate-200' : 'bg-slate-950/20 border-slate-850 text-slate-400'}`}>
+              <div className="flex items-center gap-2">
+                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${user.current_level >= 2 ? 'bg-slate-200 text-slate-950' : 'bg-slate-800 text-slate-400'}`}>2</span>
+                <div>
+                  <div className="font-bold text-slate-200">Level 2 (Silver Star)</div>
+                  <div className="text-[10px] text-slate-500">Both direct Left & Right children reach Level 1</div>
+                </div>
+              </div>
+              <div className="text-right">
+                <span className="font-bold text-emerald-400 font-mono">₹2,000 / mo</span>
+                <div className="text-[10px] text-slate-500">for 3 months</div>
+              </div>
+            </div>
+
+            <div className={`p-2.5 rounded-lg border flex items-center justify-between ${user.current_level >= 3 ? 'bg-amber-950/30 border-yellow-600/40 text-yellow-200' : 'bg-slate-950/20 border-slate-850 text-slate-400'}`}>
+              <div className="flex items-center gap-2">
+                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${user.current_level >= 3 ? 'bg-yellow-400 text-slate-950' : 'bg-slate-800 text-slate-400'}`}>3</span>
+                <div>
+                  <div className="font-bold text-slate-200">Level 3 (Gold Star)</div>
+                  <div className="text-[10px] text-slate-500">Children's children reach Level 1 (Both children Level 2)</div>
+                </div>
+              </div>
+              <div className="text-right">
+                <span className="font-bold text-emerald-400 font-mono">₹4,000 / mo</span>
+                <div className="text-[10px] text-slate-500">for 4 months</div>
+              </div>
+            </div>
+
+            <div className={`p-2.5 rounded-lg border flex items-center justify-between ${user.current_level >= 4 ? 'bg-cyan-950/30 border-cyan-600/40 text-cyan-200' : 'bg-slate-950/20 border-slate-850 text-slate-400'}`}>
+              <div className="flex items-center gap-2">
+                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${user.current_level >= 4 ? 'bg-cyan-400 text-slate-950' : 'bg-slate-800 text-slate-400'}`}>4</span>
+                <div>
+                  <div className="font-bold text-slate-200">Level 4 &rarr; Level 6</div>
+                  <div className="text-[10px] text-slate-500">Team expansion up to Level 6 Crown Ambassador</div>
+                </div>
+              </div>
+              <div className="text-right">
+                <span className="font-bold text-emerald-400 font-mono">Up to ₹10,000 / mo</span>
+                <div className="text-[10px] text-slate-500">for 6 months</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right: Active Monthly Royalty Stream Cards */}
+        <div className="lg:col-span-6 bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-md flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-extrabold text-sm text-slate-100 uppercase tracking-wider flex items-center gap-2">
+                <Sparkles size={18} className="text-amber-400" />
+                Active Monthly Royalty Streams
+              </h3>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-950 text-slate-400 border border-slate-800">
+                {rewards.length} Stream{rewards.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+
+            {rewards.length === 0 ? (
+              <div className="py-8 text-center text-slate-500 border border-dashed border-slate-800 rounded-lg flex flex-col items-center justify-center gap-2">
+                <Award size={32} className="text-slate-700" />
+                <p className="text-xs font-bold text-slate-300">No Royalty Streams Active Yet</p>
+                <p className="text-[11px] text-slate-500 max-w-xs leading-normal">
+                  Match 100 Sales Points on both legs to unlock your first ₹1,000/month royalty stream!
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {rewards.map((rew) => (
+                  <div key={rew.id} className="p-4 bg-slate-950/40 border border-slate-800 rounded-lg">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <div className="font-bold text-sm text-white flex items-center gap-1.5">
+                          <Star size={14} className="text-amber-400 fill-amber-400" />
+                          {rew.level_name}
+                        </div>
+                        <div className="text-[11px] text-emerald-400 font-mono font-bold mt-0.5">
+                          ₹{rew.monthly_amount.toFixed(2)} / Month
+                        </div>
+                      </div>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        rew.status === 'completed'
+                          ? 'bg-slate-800 text-slate-400'
+                          : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                      }`}>
+                        {rew.status.toUpperCase()}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-850">
+                      <span>Progress: <strong className="text-white font-mono">{rew.months_paid} / {rew.total_months} Months Paid</strong></span>
+                      {rew.next_payout_at && rew.status === 'active' && (
+                        <span className="text-[10px] text-amber-400 flex items-center gap-1">
+                          <Calendar size={11} />
+                          Next: {new Date(rew.next_payout_at).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="mt-6 pt-4 border-t border-slate-850 flex items-center justify-between text-xs text-slate-400">
+            <span>Matching Rate: <strong>₹10 / Matched SW</strong></span>
+            <Link to="/tree" className="text-amber-500 hover:text-amber-400 font-bold flex items-center gap-1">
+              View Binary Tree Downline &rarr;
+            </Link>
+          </div>
+        </div>
+      </div>
+
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Side: Referral code & Upline info or Admin panel overview */}

@@ -192,6 +192,9 @@ def get_genealogy_tree(db: Session, root_user_id: int, current_depth: int = 0, m
         "right_leg_sw": user.right_leg_sw,
         "total_left_sw": user.total_left_sw,
         "total_right_sw": user.total_right_sw,
+        "total_matched_sw": user.total_matched_sw or 0.0,
+        "current_level": user.current_level or 0,
+        "level_name": user.level_name or "Member",
         "left_child": None,
         "right_child": None,
         "left_child_token": user.ref_token_left if not user.left_child_id else None,
@@ -204,3 +207,31 @@ def get_genealogy_tree(db: Session, root_user_id: int, current_depth: int = 0, m
         node["right_child"] = get_genealogy_tree(db, user.right_child_id, current_depth + 1, max_depth)
         
     return node
+
+
+# --- Rank & Monthly Reward CRUD ---
+def get_user_rank_rewards(db: Session, user_id: int):
+    return db.query(UserRankReward).filter(UserRankReward.user_id == user_id).order_by(UserRankReward.level.desc()).all()
+
+
+def get_all_rank_rewards(db: Session):
+    rewards = db.query(UserRankReward).order_by(UserRankReward.created_at.desc()).all()
+    results = []
+    for r in rewards:
+        user = db.query(User).filter(User.id == r.user_id).first()
+        results.append({
+            "id": r.id,
+            "user_id": r.user_id,
+            "level": r.level,
+            "level_name": r.level_name,
+            "monthly_amount": r.monthly_amount,
+            "total_months": r.total_months,
+            "months_paid": r.months_paid,
+            "status": r.status,
+            "created_at": r.created_at,
+            "last_payout_at": r.last_payout_at,
+            "next_payout_at": r.next_payout_at,
+            "user_username": user.username if user else f"User #{r.user_id}"
+        })
+    return results
+

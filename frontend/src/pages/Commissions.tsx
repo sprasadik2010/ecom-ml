@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../context/AuthContext';
-import { IndianRupee, Landmark, ArrowRight, Award, Compass, HelpCircle } from 'lucide-react';
+import { IndianRupee, Landmark, ArrowRight, Award, Compass, HelpCircle, Star, Sparkles, Zap } from 'lucide-react';
 
 interface Commission {
   id: number;
   amount: number;
-  type: 'direct_referral' | 'binary_matching';
+  type: 'direct_referral' | 'binary_matching' | 'rank_level_reward' | 'admin_adjustment';
   description: string;
   created_at: string;
 }
@@ -49,15 +49,19 @@ export const Commissions: React.FC = () => {
   }
 
   // Calculate totals
-  const totalDirect = commissions
-    .filter((c) => c.type === 'direct_referral')
-    .reduce((sum, c) => sum + c.amount, 0);
-
   const totalMatching = commissions
     .filter((c) => c.type === 'binary_matching')
     .reduce((sum, c) => sum + c.amount, 0);
 
-  const totalEarned = totalDirect + totalMatching;
+  const totalRankRewards = commissions
+    .filter((c) => c.type === 'rank_level_reward')
+    .reduce((sum, c) => sum + c.amount, 0);
+
+  const totalOther = commissions
+    .filter((c) => c.type !== 'binary_matching' && c.type !== 'rank_level_reward')
+    .reduce((sum, c) => sum + c.amount, 0);
+
+  const totalEarned = totalMatching + totalRankRewards + totalOther;
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -65,7 +69,7 @@ export const Commissions: React.FC = () => {
       <div className="border-b border-slate-800 pb-4 mb-6">
         <h1 className="text-2xl font-black text-white">Commissions Ledger</h1>
         <p className="text-slate-400 text-xs mt-0.5">
-          Review your network earnings. Track your direct sales referral volume matches in real-time.
+          Review your network earnings. Track your ₹10/SW 1:1 matching bonuses and progressive level monthly royalties in real-time.
         </p>
       </div>
 
@@ -75,7 +79,7 @@ export const Commissions: React.FC = () => {
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
           <div className="flex justify-between items-start">
             <div>
-              <span className="text-slate-555 text-[10px] uppercase font-bold tracking-wider">Total Lifetime Commissions</span>
+              <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Total Lifetime Earnings</span>
               <div className="text-2xl font-black text-white font-mono mt-1.5">₹{totalEarned.toFixed(2)}</div>
             </div>
             <div className="p-2 bg-slate-950 text-amber-400 rounded-lg border border-slate-800">
@@ -83,25 +87,8 @@ export const Commissions: React.FC = () => {
             </div>
           </div>
           <div className="mt-3 pt-3 border-t border-slate-850 flex items-center justify-between text-[10px] text-slate-400">
-            <span>Direct Sponsor + Binary Match</span>
+            <span>Binary Matching + Level Royalties</span>
             <span className="font-bold text-amber-500">100% Paid</span>
-          </div>
-        </div>
-
-        {/* Direct Referral Total */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
-          <div className="flex justify-between items-start">
-            <div>
-              <span className="text-slate-505 text-[10px] uppercase font-bold tracking-wider">Direct Referral Bonus</span>
-              <div className="text-2xl font-black text-slate-200 font-mono mt-1.5">₹{totalDirect.toFixed(2)}</div>
-            </div>
-            <div className="p-2 bg-slate-950 text-amber-400/80 rounded-lg border border-slate-800">
-              <Award size={20} />
-            </div>
-          </div>
-          <div className="mt-3 pt-3 border-t border-slate-850 flex items-center justify-between text-[10px] text-slate-400">
-            <span>10% of Direct Recruit Volume</span>
-            <span className="font-mono">{commissions.filter(c => c.type === 'direct_referral').length} Credits</span>
           </div>
         </div>
 
@@ -109,16 +96,33 @@ export const Commissions: React.FC = () => {
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
           <div className="flex justify-between items-start">
             <div>
-              <span className="text-slate-505 text-[10px] uppercase font-bold tracking-wider">Team Binary Match Bonus</span>
+              <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">1:1 Binary Match Bonus</span>
               <div className="text-2xl font-black text-slate-200 font-mono mt-1.5">₹{totalMatching.toFixed(2)}</div>
             </div>
             <div className="p-2 bg-slate-950 text-emerald-400 rounded-lg border border-slate-800">
-              <Landmark size={20} />
+              <Zap size={20} />
             </div>
           </div>
           <div className="mt-3 pt-3 border-t border-slate-850 flex items-center justify-between text-[10px] text-slate-400">
-            <span>10% on 1:1 Matched Leg Pairs</span>
+            <span>₹10 per Matched Sales Point</span>
             <span className="font-mono">{commissions.filter(c => c.type === 'binary_matching').length} Matches</span>
+          </div>
+        </div>
+
+        {/* Rank Royalty Total */}
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
+          <div className="flex justify-between items-start">
+            <div>
+              <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Rank Monthly Royalties</span>
+              <div className="text-2xl font-black text-slate-200 font-mono mt-1.5">₹{totalRankRewards.toFixed(2)}</div>
+            </div>
+            <div className="p-2 bg-slate-950 text-amber-400 rounded-lg border border-slate-800">
+              <Star size={20} className="fill-amber-400" />
+            </div>
+          </div>
+          <div className="mt-3 pt-3 border-t border-slate-850 flex items-center justify-between text-[10px] text-slate-400">
+            <span>₹1,000 to ₹10,000 / mo Streams</span>
+            <span className="font-mono">{commissions.filter(c => c.type === 'rank_level_reward').length} Payouts</span>
           </div>
         </div>
       </div>
@@ -155,26 +159,33 @@ export const Commissions: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-850">
-                  {commissions.map((comm) => (
-                    <tr key={comm.id} className="hover:bg-slate-950/20 transition-colors font-normal text-slate-300">
-                      <td className="py-3.5 font-mono font-bold text-slate-400">#TXN{1000 + comm.id}</td>
-                      <td className="py-3.5 text-slate-400">{new Date(comm.created_at).toLocaleString()}</td>
-                      <td className="py-3.5">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${
-                          comm.type === 'direct_referral'
-                            ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                            : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                        }`}>
-                          {comm.type.replace('_', ' ')}
-                        </span>
-                      </td>
-                      <td className="py-3.5 text-slate-400 max-w-sm pr-4">{comm.description}</td>
-                      <td className="py-3.5 text-right font-black font-mono text-emerald-400">+₹{comm.amount.toFixed(2)}</td>
-                    </tr>
-                  ))}
+                  {commissions.map((comm) => {
+                    const isRank = comm.type === 'rank_level_reward';
+                    const isMatching = comm.type === 'binary_matching';
+                    return (
+                      <tr key={comm.id} className="hover:bg-slate-950/20 transition-colors font-normal text-slate-300">
+                        <td className="py-3.5 font-mono font-bold text-slate-400">#TXN{1000 + comm.id}</td>
+                        <td className="py-3.5 text-slate-400">{new Date(comm.created_at).toLocaleString()}</td>
+                        <td className="py-3.5">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${
+                            isRank
+                              ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                              : isMatching
+                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                              : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                          }`}>
+                            {isRank ? 'Rank Royalty' : isMatching ? 'Binary Match' : comm.type.replace('_', ' ')}
+                          </span>
+                        </td>
+                        <td className="py-3.5 text-slate-300 max-w-md pr-4">{comm.description}</td>
+                        <td className="py-3.5 text-right font-black font-mono text-emerald-400">+₹{comm.amount.toFixed(2)}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
+
 
             {/* Mobile Cards View */}
             <div className="block md:hidden space-y-3">
@@ -186,11 +197,13 @@ export const Commissions: React.FC = () => {
                   <div className="flex justify-between items-center mb-3">
                     <span className="font-mono font-bold text-slate-400 text-xs">#TXN{1000 + comm.id}</span>
                     <span className={`inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${
-                      comm.type === 'direct_referral'
+                      comm.type === 'rank_level_reward'
                         ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                        : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                        : comm.type === 'binary_matching'
+                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                        : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
                     }`}>
-                      {comm.type.replace('_', ' ')}
+                      {comm.type === 'rank_level_reward' ? 'Rank Royalty' : comm.type === 'binary_matching' ? 'Binary Match' : comm.type.replace('_', ' ')}
                     </span>
                   </div>
                   

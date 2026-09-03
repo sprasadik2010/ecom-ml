@@ -44,7 +44,10 @@ class UserResponse(UserBase):
     right_leg_sw: float
     total_left_sw: float
     total_right_sw: float
+    total_matched_sw: float = 0.0
     wallet_balance: float
+    current_level: int = 0
+    level_name: str = "Member"
     created_at: datetime
     ref_token_left: Optional[str] = None
     ref_token_right: Optional[str] = None
@@ -65,6 +68,9 @@ class TreeNodeResponse(BaseModel):
     right_leg_sw: float
     total_left_sw: float
     total_right_sw: float
+    total_matched_sw: float = 0.0
+    current_level: int = 0
+    level_name: str = "Member"
     left_child: Optional["TreeNodeResponse"] = None
     right_child: Optional["TreeNodeResponse"] = None
     left_child_token: Optional[str] = None
@@ -72,6 +78,7 @@ class TreeNodeResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
 
 
 # --- Product Schemas ---
@@ -187,3 +194,29 @@ class CategoryResponse(CategoryBase):
 
     class Config:
         from_attributes = True
+
+
+# --- Rank & Royalty Reward Schemas ---
+class UserRankRewardResponse(BaseModel):
+    id: int
+    user_id: int
+    level: int
+    level_name: str
+    monthly_amount: float
+    total_months: int
+    months_paid: int
+    status: str
+    created_at: datetime
+    last_payout_at: Optional[datetime] = None
+    next_payout_at: Optional[datetime] = None
+    user_username: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class RewardProcessResponse(BaseModel):
+    processed_count: int
+    total_disbursed: float
+    message: str
+

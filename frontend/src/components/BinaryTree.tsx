@@ -14,6 +14,9 @@ export interface TreeData {
   right_leg_sw: number;
   total_left_sw: number;
   total_right_sw: number;
+  total_matched_sw?: number;
+  current_level?: number;
+  level_name?: string;
   left_child: TreeData | null;
   right_child: TreeData | null;
   left_child_token?: string;
@@ -74,6 +77,7 @@ export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, curr
   // Helper to render a node card
   const renderNodeCard = (node: TreeData) => {
     const isActive = node.status === 'active';
+    const lvl = node.current_level || 0;
 
     return (
       <div 
@@ -91,7 +95,14 @@ export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, curr
           <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 font-mono">
             {node.position ? `${node.position} leg` : 'Root'}
           </span>
-          <span className={`inline-flex h-2 w-2 rounded-full ${isActive ? 'bg-emerald-500 shadow-emerald-500' : 'bg-red-500 shadow-red-500'} animate-pulse`}></span>
+          <div className="flex items-center gap-1">
+            {lvl > 0 && (
+              <span className="px-1.5 py-0.2 rounded text-[8px] font-black uppercase tracking-wider bg-amber-500 text-slate-950">
+                L{lvl}
+              </span>
+            )}
+            <span className={`inline-flex h-2 w-2 rounded-full ${isActive ? 'bg-emerald-500 shadow-emerald-500' : 'bg-red-500 shadow-red-500'} animate-pulse`}></span>
+          </div>
         </div>
 
         {/* Username */}
@@ -123,7 +134,7 @@ export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, curr
         </div>
 
         <div className="mt-1.5 pt-1 border-t border-slate-850 flex items-center justify-between text-[8px] text-slate-400">
-          <span>Personal:</span>
+          <span>Matched: <strong className="text-emerald-400 font-mono">{node.total_matched_sw || 0} SW</strong></span>
           <span className="font-bold text-amber-400 font-mono">{node.personal_sw} SW</span>
         </div>
       </div>

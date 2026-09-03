@@ -31,7 +31,12 @@ class User(Base):
     right_leg_sw = Column(Float, default=0.0)
     total_left_sw = Column(Float, default=0.0)
     total_right_sw = Column(Float, default=0.0)
+    total_matched_sw = Column(Float, default=0.0)
     wallet_balance = Column(Float, default=0.0)
+    
+    # Rank / Level Progression
+    current_level = Column(Integer, default=0) # 0: Member, 1: Level 1, 2: Level 2, etc.
+    level_name = Column(String, default="Member")
     
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
@@ -45,6 +50,7 @@ class User(Base):
     
     orders = relationship("Order", back_populates="user")
     commissions = relationship("Commission", back_populates="user")
+    rank_rewards = relationship("UserRankReward", back_populates="user", cascade="all, delete-orphan")
 
     @property
     def sponsor_username(self):
@@ -133,8 +139,27 @@ class Commission(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     amount = Column(Float, nullable=False)
-    type = Column(String, nullable=False) # 'direct_referral' or 'binary_matching'
+    type = Column(String, nullable=False) # 'direct_referral', 'binary_matching', 'rank_level_reward', 'admin_adjustment'
     description = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     user = relationship("User", back_populates="commissions")
+
+
+class UserRankReward(Base):
+    __tablename__ = "user_rank_rewards"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    level = Column(Integer, nullable=False) # 1, 2, 3, etc.
+    level_name = Column(String, nullable=False) # e.g. "Level 1 (Bronze Star)"
+    monthly_amount = Column(Float, nullable=False) # e.g. 1000.0, 2000.0, etc.
+    total_months = Column(Integer, nullable=False) # e.g. 2, 3, 4, etc.
+    months_paid = Column(Integer, default=1, nullable=False) # Starts at 1 since month 1 paid on qualification
+    status = Column(String, default="active", nullable=False) # 'active' or 'completed'
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    last_payout_at = Column(DateTime, default=datetime.datetime.utcnow)
+    next_payout_at = Column(DateTime, nullable=True)
+
+    user = relationship("User", back_populates="rank_rewards")
+

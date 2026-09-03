@@ -24,7 +24,10 @@ export interface User {
   right_leg_sw: number;
   total_left_sw: number;
   total_right_sw: number;
+  total_matched_sw: number;
   wallet_balance: number;
+  current_level: number;
+  level_name: string;
   created_at: string;
   ref_token_left?: string;
   ref_token_right?: string;

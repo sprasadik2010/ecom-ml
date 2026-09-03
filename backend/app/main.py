@@ -47,8 +47,30 @@ def on_startup():
         logger.info("Added phone_number column to users table.")
     except Exception as e:
         db.rollback()
+
+    try:
+        db.execute(text("ALTER TABLE users ADD COLUMN total_matched_sw FLOAT DEFAULT 0.0"))
+        db.commit()
+        logger.info("Added total_matched_sw column to users table.")
+    except Exception as e:
+        db.rollback()
+
+    try:
+        db.execute(text("ALTER TABLE users ADD COLUMN current_level INTEGER DEFAULT 0"))
+        db.commit()
+        logger.info("Added current_level column to users table.")
+    except Exception as e:
+        db.rollback()
+
+    try:
+        db.execute(text("ALTER TABLE users ADD COLUMN level_name VARCHAR DEFAULT 'Member'"))
+        db.commit()
+        logger.info("Added level_name column to users table.")
+    except Exception as e:
+        db.rollback()
     finally:
         db.close()
+
 
 # Enable CORS for frontend integration
 app.add_middleware(
@@ -290,14 +312,26 @@ def get_my_orders(current_user: models.User = Depends(auth.get_current_user), db
     return orders
 
 
-# --- Commission Endpoints ---
+# --- Commission & Reward Endpoints ---
 
 @app.get("/commissions/my", response_model=List[schemas.CommissionResponse])
 def get_my_commissions(current_user: models.User = Depends(auth.get_current_user), db: Session = Depends(get_db)):
     return crud.get_user_commissions(db, current_user.id)
 
 
+@app.get("/rewards/my", response_model=List[schemas.UserRankRewardResponse])
+def get_my_rewards(current_user: models.User = Depends(auth.get_current_user), db: Session = Depends(get_db)):
+    return crud.get_user_rank_rewards(db, current_user.id)
+
+
+@app.get("/rewards/levels")
+def get_level_definitions():
+    from .mlm import LEVEL_CONFIG
+    return list(LEVEL_CONFIG.values())
+
+
 # --- Admin Endpoints ---
+
 
 @app.get("/admin/stats", response_model=schemas.AdminStatsResponse)
 def get_admin_stats(
@@ -461,6 +495,29 @@ def admin_get_commissions(
     db: Session = Depends(get_db)
 ):
     return db.query(models.Commission).order_by(models.Commission.created_at.desc()).all()
+
+
+@app.get("/admin/rewards", response_model=List[schemas.UserRankRewardResponse])
+def admin_get_rewards(
+    current_admin: models.User = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+):
+    return crud.get_all_rank_rewards(db)
+
+
+@app.post("/admin/rewards/process", response_model=schemas.RewardProcessResponse)
+def admin_process_monthly_rewards(
+    current_admin: models.User = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+):
+    from .mlm import process_pending_monthly_rewards
+    res = process_pending_monthly_rewards(db)
+    return {
+        "processed_count": res["processed_count"],
+        "total_disbursed": res["total_disbursed"],
+        "message": f"Successfully processed {res['processed_count']} monthly royalty payments totaling ₹{res['total_disbursed']:,.2f}."
+    }
+
 
 
 @app.post("/admin/upload")

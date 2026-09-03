@@ -4,8 +4,13 @@ import shutil
 
 # Setup path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+if hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr.reconfigure(encoding='utf-8')
 
 # Force SQLite for testing
+
 os.environ["DATABASE_URL"] = "sqlite:///./test_mlm.db"
 
 from sqlalchemy.orm import Session
@@ -75,6 +80,7 @@ def run_tests():
                 email="invalid@test.com",
                 password="password123",
                 full_name="Invalid User",
+                phone_number="+919876543200",
                 sponsor_username="admin",
                 position="left"
             ))
@@ -90,6 +96,7 @@ def run_tests():
             email="left@test.com",
             password="password123",
             full_name="Left Member",
+            phone_number="+919876543201",
             sponsor_username="rootuser",
             position="left"
         )
@@ -106,6 +113,7 @@ def run_tests():
             email="right@test.com",
             password="password123",
             full_name="Right Member",
+            phone_number="+919876543202",
             sponsor_username="rootuser",
             position="right"
         )
@@ -137,15 +145,10 @@ def run_tests():
         assert u_left.personal_sw == 100.0, "user_left personal SW should be 100.0"
         
         print(f"   Rootuser Left Leg SW after purchase: {rootuser.left_leg_sw}")
+        # Check volumes propagated: Left Leg has 100 SW, Right Leg has 0 SW (No matching yet)
         assert rootuser.left_leg_sw == 100.0, "Rootuser Left Leg SW should be 100.0"
-        
-        # Check Commission to rootuser for user_left (should get 10 INR per SW = 100 * 10 = 1000.0)
-        commissions_root = db.query(Commission).filter(Commission.user_id == rootuser.id).all()
-        print(f"   Rootuser commissions count: {len(commissions_root)}")
-        match_com1 = next(c for c in commissions_root if c.type == "binary_matching")
-        print(f"   Rootuser received Matching Commission of {match_com1.amount} INR")
-        assert match_com1.amount == 1000.0, "Rootuser match commission should be 1000.0 (100 SW * 10)"
-        assert rootuser.wallet_balance == 1000.0, "Rootuser wallet balance should be 1000.0"
+        assert rootuser.right_leg_sw == 0.0, "Rootuser Right Leg SW should be 0.0"
+        assert rootuser.wallet_balance == 0.0, "Rootuser wallet balance should be 0.0 before right leg match"
 
         # 7. Purchase for User Right (150 SW)
         print("\n6. Simulating 150 SW purchase for 'user_right'...")
@@ -163,24 +166,30 @@ def run_tests():
         print(f"   'user_right' status after purchase: {u_right.status} (Personal SW: {u_right.personal_sw})")
         assert u_right.status == "active", "user_right should become ACTIVE"
         
-        # Check volumes propagated
-        print(f"   Rootuser Leg Volumes -> Left Leg: {rootuser.left_leg_sw}, Right Leg: {rootuser.right_leg_sw}")
-        assert rootuser.left_leg_sw == 100.0, "Left Leg SW should be 100.0"
-        assert rootuser.right_leg_sw == 150.0, "Right Leg SW should be 150.0"
+        # Check volumes propagated and matched:
+        # Left was 100 SW, Right was 150 SW -> 100 SW matched!
+        # Remaining: Left = 0 SW, Right = 50 SW carryover. Total matched = 100 SW (Triggers Level 1 promotion!)
+        print(f"   Rootuser Leg Volumes -> Left Leg: {rootuser.left_leg_sw}, Right Leg: {rootuser.right_leg_sw}, Matched: {rootuser.total_matched_sw}")
+        assert rootuser.left_leg_sw == 0.0, "Left Leg SW should be 0.0 after matching 100 SW"
+        assert rootuser.right_leg_sw == 50.0, "Right Leg SW carryover should be 50.0"
+        assert rootuser.total_matched_sw == 100.0, "Total matched SW should be 100.0"
+        assert rootuser.current_level == 1, "Rootuser should be Level 1"
         
-        # Rootuser matching commission from user_right purchase (150 SW * 10 = 1500 INR)
-        # Total rootuser wallet balance = 1000 (initial) + 1500 = 2500 INR
+        # Rootuser matching commission from 100 SW match = 1000 INR
+        # PLUS Level 1 achievement Month 1 Royalty = 1000 INR
+        # Total rootuser wallet balance = 2000 INR
         all_commissions = db.query(Commission).filter(Commission.user_id == rootuser.id).all()
         print(f"   Rootuser total commissions records count: {len(all_commissions)}")
         for c in all_commissions:
             print(f"   - Type: {c.type}, Amount: {c.amount} INR, Desc: {c.description}")
             
-        assert len(all_commissions) == 2, "Should have 2 matching commissions"
-        assert rootuser.wallet_balance == 2500.0, "Rootuser wallet balance should be 2500.0"
+        assert len(all_commissions) == 2, "Should have 2 commission records (binary_matching + rank_level_reward)"
+        assert rootuser.wallet_balance == 2000.0, "Rootuser wallet balance should be 2000.0"
         
         print("\n" + "=" * 60)
         print("ALL TESTS PASSED SUCCESSFULLY! BACKEND MLM SW ALGORITHMS ARE CORRECT.")
         print("=" * 60)
+
         
     except Exception as e:
         print(f"\nTEST FAILED: {e}")

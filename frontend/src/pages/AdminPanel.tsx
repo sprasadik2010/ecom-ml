@@ -20,7 +20,11 @@ import {
   ChevronRight,
   PlusCircle,
   ArrowDownLeft,
-  ArrowUpRight
+  ArrowUpRight,
+  Star,
+  Award,
+  Sparkles,
+  Zap
 } from 'lucide-react';
 import { API_BASE_URL } from '../context/AuthContext';
 
@@ -59,6 +63,9 @@ interface UserListItem {
   right_leg_sw: number;
   total_left_sw: number;
   total_right_sw: number;
+  total_matched_sw?: number;
+  current_level?: number;
+  level_name?: string;
   wallet_balance: number;
   created_at: string;
 }
@@ -104,6 +111,21 @@ interface CommissionListItem {
   };
 }
 
+interface RankRewardItem {
+  id: number;
+  user_id: number;
+  level: number;
+  level_name: string;
+  monthly_amount: number;
+  total_months: number;
+  months_paid: number;
+  status: string;
+  created_at: string;
+  last_payout_at: string | null;
+  next_payout_at: string | null;
+  user_username?: string;
+}
+
 interface DashboardStats {
   total_users: number;
   active_users: number;
@@ -115,7 +137,7 @@ interface DashboardStats {
   recent_orders: OrderListItem[];
 }
 
-type TabType = 'dashboard' | 'products' | 'categories' | 'users' | 'orders' | 'commissions';
+type TabType = 'dashboard' | 'products' | 'categories' | 'users' | 'orders' | 'commissions' | 'rewards';
 
 export const AdminPanel: React.FC = () => {
   const { token } = useAuth();
@@ -137,6 +159,9 @@ export const AdminPanel: React.FC = () => {
   const [users, setUsers] = useState<UserListItem[]>([]);
   const [orders, setOrders] = useState<OrderListItem[]>([]);
   const [commissions, setCommissions] = useState<CommissionListItem[]>([]);
+  const [rewards, setRewards] = useState<RankRewardItem[]>([]);
+  const [processingRewards, setProcessingRewards] = useState(false);
+
 
   // Product Modals / Forms
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
@@ -322,6 +347,37 @@ export const AdminPanel: React.FC = () => {
     }
   };
 
+  const fetchRewards = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/rewards`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error('Failed to fetch rank rewards.');
+      const data = await res.json();
+      setRewards(data);
+    } catch (err: any) {
+      triggerError(err.message || 'Error fetching rank rewards.');
+    }
+  };
+
+  const handleProcessMonthlyRewards = async () => {
+    setProcessingRewards(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/rewards/process`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error('Processing monthly rewards failed.');
+      const data = await res.json();
+      triggerSuccess(data.message || 'Monthly royalties processed successfully.');
+      await Promise.all([fetchRewards(), fetchUsers(), fetchCommissions(), fetchStats()]);
+    } catch (err: any) {
+      triggerError(err.message || 'Processing monthly rewards failed.');
+    } finally {
+      setProcessingRewards(false);
+    }
+  };
+
   // Load active tab data
   const loadTabData = async (tab: TabType) => {
     setLoading(true);
@@ -337,9 +393,12 @@ export const AdminPanel: React.FC = () => {
       await Promise.all([fetchOrders(), fetchUsers()]);
     } else if (tab === 'commissions') {
       await Promise.all([fetchCommissions(), fetchUsers()]);
+    } else if (tab === 'rewards') {
+      await Promise.all([fetchRewards(), fetchUsers()]);
     }
     setLoading(false);
   };
+
 
   useEffect(() => {
     if (token) {
@@ -669,7 +728,8 @@ export const AdminPanel: React.FC = () => {
             { id: 'categories', label: 'Categories', count: categories.length },
             { id: 'users', label: 'Network Members', count: users.length },
             { id: 'orders', label: 'Order Processing', count: orders.length },
-            { id: 'commissions', label: 'Payout Auditing', count: commissions.length }
+            { id: 'commissions', label: 'Payout Auditing', count: commissions.length },
+            { id: 'rewards', label: 'Rank Royalties', count: rewards.length }
           ] as { id: TabType; label: string; count: number | null }[]
         ).map((t) => (
           <button
@@ -1645,8 +1705,164 @@ export const AdminPanel: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* RANK ROYALTIES TAB */}
+          {activeTab === 'rewards' && (
+            <div className="space-y-6">
+              {/* Rewards Summary & Action Bar */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div className="bg-slate-900 border border-slate-850 p-5 rounded-2xl shadow-sm">
+                  <span className="text-[10px] uppercase font-bold text-slate-500">Total Royalty Streams</span>
+                  <div className="text-2xl font-black text-white mt-1">{rewards.length} Streams</div>
+                  <div className="text-[10px] text-slate-400 mt-1">
+                    <span className="text-emerald-400 font-bold">{rewards.filter(r => r.status === 'active').length} Active</span> • {rewards.filter(r => r.status === 'completed').length} Completed
+                  </div>
+                </div>
+
+                <div className="bg-slate-900 border border-slate-850 p-5 rounded-2xl shadow-sm">
+                  <span className="text-[10px] uppercase font-bold text-slate-500">Total Royalties Disbursed</span>
+                  <div className="text-2xl font-black text-emerald-400 font-mono mt-1">
+                    ₹{rewards.reduce((sum, r) => sum + (r.months_paid * r.monthly_amount), 0).toFixed(2)}
+                  </div>
+                  <div className="text-[10px] text-slate-400 mt-1">Disbursed across all member levels</div>
+                </div>
+
+                <div className="bg-slate-900 border border-slate-850 p-5 rounded-2xl shadow-sm flex flex-col justify-between">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-500">Monthly Payout Runner</span>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Disburse pending monthly royalties due today.</p>
+                  </div>
+                  <button
+                    onClick={handleProcessMonthlyRewards}
+                    disabled={processingRewards}
+                    className="mt-3 w-full py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 rounded-lg font-black text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md disabled:opacity-50"
+                  >
+                    <RefreshCw size={14} className={processingRewards ? 'animate-spin' : ''} />
+                    <span>{processingRewards ? 'Processing Payouts...' : 'Trigger Monthly Royalties Payout'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Rewards Schedule Table */}
+              <div className="bg-slate-900 border border-slate-850 rounded-2xl p-6 shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                  <div>
+                    <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                      <Star size={16} className="text-amber-500 fill-amber-500" />
+                      Member Rank & Royalty Schedules
+                    </h3>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      Schedule details for Level 1 (₹1,000/mo × 2) up to Level 6 (₹10,000/mo × 6).
+                    </p>
+                  </div>
+                </div>
+
+                {/* Desktop Table View */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-xs text-left text-slate-300 font-sans">
+                    <thead>
+                      <tr className="border-b border-slate-850 text-[10px] text-slate-500 uppercase font-black tracking-wider">
+                        <th className="py-3.5 px-3">Member</th>
+                        <th className="py-3.5 px-3">Level & Rank</th>
+                        <th className="py-3.5 px-3">Monthly Royalty</th>
+                        <th className="py-3.5 px-3">Progress</th>
+                        <th className="py-3.5 px-3">Next Payout</th>
+                        <th className="py-3.5 px-3 text-right">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-850/60">
+                      {rewards.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="py-10 text-center text-slate-500">
+                            No member rank royalty schedules created yet.
+                          </td>
+                        </tr>
+                      ) : (
+                        rewards.map((r) => {
+                          const progressPct = Math.min((r.months_paid / r.total_months) * 100, 100);
+                          return (
+                            <tr key={r.id} className="hover:bg-slate-950/20 transition-colors">
+                              <td className="py-3 px-3">
+                                <div className="font-bold text-slate-200">{r.user_username || `User #${r.user_id}`}</div>
+                                <div className="text-[10px] text-slate-500 font-mono">ID: {r.user_id}</div>
+                              </td>
+                              <td className="py-3 px-3">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                  <Star size={11} className="fill-current" />
+                                  {r.level_name}
+                                </span>
+                              </td>
+                              <td className="py-3 px-3 font-mono font-bold text-white">
+                                ₹{r.monthly_amount.toFixed(2)} <span className="text-slate-500 font-normal">/ mo</span>
+                              </td>
+                              <td className="py-3 px-3 min-w-[140px]">
+                                <div className="flex justify-between text-[10px] text-slate-400 mb-1 font-mono">
+                                  <span>Month {r.months_paid} of {r.total_months}</span>
+                                  <span>{progressPct.toFixed(0)}%</span>
+                                </div>
+                                <div className="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                                  <div className="h-full bg-amber-500 rounded-full" style={{ width: `${progressPct}%` }} />
+                                </div>
+                              </td>
+                              <td className="py-3 px-3 text-slate-400 text-[11px]">
+                                {r.next_payout_at && r.status === 'active' ? (
+                                  <span className="text-amber-400 font-mono">{new Date(r.next_payout_at).toLocaleDateString()}</span>
+                                ) : (
+                                  <span className="text-slate-600">Completed</span>
+                                )}
+                              </td>
+                              <td className="py-3 px-3 text-right">
+                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                                  r.status === 'active'
+                                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                    : 'bg-slate-800 text-slate-400'
+                                }`}>
+                                  {r.status}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile View */}
+                <div className="block md:hidden space-y-3">
+                  {rewards.length === 0 ? (
+                    <div className="text-center py-6 text-slate-500 bg-slate-950/20 border border-slate-850 rounded-xl">
+                      No member rank royalty schedules created yet.
+                    </div>
+                  ) : (
+                    rewards.map((r) => (
+                      <div key={r.id} className="bg-slate-950/40 border border-slate-850 rounded-xl p-4 space-y-2.5">
+                        <div className="flex justify-between items-center">
+                          <span className="font-bold text-white text-xs">{r.user_username || `User #${r.user_id}`}</span>
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
+                            r.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 text-slate-400'
+                          }`}>
+                            {r.status}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-amber-400 font-bold">{r.level_name}</span>
+                          <span className="font-mono font-bold text-white">₹{r.monthly_amount.toFixed(2)}/mo</span>
+                        </div>
+                        <div className="text-[10px] text-slate-400 pt-1 border-t border-slate-850 flex justify-between">
+                          <span>Paid: {r.months_paid}/{r.total_months} Months</span>
+                          {r.next_payout_at && <span>Next: {new Date(r.next_payout_at).toLocaleDateString()}</span>}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
+
 
       {/* PRODUCT CREATION/EDIT MODAL OVERLAY */}
       {isProductModalOpen && (
