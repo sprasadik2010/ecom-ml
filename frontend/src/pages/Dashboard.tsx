@@ -119,7 +119,7 @@ export const Dashboard: React.FC = () => {
               </span>
             )}
           </div>
-          <p className="text-slate-400 text-xs mt-1">Welcome to your network dashboard. Track 1:1 binary matching pairs and progressive monthly royalties.</p>
+          <p className="text-slate-400 text-xs mt-1">Welcome to your network dashboard. Track 1:1 business matching pairs and progressive monthly royalties.</p>
         </div>
 
         {/* Member Status Pill */}
@@ -146,7 +146,7 @@ export const Dashboard: React.FC = () => {
           <div className="flex-1">
             <h4 className="font-extrabold text-sm text-red-200 mb-1">Your Account is Currently Inactive!</h4>
             <p className="text-xs text-slate-400 leading-normal max-w-2xl font-normal">
-              You are currently placed in the binary tree but **cannot earn binary matching matchings (₹10/SW)** from child leg transactions. Buy products to accumulate at least <span className="text-amber-400 font-bold">50 SW Points</span> to activate your commissions!
+              You are currently placed in the business network tree but **cannot earn team matching commissions (₹10/SW)** from child leg transactions. Buy products to accumulate at least <span className="text-amber-400 font-bold">50 SW Points</span> to activate your commissions!
             </p>
             {/* Progress Bar */}
             <div className="mt-3 max-w-sm">
@@ -322,7 +322,7 @@ export const Dashboard: React.FC = () => {
                 <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${user.current_level >= 3 ? 'bg-yellow-400 text-slate-950' : 'bg-slate-800 text-slate-400'}`}>3</span>
                 <div>
                   <div className="font-bold text-slate-200">Level 3 (Gold Star)</div>
-                  <div className="text-[10px] text-slate-500">Children's children reach Level 1 (Both children Level 2)</div>
+                  <div className="text-[10px] text-slate-500">Both direct Left & Right children reach Level 2</div>
                 </div>
               </div>
               <div className="text-right">
@@ -335,12 +335,40 @@ export const Dashboard: React.FC = () => {
               <div className="flex items-center gap-2">
                 <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${user.current_level >= 4 ? 'bg-cyan-400 text-slate-950' : 'bg-slate-800 text-slate-400'}`}>4</span>
                 <div>
-                  <div className="font-bold text-slate-200">Level 4 &rarr; Level 6</div>
-                  <div className="text-[10px] text-slate-500">Team expansion up to Level 6 Crown Ambassador</div>
+                  <div className="font-bold text-slate-200">Level 4 (Platinum Star)</div>
+                  <div className="text-[10px] text-slate-500">Both direct Left & Right children reach Level 3</div>
                 </div>
               </div>
               <div className="text-right">
-                <span className="font-bold text-emerald-400 font-mono">Up to ₹10,000 / mo</span>
+                <span className="font-bold text-emerald-400 font-mono">₹6,000 / mo</span>
+                <div className="text-[10px] text-slate-500">for 5 months</div>
+              </div>
+            </div>
+
+            <div className={`p-2.5 rounded-lg border flex items-center justify-between ${user.current_level >= 5 ? 'bg-purple-950/30 border-purple-600/40 text-purple-200' : 'bg-slate-950/20 border-slate-850 text-slate-400'}`}>
+              <div className="flex items-center gap-2">
+                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${user.current_level >= 5 ? 'bg-purple-400 text-slate-950' : 'bg-slate-800 text-slate-400'}`}>5</span>
+                <div>
+                  <div className="font-bold text-slate-200">Level 5 (Diamond Star)</div>
+                  <div className="text-[10px] text-slate-500">Both direct Left & Right children reach Level 4</div>
+                </div>
+              </div>
+              <div className="text-right">
+                <span className="font-bold text-emerald-400 font-mono">₹8,000 / mo</span>
+                <div className="text-[10px] text-slate-500">for 6 months</div>
+              </div>
+            </div>
+
+            <div className={`p-2.5 rounded-lg border flex items-center justify-between ${user.current_level >= 6 ? 'bg-emerald-950/30 border-emerald-600/40 text-emerald-200' : 'bg-slate-950/20 border-slate-850 text-slate-400'}`}>
+              <div className="flex items-center gap-2">
+                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${user.current_level >= 6 ? 'bg-emerald-400 text-slate-950' : 'bg-slate-800 text-slate-400'}`}>6</span>
+                <div>
+                  <div className="font-bold text-slate-200">Level 6 (Crown Ambassador)</div>
+                  <div className="text-[10px] text-slate-500">Both direct Left & Right children reach Level 5</div>
+                </div>
+              </div>
+              <div className="text-right">
+                <span className="font-bold text-emerald-400 font-mono">₹10,000 / mo</span>
                 <div className="text-[10px] text-slate-500">for 6 months</div>
               </div>
             </div>
@@ -409,7 +437,7 @@ export const Dashboard: React.FC = () => {
           <div className="mt-6 pt-4 border-t border-slate-850 flex items-center justify-between text-xs text-slate-400">
             <span>Matching Rate: <strong>₹10 / Matched SW</strong></span>
             <Link to="/tree" className="text-amber-500 hover:text-amber-400 font-bold flex items-center gap-1">
-              View Binary Tree Downline &rarr;
+              View Business Genealogy &rarr;
             </Link>
           </div>
         </div>
@@ -499,7 +527,7 @@ export const Dashboard: React.FC = () => {
                   className="w-full py-2 bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 rounded-md font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
                 >
                   <Users size={14} />
-                  View Binary downline
+                  View Business Tree
                 </Link>
               </div>
 
@@ -515,7 +543,7 @@ export const Dashboard: React.FC = () => {
                     </span>
                   </div>
                   <div className="py-2.5 flex justify-between">
-                    <span className="text-slate-500">Binary Tree Parent</span>
+                    <span className="text-slate-500">Business Tree Parent</span>
                     <span className="font-bold text-slate-200">
                       {user.parent_id ? `@${user.parent_username || user.parent_id}` : 'None (Root Node)'}
                     </span>

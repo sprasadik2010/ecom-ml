@@ -122,6 +122,8 @@ def seed_db():
         logger.info("Added is_admin column to users table during seeding.")
     except Exception as e:
         db.rollback()
+
+    try:
         # 1. Seed Root Administrator Member
         admin = db.query(User).filter(User.username == "admin").first()
         if not admin:

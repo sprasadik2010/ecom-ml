@@ -1,4 +1,5 @@
-from pydantic import BaseModel, EmailStr
+import re
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import List, Optional, ForwardRef
 from datetime import datetime
 
@@ -19,14 +20,39 @@ class UserBase(BaseModel):
     phone_number: Optional[str] = None
 
 class UserCreate(BaseModel):
-    username: str
+    username: str = Field(..., min_length=3, description="Unique username (min 3 chars, no spaces)")
     email: EmailStr
-    password: str
+    password: str = Field(..., min_length=6, description="Password (min 6 chars, no spaces)")
     full_name: str
     phone_number: str
     sponsor_username: Optional[str] = None
     position: Optional[str] = "left" # 'left' or 'right'
     token: Optional[str] = None
+
+    @field_validator('username')
+    @classmethod
+    def validate_username(cls, v: str) -> str:
+        if not v:
+            raise ValueError("Username is required.")
+        v = v.strip().lower()
+        if ' ' in v or re.search(r'\s', v):
+            raise ValueError("Username cannot contain spaces.")
+        if len(v) < 3:
+            raise ValueError("Username must be at least 3 characters long.")
+        if not re.match(r'^[a-z0-9_]+$', v):
+            raise ValueError("Username can only contain letters, numbers, and underscores.")
+        return v
+
+    @field_validator('password')
+    @classmethod
+    def validate_password(cls, v: str) -> str:
+        if not v:
+            raise ValueError("Password is required.")
+        if ' ' in v or re.search(r'\s', v):
+            raise ValueError("Password cannot contain spaces.")
+        if len(v) < 6:
+            raise ValueError("Password must be at least 6 characters long.")
+        return v
 
 class UserResponse(UserBase):
     id: int

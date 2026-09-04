@@ -97,7 +97,7 @@ export const Checkout: React.FC = () => {
         </div>
         <h1 className="text-2xl font-black text-white mb-2">Order Confirmed!</h1>
         <p className="text-slate-400 text-sm leading-relaxed mb-8 max-w-sm">
-          Thank you for your purchase. Your payment was simulated successfully. The generated Sales Wallet (SW) has been distributed to your binary MLM legs and ancestors!
+          Thank you for your purchase. Your payment was simulated successfully. The generated Sales Wallet (SW) has been distributed to your business network legs and ancestors!
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
@@ -105,7 +105,7 @@ export const Checkout: React.FC = () => {
             to="/dashboard"
             className="flex-1 text-center py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-md font-bold text-xs transition-colors"
           >
-            Go to MLM Dashboard
+            Go to Dashboard
           </Link>
           <Link
             to="/"

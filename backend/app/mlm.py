@@ -184,8 +184,9 @@ def evaluate_and_award_levels(db: Session):
     
     while promotions_happened:
         promotions_happened = False
-        # Fetch non-admin active users
+        # Fetch non-admin active users in a single query
         users = db.query(User).filter(User.is_admin == False).all()
+        user_map = {u.id: u for u in users}
         
         for u in users:
             curr_lvl = u.current_level or 0
@@ -198,8 +199,8 @@ def evaluate_and_award_levels(db: Session):
                 
             # For Level 2 and above, must have both left and right children
             if u.left_child_id is not None and u.right_child_id is not None:
-                left_child = db.query(User).filter(User.id == u.left_child_id).first()
-                right_child = db.query(User).filter(User.id == u.right_child_id).first()
+                left_child = user_map.get(u.left_child_id)
+                right_child = user_map.get(u.right_child_id)
                 
                 if left_child and right_child:
                     l_lvl = left_child.current_level or 0
@@ -285,7 +286,7 @@ def check_and_award_commissions(db: Session, buyer: User, order_sw: float):
                     user_id=parent.id,
                     amount=commission_amount,
                     type="binary_matching",
-                    description=f"Binary Match: {matchable_sw:g} matching SW paired @ ₹10 = ₹{commission_amount:,.2f}"
+                    description=f"Team Match: {matchable_sw:g} matching SW paired @ ₹10 = ₹{commission_amount:,.2f}"
                 )
                 db.add(commission_record)
                 logger.info(f"Awarded ₹{commission_amount} binary matching commission to parent {parent.username} ({matchable_sw} SW matched).")

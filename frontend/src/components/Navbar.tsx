@@ -103,7 +103,7 @@ export const Navbar: React.FC = () => {
                 </Link>
                 <Link to="/tree" className="flex items-center gap-1.5 text-slate-300 hover:text-amber-500 transition-colors">
                   <Network size={15} />
-                  <span>Binary Tree</span>
+                  <span>Business Tree</span>
                 </Link>
                  {!user.is_admin && (
                   <Link to="/commissions" className="flex items-center gap-1.5 text-slate-300 hover:text-amber-500 transition-colors">
@@ -139,15 +139,9 @@ export const Navbar: React.FC = () => {
               <div className="flex items-center gap-4 pl-2">
                 <Link
                   to="/login"
-                  className="text-slate-300 hover:text-amber-500 transition-colors"
+                  className="bg-amber-500 hover:bg-amber-600 text-slate-950 px-4 py-1.5 rounded-full font-bold transition-colors text-xs"
                 >
                   Sign In
-                </Link>
-                <Link
-                  to="/register"
-                  className="bg-amber-500 hover:bg-amber-600 text-slate-950 px-4 py-1.5 rounded-full font-bold transition-colors"
-                >
-                  Register
                 </Link>
               </div>
             )}
@@ -234,7 +228,7 @@ export const Navbar: React.FC = () => {
                   className="px-3 py-2 bg-slate-950/20 hover:bg-slate-950/50 rounded-md text-slate-300 hover:text-amber-500 flex items-center gap-2 transition-colors"
                 >
                   <Network size={14} className="text-amber-500" />
-                  Binary Tree
+                  Business Tree
                 </Link>
                 {!user.is_admin && (
                   <Link
@@ -277,16 +271,9 @@ export const Navbar: React.FC = () => {
                 <Link
                   to="/login"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="w-full py-2 text-center bg-slate-950 text-slate-300 rounded-full border border-slate-800 font-bold text-xs transition-colors"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  to="/register"
-                  onClick={() => setIsMobileMenuOpen(false)}
                   className="w-full py-2.5 text-center bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-full font-bold text-xs transition-colors"
                 >
-                  Register Account
+                  Sign In
                 </Link>
               </div>
             )}

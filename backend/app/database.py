@@ -17,24 +17,9 @@ def init_db_connection():
     
     if DATABASE_URL.startswith("postgresql"):
         try:
-            # Parse DB name and try connecting to default 'postgres' database to create the target db if needed
             db_name = DATABASE_URL.split("/")[-1].split("?")[0]
-            base_url = DATABASE_URL.rsplit("/", 1)[0] + "/postgres"
-            
-            # Connect to 'postgres' to check / create db
-            temp_engine = create_engine(base_url, connect_args={"connect_timeout": 3})
-            with temp_engine.connect() as conn:
-                # Isolate transaction
-                conn.execute(text("commit"))
-                result = conn.execute(text(f"SELECT 1 FROM pg_database WHERE datname='{db_name}'"))
-                if not result.fetchone():
-                    conn.execute(text(f"CREATE DATABASE {db_name}"))
-                    logger.info(f"Database '{db_name}' created successfully on PostgreSQL.")
-            temp_engine.dispose()
-            
-            # Connect to actual database
-            engine = create_engine(DATABASE_URL)
-            # Verify actual database connection works
+            # Connect directly to actual database
+            engine = create_engine(DATABASE_URL, pool_pre_ping=True, pool_recycle=300)
             with engine.connect() as conn:
                 logger.info(f"Connected successfully to PostgreSQL database '{db_name}'.")
         except Exception as e:
@@ -45,6 +30,7 @@ def init_db_connection():
         connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
         engine = create_engine(DATABASE_URL, connect_args=connect_args)
         logger.info(f"Connected to database: {DATABASE_URL}")
+
 
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

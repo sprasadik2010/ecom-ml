@@ -129,7 +129,7 @@ export const App: React.FC = () => {
             {/* Footer */}
             <footer className="bg-slate-950 border-t border-slate-900 py-6 text-center text-xs text-slate-500">
               <div className="max-w-7xl mx-auto px-4">
-                <p className="font-bold text-slate-400">ApexZone E-Commerce & Binary MLM Selling Network</p>
+                <p className="font-bold text-slate-400">ApexZone E-Commerce & Business MLM Selling Network</p>
                 <p className="mt-1">© {new Date().getFullYear()} ApexZone. All rights reserved. Simulated Sandboxed MLM Tree.</p>
               </div>
             </footer>

@@ -49,11 +49,11 @@ def create_user(db: Session, user_data: UserCreate) -> User:
 
     # 2. Create the user
     new_user = User(
-        username=user_data.username,
-        email=user_data.email,
-        full_name=user_data.full_name,
+        username=user_data.username.strip().lower(),
+        email=user_data.email.strip().lower(),
+        full_name=user_data.full_name.strip(),
         hashed_password=get_password_hash(user_data.password),
-        phone_number=user_data.phone_number,
+        phone_number=user_data.phone_number.strip() if user_data.phone_number else None,
         sponsor_id=sponsor.id if sponsor else None,
         parent_id=parent.id if parent else None,
         position=actual_position,

@@ -69,11 +69,11 @@ def run_tests():
         
         print("\n3. Creating binary downline structure (c1 on Left, c2 on Right)...")
         c1 = crud.create_user(db, UserCreate(
-            username="c1", email="c1@test.com", password="pw", full_name="Child 1 (Left)",
+            username="c1_node", email="c1@test.com", password="password123", full_name="Child 1 (Left)",
             phone_number="+919876543210", sponsor_username="rootuser", position="left"
         ))
         c2 = crud.create_user(db, UserCreate(
-            username="c2", email="c2@test.com", password="pw", full_name="Child 2 (Right)",
+            username="c2_node", email="c2@test.com", password="password123", full_name="Child 2 (Right)",
             phone_number="+919876543211", sponsor_username="rootuser", position="right"
         ))
         
@@ -139,12 +139,12 @@ def run_tests():
         # c1 needs 100 matched SW on its left & right legs.
         print("\n6. Creating downlines for c1 (c1_L, c1_R) and generating 100 matched SW for c1...")
         c1_L = crud.create_user(db, UserCreate(
-            username="c1_L", email="c1_l@test.com", password="pw", full_name="c1 Left Child",
-            phone_number="+919876543212", sponsor_username="c1", position="left"
+            username="c1_l_node", email="c1_l@test.com", password="password123", full_name="c1 Left Child",
+            phone_number="+919876543212", sponsor_username="c1_node", position="left"
         ))
         c1_R = crud.create_user(db, UserCreate(
-            username="c1_R", email="c1_r@test.com", password="pw", full_name="c1 Right Child",
-            phone_number="+919876543213", sponsor_username="c1", position="right"
+            username="c1_r_node", email="c1_r@test.com", password="password123", full_name="c1 Right Child",
+            phone_number="+919876543213", sponsor_username="c1_node", position="right"
         ))
         c1_L.status = "active"; c1_L.personal_sw = 100.0
         c1_R.status = "active"; c1_R.personal_sw = 100.0
@@ -165,12 +165,12 @@ def run_tests():
         # Now let's qualify c2 for Level 1:
         print("\n7. Creating downlines for c2 (c2_L, c2_R) and generating 100 matched SW for c2...")
         c2_L = crud.create_user(db, UserCreate(
-            username="c2_L", email="c2_l@test.com", password="pw", full_name="c2 Left Child",
-            phone_number="+919876543214", sponsor_username="c2", position="left"
+            username="c2_l_node", email="c2_l@test.com", password="password123", full_name="c2 Left Child",
+            phone_number="+919876543214", sponsor_username="c2_node", position="left"
         ))
         c2_R = crud.create_user(db, UserCreate(
-            username="c2_R", email="c2_r@test.com", password="pw", full_name="c2 Right Child",
-            phone_number="+919876543215", sponsor_username="c2", position="right"
+            username="c2_r_node", email="c2_r@test.com", password="password123", full_name="c2 Right Child",
+            phone_number="+919876543215", sponsor_username="c2_node", position="right"
         ))
 
         c2_L.status = "active"; c2_L.personal_sw = 100.0

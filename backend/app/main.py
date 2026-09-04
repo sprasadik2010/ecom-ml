@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import shutil
 from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Request
 from fastapi.staticfiles import StaticFiles
@@ -18,7 +19,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Initialize FastAPI App
-app = FastAPI(title="Binary MLM E-commerce API", version="1.0.0")
+app = FastAPI(title="Business MLM E-commerce API", version="1.0.0")
 
 # Setup static files directory for local image uploads
 static_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "static")
@@ -72,10 +73,22 @@ def on_startup():
         db.close()
 
 
-# Enable CORS for frontend integration
+# Configure CORS
+origins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://localhost:8000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:8000",
+    "https://ecom-ml-frontend.onrender.com",
+    "https://ecom-ml-backend.onrender.com",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Adjust for production
+    allow_origins=origins,
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?|https://.*\.onrender\.com|https://.*\.vercel\.app|https://.*\.netlify\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -84,7 +97,7 @@ app.add_middleware(
 # Root endpoint
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to the Binary MLM E-commerce API!", "version": "1.0.0"}
+    return {"message": "Welcome to the Business MLM E-commerce API!", "version": "1.0.0"}
 
 
 # --- Auth Endpoints ---
@@ -105,6 +118,8 @@ def decrypt_referral(token: str) -> tuple[str, str]:
     try:
         decrypted = f.decrypt(token.encode('utf-8')).decode('utf-8')
         sponsor, position = decrypted.split(":")
+        if position not in ["left", "right"]:
+            raise ValueError("Invalid placement position in token.")
         return sponsor, position
     except Exception:
         raise ValueError("Invalid or tampered referral token.")
@@ -113,25 +128,40 @@ def decrypt_referral(token: str) -> tuple[str, str]:
 @app.get("/auth/verify-referral")
 def verify_referral(token: str, db: Session = Depends(get_db)):
     try:
-        sponsor, position = decrypt_referral(token)
+        sponsor_username, position = decrypt_referral(token)
+        sponsor = crud.get_user_by_username(db, sponsor_username)
+        if not sponsor:
+            raise HTTPException(status_code=400, detail=f"Sponsor user '{sponsor_username}' does not exist.")
+        if sponsor.is_admin:
+            raise HTTPException(status_code=400, detail="Admin cannot sponsor tree nodes.")
+        return {"sponsor": sponsor_username, "position": position}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-        
-    db_sponsor = crud.get_user_by_username(db, sponsor)
-    if not db_sponsor:
-        raise HTTPException(status_code=400, detail="Referral sponsor does not exist.")
-        
-    return {"sponsor": sponsor, "position": position}
 
 
 @app.post("/auth/register", response_model=schemas.UserResponse, status_code=status.HTTP_201_CREATED)
 def register_user(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
+    # Validate username formatting
+    clean_username = user_data.username.strip().lower()
+    if ' ' in clean_username:
+        raise HTTPException(status_code=400, detail="Username cannot contain spaces.")
+    if len(clean_username) < 3:
+        raise HTTPException(status_code=400, detail="Username must be at least 3 characters long.")
+    if not re.match(r'^[a-z0-9_]+$', clean_username):
+        raise HTTPException(status_code=400, detail="Username can only contain alphanumeric characters and underscores.")
+
+    # Validate password formatting
+    if ' ' in user_data.password:
+        raise HTTPException(status_code=400, detail="Password cannot contain spaces.")
+    if len(user_data.password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters long.")
+
     # Check if username or email already exists
-    db_user = crud.get_user_by_username(db, user_data.username)
+    db_user = crud.get_user_by_username(db, clean_username)
     if db_user:
         raise HTTPException(status_code=400, detail="Username already registered.")
         
-    db_email = crud.get_user_by_email(db, user_data.email)
+    db_email = crud.get_user_by_email(db, user_data.email.strip().lower())
     if db_email:
         raise HTTPException(status_code=400, detail="Email already registered.")
         
@@ -178,8 +208,14 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = D
 # --- User Endpoints ---
 
 @app.get("/users/me", response_model=schemas.UserResponse)
-def read_users_me(current_user: models.User = Depends(auth.get_current_user)):
-    return current_user
+def get_current_user_profile(
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(get_db)
+):
+    user = crud.get_user_by_id(db, current_user.id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+    return user
 
 
 # Helper to verify if target is in current user's downline tree
@@ -204,13 +240,13 @@ def is_user_in_downline(db: Session, current_user_id: int, target_user_id: int) 
 
 
 @app.get("/users/tree", response_model=schemas.TreeNodeResponse)
-def get_downline_tree(
+def get_user_tree(
     username: Optional[str] = None, 
     current_user: models.User = Depends(auth.get_current_user), 
     db: Session = Depends(get_db)
 ):
     """
-    Returns the binary genealogy tree starting from current user, 
+    Returns the business genealogy tree starting from current user, 
     or starting from a specified downline username.
     """
     if current_user.is_admin:
@@ -233,7 +269,7 @@ def get_downline_tree(
             if not is_user_in_downline(db, current_user.id, target_user.id):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN, 
-                    detail=f"Access Denied: '{username}' is not in your downline binary tree."
+                    detail=f"Access Denied: '{username}' is not in your downline business tree."
                 )
             
     tree = crud.get_genealogy_tree(db, target_user.id, current_depth=0)

@@ -108,9 +108,9 @@ export const TreePage: React.FC = () => {
       {/* Title block */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4 mb-6">
         <div>
-          <h1 className="text-2xl font-black text-white">Binary Genealogy Tree</h1>
+          <h1 className="text-2xl font-black text-white">Business Genealogy</h1>
           <p className="text-slate-400 text-xs mt-0.5">
-            Visualize your binary downline network. Click cards to drill down and explore team nodes.
+            Visualize your business downline network. Click cards to drill down and explore team nodes.
           </p>
         </div>
 

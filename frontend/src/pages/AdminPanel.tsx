@@ -791,7 +791,7 @@ export const AdminPanel: React.FC = () => {
                   <div className="space-y-1">
                     <span className="text-[10px] uppercase font-bold text-slate-500">Sales Volume</span>
                     <h3 className="text-2xl font-black text-white font-mono">{stats.total_sales_sw} SW</h3>
-                    <p className="text-[10px] text-slate-400">Total matched binary volume points</p>
+                    <p className="text-[10px] text-slate-400">Total matched business volume points</p>
                   </div>
                   <div className="p-3 bg-amber-500/10 text-amber-500 rounded-xl border border-amber-500/10">
                     <TrendingUp size={20} />
@@ -1230,7 +1230,7 @@ export const AdminPanel: React.FC = () => {
                       <th className="py-3 px-4">Referral Tree Placement</th>
                       <th className="py-3 px-4 text-center">Wallet Bal</th>
                       <th className="py-3 px-4 text-center">Personal SW</th>
-                      <th className="py-3 px-4 text-center">Binary Leg Volumes (SW)</th>
+                      <th className="py-3 px-4 text-center">Business Leg Volumes (SW)</th>
                       <th className="py-3 px-4 text-center">Status</th>
                       <th className="py-3 px-4 text-center">Actions</th>
                     </tr>
@@ -1645,7 +1645,7 @@ export const AdminPanel: React.FC = () => {
                                     : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
                                 }`}
                               >
-                                {c.type}
+                                {c.type === 'binary_matching' ? 'Business Match' : c.type.replace('_', ' ')}
                               </span>
                             </td>
                             <td className="py-3 px-4 text-slate-350 italic max-w-xs truncate" title={c.description || ''}>
@@ -1686,7 +1686,7 @@ export const AdminPanel: React.FC = () => {
                           <div className="flex items-center gap-1.5">
                             <span className="text-slate-500 text-[8px] uppercase font-bold">Reward Type:</span>
                             <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${c.type === 'binary_matching' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : c.type === 'direct_referral' ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20' : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'}`}>
-                              {c.type}
+                              {c.type === 'binary_matching' ? 'Business Match' : c.type.replace('_', ' ')}
                             </span>
                           </div>
                           <div>

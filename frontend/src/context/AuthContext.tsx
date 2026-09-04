@@ -160,7 +160,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.detail || 'Registration failed');
+      let message = 'Registration failed';
+      if (typeof errorData.detail === 'string') {
+        message = errorData.detail;
+      } else if (Array.isArray(errorData.detail)) {
+        message = errorData.detail.map((e: any) => e.msg || e.message).join(', ');
+      }
+      throw new Error(message);
     }
 
     return response.json();

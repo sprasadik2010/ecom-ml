@@ -127,7 +127,7 @@ export const ProductDetails: React.FC = () => {
             <div>
               <h4 className="font-extrabold text-sm text-slate-100 mb-0.5">Earn MLM Sales Wallet Points</h4>
               <p className="text-xs text-slate-400 leading-normal">
-                Purchasing this product credits <span className="text-amber-400 font-bold font-mono">{product.sw} SW</span> to your account and propagates leg volumes up your sponsor binary tree leg, earning team bonuses!
+                Purchasing this product credits <span className="text-amber-400 font-bold font-mono">{product.sw} SW</span> to your account and propagates leg volumes up your sponsor business network leg, earning team bonuses!
               </p>
             </div>
           </div>

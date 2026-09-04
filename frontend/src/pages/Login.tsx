@@ -96,13 +96,9 @@ export const Login: React.FC = () => {
         </form>
 
         <div className="border-t border-slate-850 mt-6 pt-4 text-center text-xs text-slate-500">
-          <span>New to the network? </span>
-          <Link
-            to={`/register?redirect=${redirect}`}
-            className="text-amber-500 hover:text-amber-400 font-bold transition-colors inline-flex items-center gap-0.5"
-          >
-            Register Here <ArrowRight size={12} />
-          </Link>
+          <p className="leading-relaxed">
+            <span className="font-semibold text-slate-400">Joining the Network?</span> Registration is by invitation only. Please use the Left or Right referral link provided by your sponsor.
+          </p>
         </div>
       </div>
 

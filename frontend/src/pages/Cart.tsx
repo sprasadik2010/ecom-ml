@@ -24,7 +24,7 @@ export const Cart: React.FC = () => {
         <ShoppingBag size={64} className="text-slate-600 mx-auto mb-4" />
         <h2 className="text-xl font-bold text-slate-200 mb-2">Your Shopping Cart is Empty</h2>
         <p className="text-slate-500 text-sm mb-6">
-          Explore our premium catalog, earn SW points, and activate your binary tree downline bonuses!
+          Explore our premium catalog, earn SW points, and activate your business network downline bonuses!
         </p>
         <Link
           to="/"

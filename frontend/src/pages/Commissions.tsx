@@ -87,16 +87,16 @@ export const Commissions: React.FC = () => {
             </div>
           </div>
           <div className="mt-3 pt-3 border-t border-slate-850 flex items-center justify-between text-[10px] text-slate-400">
-            <span>Binary Matching + Level Royalties</span>
+            <span>Business Matching + Level Royalties</span>
             <span className="font-bold text-amber-500">100% Paid</span>
           </div>
         </div>
 
-        {/* Binary Matching Total */}
+        {/* Business Matching Total */}
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
           <div className="flex justify-between items-start">
             <div>
-              <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">1:1 Binary Match Bonus</span>
+              <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">1:1 Team Match Bonus</span>
               <div className="text-2xl font-black text-slate-200 font-mono mt-1.5">₹{totalMatching.toFixed(2)}</div>
             </div>
             <div className="p-2 bg-slate-950 text-emerald-400 rounded-lg border border-slate-800">
@@ -174,7 +174,7 @@ export const Commissions: React.FC = () => {
                               ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                               : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
                           }`}>
-                            {isRank ? 'Rank Royalty' : isMatching ? 'Binary Match' : comm.type.replace('_', ' ')}
+                            {isRank ? 'Rank Royalty' : isMatching ? 'Business Match' : comm.type.replace('_', ' ')}
                           </span>
                         </td>
                         <td className="py-3.5 text-slate-300 max-w-md pr-4">{comm.description}</td>
@@ -203,7 +203,7 @@ export const Commissions: React.FC = () => {
                         ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                         : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
                     }`}>
-                      {comm.type === 'rank_level_reward' ? 'Rank Royalty' : comm.type === 'binary_matching' ? 'Binary Match' : comm.type.replace('_', ' ')}
+                      {comm.type === 'rank_level_reward' ? 'Rank Royalty' : comm.type === 'binary_matching' ? 'Business Match' : comm.type.replace('_', ' ')}
                     </span>
                   </div>
                   

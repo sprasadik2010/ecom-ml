@@ -141,45 +141,32 @@ export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, curr
     );
   };
 
-  // Helper to render an empty registerable slot
-  const renderEmptySlot = (parentUsername: string, position: 'left' | 'right', token?: string) => {
-    const handleRegisterClick = () => {
-      // Redirect to register page using the encrypted referral token
-      const tokenParam = token ? `?token=${token}` : `?sponsor=${parentUsername}&position=${position}`;
-      navigate(`/register${tokenParam}`);
-    };
-
+  // Helper to render an empty slot (joining disabled from tree view)
+  const renderEmptySlot = (_parentUsername: string, position: 'left' | 'right', _token?: string) => {
     return (
       <div 
-        onClick={handleRegisterClick}
-        className="w-52 p-4 bg-slate-900/40 border border-dashed border-slate-700 hover:border-amber-500/50 hover:bg-slate-900/80 rounded-lg shadow-sm flex flex-col items-center justify-center cursor-pointer transition-all hover:scale-105 group"
+        className="w-52 p-4 bg-slate-950/30 border border-dashed border-slate-800 rounded-lg shadow-sm flex flex-col items-center justify-center select-none"
       >
-        <div className="p-1.5 bg-slate-850 group-hover:bg-amber-500/10 group-hover:text-amber-400 text-slate-505 rounded-full mb-1 transition-colors">
-          <Plus size={16} />
+        <div className="p-1.5 bg-slate-900 text-slate-600 rounded-full mb-1">
+          <UserIcon size={14} className="opacity-40" />
         </div>
-        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider group-hover:text-slate-200 transition-colors">
-          Add {position} Node
+        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+          Vacant {position} Leg
         </span>
-        <span className="text-[8px] text-slate-500 mt-0.5">Click to place member</span>
+        <span className="text-[8px] text-slate-600 mt-0.5">Open Position</span>
       </div>
     );
   };
 
   // Helper to render empty slot list for Directory View
-  const renderEmptySlotList = (parentUsername: string, position: 'left' | 'right', token?: string) => {
-    const handleRegisterClick = () => {
-      const tokenParam = token ? `?token=${token}` : `?sponsor=${parentUsername}&position=${position}`;
-      navigate(`/register${tokenParam}`);
-    };
-
+  const renderEmptySlotList = (parentUsername: string, position: 'left' | 'right', _token?: string) => {
     return (
       <div 
-        onClick={handleRegisterClick}
-        className="flex items-center gap-2.5 p-2 px-3.5 bg-slate-900 border border-dashed border-slate-700 hover:border-amber-500/50 hover:bg-slate-900/80 rounded-lg cursor-pointer transition-all w-fit group select-none"
+        className="flex items-center gap-2.5 p-2 px-3.5 bg-slate-950/40 border border-dashed border-slate-800 rounded-lg w-fit select-none"
       >
-        <Plus size={12} className="text-slate-500 group-hover:text-amber-500 transition-colors" />
-        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider group-hover:text-slate-200 transition-colors">
-          Add {position} Node under @{parentUsername}
+        <UserIcon size={11} className="text-slate-600 opacity-50" />
+        <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">
+          Vacant {position} Leg under @{parentUsername}
         </span>
       </div>
     );
@@ -353,7 +340,7 @@ export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, curr
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
           <h4 className="font-bold text-slate-100 flex items-center gap-1.5">
             <Zap size={14} className="text-amber-500" />
-            Binary Genealogy Tree Guide
+            Business Genealogy Guide
           </h4>
 
           {/* View Mode Toggle */}
@@ -393,8 +380,8 @@ export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, curr
             <span>Inactive Member</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="h-3 w-3 border border-dashed border-slate-500 rounded block bg-slate-900/40"></span>
-            <span>Available Slot</span>
+            <span className="h-3 w-3 border border-dashed border-slate-800 rounded block bg-slate-950/30"></span>
+            <span>Vacant Slot</span>
           </div>
         </div>
 
