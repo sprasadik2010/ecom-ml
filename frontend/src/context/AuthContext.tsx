@@ -20,6 +20,7 @@ export interface User {
   left_child_id: number | null;
   right_child_id: number | null;
   personal_sw: number;
+  pending_sw?: number;
   left_leg_sw: number;
   right_leg_sw: number;
   total_left_sw: number;

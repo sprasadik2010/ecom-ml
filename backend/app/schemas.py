@@ -66,6 +66,7 @@ class UserResponse(UserBase):
     left_child_id: Optional[int] = None
     right_child_id: Optional[int] = None
     personal_sw: float
+    pending_sw: float = 0.0
     left_leg_sw: float
     right_leg_sw: float
     total_left_sw: float
@@ -90,6 +91,7 @@ class TreeNodeResponse(BaseModel):
     status: str
     position: Optional[str] = None
     personal_sw: float
+    pending_sw: float = 0.0
     left_leg_sw: float
     right_leg_sw: float
     total_left_sw: float

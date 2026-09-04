@@ -82,6 +82,12 @@ class User(Base):
         f = Fernet(fernet_key)
         return f.encrypt(f"{self.username}:right".encode('utf-8')).decode('utf-8')
 
+    @property
+    def pending_sw(self) -> float:
+        if not self.orders:
+            return 0.0
+        return sum(float(o.total_sw) for o in self.orders if o.status == "pending")
+
 
 
 class Product(Base):

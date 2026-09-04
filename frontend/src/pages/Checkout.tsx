@@ -11,6 +11,7 @@ export const Checkout: React.FC = () => {
   const navigate = useNavigate();
 
   const [checkoutStep, setCheckoutStep] = useState<'checkout' | 'success'>('checkout');
+  const [lastPlacedOrder, setLastPlacedOrder] = useState<{ id: number; amount: number; sw: number } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -56,7 +57,7 @@ export const Checkout: React.FC = () => {
       const orderData = await orderResponse.json();
       const orderId = orderData.id;
 
-      // 2. Complete order checkout (payment simulation)
+      // 2. Submit order checkout (payment recorded)
       const checkoutResponse = await fetch(`${API_BASE_URL}/orders/${orderId}/checkout`, {
         method: 'POST',
         headers: {
@@ -69,9 +70,15 @@ export const Checkout: React.FC = () => {
         throw new Error(errorData.detail || 'Checkout simulation failed');
       }
 
+      setLastPlacedOrder({
+        id: orderId,
+        amount: orderData.total_amount,
+        sw: orderData.total_sw,
+      });
+
       // 3. Success steps
       clearCart();
-      await refreshUser(); // Update status/wallet balance
+      await refreshUser(); // Update status/wallet balance and pending_sw
       setCheckoutStep('success');
       
       // Fire confetti for premium feel!
@@ -92,13 +99,28 @@ export const Checkout: React.FC = () => {
   if (checkoutStep === 'success') {
     return (
       <div className="max-w-xl mx-auto px-4 py-20 text-center flex flex-col items-center">
-        <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-full mb-4 border border-emerald-500/20">
-          <CheckCircle2 size={64} className="animate-bounce" />
+        <div className="p-3 bg-amber-500/10 text-amber-400 rounded-full mb-4 border border-amber-500/20">
+          <CheckCircle2 size={56} className="text-amber-400" />
         </div>
-        <h1 className="text-2xl font-black text-white mb-2">Order Confirmed!</h1>
-        <p className="text-slate-400 text-sm leading-relaxed mb-8 max-w-sm">
-          Thank you for your purchase. Your payment was simulated successfully. The generated Sales Wallet (SW) has been distributed to your business network legs and ancestors!
-        </p>
+        <h1 className="text-2xl font-black text-white mb-2">Order Placed Successfully!</h1>
+        
+        {lastPlacedOrder && (
+          <div className="inline-flex items-center gap-2 bg-amber-950/40 border border-amber-500/30 text-amber-300 text-xs font-bold px-3.5 py-1.5 rounded-full mb-4 font-mono">
+            <span>Order #{lastPlacedOrder.id}</span>
+            <span>•</span>
+            <span>{lastPlacedOrder.sw} SW Volume</span>
+          </div>
+        )}
+
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 mb-8 text-left space-y-2 max-w-md">
+          <div className="flex items-center gap-2 text-amber-400 font-bold text-xs">
+            <Award size={16} />
+            <span>Sales Wallet (SW) Pending Admin Approval</span>
+          </div>
+          <p className="text-slate-400 text-xs leading-relaxed">
+            Your purchase payment has been verified. The generated <strong className="text-amber-400">{lastPlacedOrder?.sw} SW</strong> points are currently <strong className="text-amber-300">Pending Admin Approval</strong>. Once approved by the administrator, your personal sales volume will be credited, activating your member commissions and distributing business volume to your upline team!
+          </p>
+        </div>
 
         <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
           <Link

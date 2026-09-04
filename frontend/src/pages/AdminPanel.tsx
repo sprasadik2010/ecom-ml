@@ -59,6 +59,7 @@ interface UserListItem {
   left_child_id: number | null;
   right_child_id: number | null;
   personal_sw: number;
+  pending_sw?: number;
   left_leg_sw: number;
   right_leg_sw: number;
   total_left_sw: number;
@@ -639,8 +640,15 @@ export const AdminPanel: React.FC = () => {
         const data = await res.json();
         throw new Error(data.detail || 'Order status update failed.');
       }
-      triggerSuccess(`Order #${orderId} marked as ${nextStatus}. MLM points and matching volume distributed.`);
+      if (nextStatus === 'completed') {
+        triggerSuccess(`Order #${orderId} approved! Sales volume credited and business team commissions distributed.`);
+      } else {
+        triggerSuccess(`Order #${orderId} cancelled. Inventory stock restored.`);
+      }
       fetchOrders();
+      fetchUsers();
+      fetchCommissions();
+      fetchRewards();
     } catch (err: any) {
       triggerError(err.message || 'Order adjustment failed.');
     }
@@ -1281,7 +1289,12 @@ export const AdminPanel: React.FC = () => {
                               ₹{u.wallet_balance.toFixed(2)}
                             </td>
                             <td className="py-3 px-4 text-center font-mono text-slate-200">
-                              {u.personal_sw} SW
+                              <div className="font-bold">{u.personal_sw} SW</div>
+                              {u.pending_sw && u.pending_sw > 0 ? (
+                                <div className="text-[10px] text-amber-400 font-bold font-mono">
+                                  (+{u.pending_sw} SW Pending)
+                                </div>
+                              ) : null}
                             </td>
                             <td className="py-3 px-4 text-center font-mono text-[10px] text-slate-400 font-normal">
                               <div className="flex flex-col items-center">
@@ -1373,6 +1386,11 @@ export const AdminPanel: React.FC = () => {
                           <div>
                             <span className="text-slate-500 block uppercase text-[8px] font-bold">Personal Volume</span>
                             <span className="font-bold font-mono text-slate-300">{u.personal_sw} SW</span>
+                            {u.pending_sw && u.pending_sw > 0 ? (
+                              <span className="block text-[9px] text-amber-400 font-bold font-mono">
+                                (+{u.pending_sw} SW Pending)
+                              </span>
+                            ) : null}
                           </div>
                           <div className="col-span-2 pt-2 border-t border-slate-850/60 flex justify-between font-normal">
                             <div>
@@ -1475,41 +1493,45 @@ export const AdminPanel: React.FC = () => {
                             </td>
                             <td className="py-3 px-4 text-center">
                               <span
-                                className={`px-2 py-0.5 rounded text-[9px] font-bold ${
+                                className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[9px] font-bold ${
                                   o.status === 'completed'
-                                    ? 'bg-emerald-500/10 text-emerald-555 border border-emerald-500/20'
+                                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                                     : o.status === 'pending'
                                     ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                                    : 'bg-red-500/10 text-red-550 border border-red-500/20'
+                                    : 'bg-red-500/10 text-red-400 border border-red-500/20'
                                 }`}
                               >
-                                {o.status.toUpperCase()}
+                                {o.status === 'completed' && <Check size={10} />}
+                                {o.status === 'pending' && <Clock size={10} />}
+                                {o.status === 'completed' ? 'APPROVED / CREDITED' : o.status === 'pending' ? 'PENDING APPROVAL' : 'CANCELLED'}
                               </span>
                             </td>
                             <td className="py-3 px-4 text-center">
                               {o.status === 'pending' && (
-                                <div className="flex items-center justify-center gap-1">
+                                <div className="flex items-center justify-center gap-1.5 font-sans">
                                   <button
                                     onClick={() => handleUpdateOrderStatus(o.id, 'completed')}
-                                    className="p-1 bg-emerald-500/10 hover:bg-emerald-555 hover:text-slate-955 text-emerald-555 rounded border border-emerald-500/20 cursor-pointer transition-colors"
-                                    title="Approve / Complete Checkout"
+                                    className="px-2.5 py-1 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold rounded flex items-center gap-1 text-[11px] shadow-sm cursor-pointer transition-colors"
+                                    title="Approve Order & Credit Sales Wallet"
                                   >
                                     <Check size={12} />
+                                    <span>Approve</span>
                                   </button>
                                   <button
                                     onClick={() => handleUpdateOrderStatus(o.id, 'cancelled')}
-                                    className="p-1 bg-red-500/10 hover:bg-red-555 hover:text-slate-955 text-red-550 rounded border border-red-550/20 cursor-pointer transition-colors"
-                                    title="Cancel Order"
+                                    className="px-2.5 py-1 bg-red-500/10 hover:bg-red-500 hover:text-white text-red-400 font-bold rounded border border-red-500/20 flex items-center gap-1 text-[11px] cursor-pointer transition-colors"
+                                    title="Cancel Order & Restore Stock"
                                   >
                                     <X size={12} />
+                                    <span>Cancel</span>
                                   </button>
                                 </div>
                               )}
                               {o.status === 'completed' && (
-                                <span className="text-[10px] text-slate-500 font-mono font-normal">Simulated Done</span>
+                                <span className="text-[10px] text-emerald-400 font-mono font-bold">SW Credited</span>
                               )}
                               {o.status === 'cancelled' && (
-                                <span className="text-[10px] text-red-500/50 font-mono font-normal">Cancelled</span>
+                                <span className="text-[10px] text-red-500/60 font-mono font-normal">Cancelled</span>
                               )}
                             </td>
                           </tr>
@@ -1536,8 +1558,16 @@ export const AdminPanel: React.FC = () => {
                             <div className="font-bold text-slate-200">Order #{o.id}</div>
                             <div className="text-[9px] text-slate-500 font-normal">{new Date(o.created_at).toLocaleString()}</div>
                           </div>
-                          <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${o.status === 'completed' ? 'bg-emerald-500/10 text-emerald-555 border border-emerald-500/20' : o.status === 'pending' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-red-500/10 text-red-550 border border-red-500/20'}`}>
-                            {o.status.toUpperCase()}
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold ${
+                            o.status === 'completed' 
+                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                              : o.status === 'pending' 
+                              ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' 
+                              : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                          }`}>
+                            {o.status === 'completed' && <Check size={9} />}
+                            {o.status === 'pending' && <Clock size={9} />}
+                            {o.status === 'completed' ? 'APPROVED' : o.status === 'pending' ? 'PENDING APPROVAL' : 'CANCELLED'}
                           </span>
                         </div>
 
@@ -1567,18 +1597,18 @@ export const AdminPanel: React.FC = () => {
 
                           {o.status === 'pending' && (
                             <div className="flex gap-1.5 font-sans font-bold">
-                              <button onClick={() => handleUpdateOrderStatus(o.id, 'completed')} className="px-2.5 py-1.5 bg-emerald-500/10 hover:bg-emerald-500 hover:text-slate-950 text-emerald-555 rounded border border-emerald-500/20 cursor-pointer font-bold transition-all flex items-center gap-1">
+                              <button onClick={() => handleUpdateOrderStatus(o.id, 'completed')} className="px-2.5 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 rounded font-bold transition-all flex items-center gap-1 text-[10px] cursor-pointer">
                                 <Check size={11} />
-                                <span>Approve</span>
+                                <span>Approve & Credit</span>
                               </button>
-                              <button onClick={() => handleUpdateOrderStatus(o.id, 'cancelled')} className="px-2.5 py-1.5 bg-red-500/10 hover:bg-red-500 hover:text-slate-950 text-red-550 rounded border border-red-550/20 cursor-pointer font-bold transition-all flex items-center gap-1">
+                              <button onClick={() => handleUpdateOrderStatus(o.id, 'cancelled')} className="px-2.5 py-1.5 bg-red-500/10 hover:bg-red-500 hover:text-white text-red-400 rounded border border-red-500/20 font-bold transition-all flex items-center gap-1 text-[10px] cursor-pointer">
                                 <X size={11} />
                                 <span>Cancel</span>
                               </button>
                             </div>
                           )}
-                          {o.status === 'completed' && <span className="text-[9px] text-slate-500 font-mono font-normal">Simulated Done</span>}
-                          {o.status === 'cancelled' && <span className="text-[9px] text-red-500/50 font-mono font-normal">Cancelled</span>}
+                          {o.status === 'completed' && <span className="text-[9px] text-emerald-400 font-mono font-bold">SW Credited</span>}
+                          {o.status === 'cancelled' && <span className="text-[9px] text-red-500/60 font-mono font-normal">Cancelled</span>}
                         </div>
                       </div>
                     );

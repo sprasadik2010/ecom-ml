@@ -188,6 +188,7 @@ def get_genealogy_tree(db: Session, root_user_id: int, current_depth: int = 0, m
         "status": user.status,
         "position": user.position,
         "personal_sw": user.personal_sw,
+        "pending_sw": user.pending_sw,
         "left_leg_sw": user.left_leg_sw,
         "right_leg_sw": user.right_leg_sw,
         "total_left_sw": user.total_left_sw,

@@ -323,8 +323,8 @@ def checkout_order(
     db: Session = Depends(get_db)
 ):
     """
-    Checkout simulation. Validates the order belongs to the user,
-    completes checkout, triggers volume propagation, and awards commissions.
+    Checkout submission endpoint. Validates the order belongs to the user
+    and keeps the order in 'pending' status awaiting administrator approval.
     """
     order = db.query(models.Order).filter(models.Order.id == order_id).first()
     if not order:
@@ -332,14 +332,12 @@ def checkout_order(
     if order.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Unauthorized checkout.")
     if order.status == "completed":
-        raise HTTPException(status_code=400, detail="Order already checked out.")
+        raise HTTPException(status_code=400, detail="Order is already approved & completed.")
+    if order.status == "cancelled":
+        raise HTTPException(status_code=400, detail="Order has been cancelled.")
         
-    try:
-        completed_order = crud.complete_checkout(db, order)
-        return completed_order
-    except Exception as e:
-        logger.error(f"Checkout transaction failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Checkout processing failed: {str(e)}")
+    # The order remains pending admin approval; SW and commissions will be awarded upon Admin approval
+    return order
 
 
 @app.get("/orders/my", response_model=List[schemas.OrderResponse])
@@ -518,6 +516,15 @@ def admin_update_order_status(
         
     if status_data.status == "completed" and order.status != "completed":
         order = crud.complete_checkout(db, order)
+    elif status_data.status == "cancelled" and order.status != "cancelled":
+        if order.status == "pending":
+            for item in order.items:
+                product = db.query(models.Product).filter(models.Product.id == item.product_id).first()
+                if product:
+                    product.stock += item.quantity
+                    db.add(product)
+        order.status = "cancelled"
+        db.commit()
     else:
         order.status = status_data.status
         db.commit()

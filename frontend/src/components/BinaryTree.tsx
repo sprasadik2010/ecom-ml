@@ -10,6 +10,7 @@ export interface TreeData {
   status: 'active' | 'inactive';
   position: 'left' | 'right' | null;
   personal_sw: number;
+  pending_sw?: number;
   left_leg_sw: number;
   right_leg_sw: number;
   total_left_sw: number;
@@ -135,7 +136,9 @@ export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, curr
 
         <div className="mt-1.5 pt-1 border-t border-slate-850 flex items-center justify-between text-[8px] text-slate-400">
           <span>Matched: <strong className="text-emerald-400 font-mono">{node.total_matched_sw || 0} SW</strong></span>
-          <span className="font-bold text-amber-400 font-mono">{node.personal_sw} SW</span>
+          <span className="font-bold text-amber-400 font-mono">
+            {node.personal_sw} SW{node.pending_sw && node.pending_sw > 0 ? ` (+${node.pending_sw}p)` : ''}
+          </span>
         </div>
       </div>
     );
@@ -284,7 +287,9 @@ export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, curr
             </div>
             <div className="sm:border-l sm:border-slate-800 sm:pl-3">
               <span className="text-slate-500 uppercase text-[8px]">Personal:</span>{' '}
-              <span className="font-bold text-amber-400">{node.personal_sw} SW</span>
+              <span className="font-bold text-amber-400">
+                {node.personal_sw} SW{node.pending_sw && node.pending_sw > 0 ? ` (+${node.pending_sw} Pending)` : ''}
+              </span>
             </div>
             {/* Action to drill down */}
             {!isRoot && (

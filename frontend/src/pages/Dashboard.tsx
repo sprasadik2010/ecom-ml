@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
-import { IndianRupee, Award, Users, Share2, Clipboard, ShieldCheck, ShieldAlert, ShoppingBag, Landmark, ArrowRight, Star, Zap, Calendar, CheckCircle2, TrendingUp, Sparkles } from 'lucide-react';
+import { IndianRupee, Award, Users, Share2, Clipboard, ShieldCheck, ShieldAlert, ShoppingBag, Landmark, ArrowRight, Star, Zap, Calendar, CheckCircle2, TrendingUp, Sparkles, Clock } from 'lucide-react';
 import { API_BASE_URL } from '../context/AuthContext';
 
 interface Order {
@@ -148,10 +148,18 @@ export const Dashboard: React.FC = () => {
             <p className="text-xs text-slate-400 leading-normal max-w-2xl font-normal">
               You are currently placed in the business network tree but **cannot earn team matching commissions (₹10/SW)** from child leg transactions. Buy products to accumulate at least <span className="text-amber-400 font-bold">50 SW Points</span> to activate your commissions!
             </p>
+
+            {user.pending_sw && user.pending_sw > 0 ? (
+              <div className="mt-2.5 px-3 py-1.5 bg-amber-950/40 border border-amber-500/30 rounded-md text-[11px] text-amber-300 font-bold flex items-center gap-1.5 max-w-lg">
+                <Clock size={13} className="text-amber-400 shrink-0" />
+                <span>You have {user.pending_sw} SW pending admin approval. Your account will automatically activate upon administrator approval!</span>
+              </div>
+            ) : null}
+
             {/* Progress Bar */}
             <div className="mt-3 max-w-sm">
               <div className="flex justify-between text-[10px] text-slate-400 font-mono mb-1">
-                <span>Personal: {user.personal_sw} / 50 SW</span>
+                <span>Personal: {user.personal_sw} / 50 SW {user.pending_sw && user.pending_sw > 0 ? `(+${user.pending_sw} SW Pending)` : ''}</span>
                 <span>{progressPercent.toFixed(0)}%</span>
               </div>
               <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
@@ -605,12 +613,16 @@ export const Dashboard: React.FC = () => {
                           <td className="py-3 font-bold font-mono text-white">₹{ord.total_amount.toFixed(2)}</td>
                           <td className="py-3 text-amber-400 font-bold font-mono">{ord.total_sw} SW</td>
                           <td className="py-3 text-right">
-                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                               ord.status === 'completed' 
                                 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
-                                : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                : ord.status === 'pending'
+                                ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                : 'bg-red-500/10 text-red-400 border border-red-500/20'
                             }`}>
-                              {ord.status.toUpperCase()}
+                              {ord.status === 'completed' && <CheckCircle2 size={10} />}
+                              {ord.status === 'pending' && <Clock size={10} />}
+                              {ord.status === 'completed' ? 'APPROVED' : ord.status === 'pending' ? 'PENDING APPROVAL' : ord.status.toUpperCase()}
                             </span>
                           </td>
                         </tr>
@@ -628,12 +640,16 @@ export const Dashboard: React.FC = () => {
                     >
                       <div className="flex justify-between items-center mb-3">
                         <span className="font-mono font-bold text-slate-200 text-xs">#00{ord.id}</span>
-                        <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black tracking-wider ${
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-bold ${
                           ord.status === 'completed' 
                             ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
-                            : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                            : ord.status === 'pending'
+                            ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                            : 'bg-red-500/10 text-red-400 border border-red-500/20'
                         }`}>
-                          {ord.status.toUpperCase()}
+                          {ord.status === 'completed' && <CheckCircle2 size={9} />}
+                          {ord.status === 'pending' && <Clock size={9} />}
+                          {ord.status === 'completed' ? 'APPROVED' : ord.status === 'pending' ? 'PENDING APPROVAL' : ord.status.toUpperCase()}
                         </span>
                       </div>
                       
