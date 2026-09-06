@@ -18,63 +18,63 @@ LEVEL_CONFIG = {
     2: {
         "level": 2,
         "name": "Level 2 (Silver Star)",
-        "monthly_amount": 4000.0,
+        "monthly_amount": 2000.0,
         "duration_months": 3,
         "target_description": "Both direct Left & Right children reach Level 1 (Bronze Star)"
     },
     3: {
         "level": 3,
         "name": "Level 3 (Gold Star)",
-        "monthly_amount": 8000.0,
+        "monthly_amount": 4000.0,
         "duration_months": 3,
         "target_description": "Both direct Left & Right children reach Level 2 (Silver Star)"
     },
     4: {
         "level": 4,
         "name": "Level 4 (Platinum Star)",
-        "monthly_amount": 16000.0,
+        "monthly_amount": 8000.0,
         "duration_months": 3,
         "target_description": "Both direct Left & Right children reach Level 3 (Gold Star)"
     },
     5: {
         "level": 5,
         "name": "Level 5 (Diamond Star)",
-        "monthly_amount": 32000.0,
+        "monthly_amount": 16000.0,
         "duration_months": 3,
         "target_description": "Both direct Left & Right children reach Level 4 (Platinum Star)"
     },
     6: {
         "level": 6,
         "name": "Level 6 (Double Diamond Star)",
-        "monthly_amount": 64000.0,
+        "monthly_amount": 32000.0,
         "duration_months": 3,
         "target_description": "Both direct Left & Right children reach Level 5 (Diamond Star)"
     },
     7: {
         "level": 7,
         "name": "Level 7 (Triple Diamond Star)",
-        "monthly_amount": 128000.0,
+        "monthly_amount": 64000.0,
         "duration_months": 3,
         "target_description": "Both direct Left & Right children reach Level 6 (Double Diamond Star)"
     },
     8: {
         "level": 8,
         "name": "Level 8 (Crown Diamond Star)",
-        "monthly_amount": 256000.0,
+        "monthly_amount": 128000.0,
         "duration_months": 3,
         "target_description": "Both direct Left & Right children reach Level 7 (Triple Diamond Star)"
     },
     9: {
         "level": 9,
         "name": "Level 9 (Royal Crown Diamond)",
-        "monthly_amount": 512000.0,
+        "monthly_amount": 256000.0,
         "duration_months": 3,
         "target_description": "Both direct Left & Right children reach Level 8 (Crown Diamond Star)"
     },
     10: {
         "level": 10,
         "name": "Level 10 (Crown Ambassador)",
-        "monthly_amount": 1024000.0,
+        "monthly_amount": 512000.0,
         "duration_months": 3,
         "target_description": "Both direct Left & Right children reach Level 9 (Royal Crown Diamond)"
     }

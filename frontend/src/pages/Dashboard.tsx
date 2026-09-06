@@ -45,63 +45,63 @@ const DEFAULT_LEVELS: LevelDefinition[] = [
   {
     level: 2,
     name: "Level 2 (Silver Star)",
-    monthly_amount: 4000.0,
+    monthly_amount: 2000.0,
     duration_months: 3,
     target_description: "Both direct Left & Right children reach Level 1 (Bronze Star)"
   },
   {
     level: 3,
     name: "Level 3 (Gold Star)",
-    monthly_amount: 8000.0,
+    monthly_amount: 4000.0,
     duration_months: 3,
     target_description: "Both direct Left & Right children reach Level 2 (Silver Star)"
   },
   {
     level: 4,
     name: "Level 4 (Platinum Star)",
-    monthly_amount: 16000.0,
+    monthly_amount: 8000.0,
     duration_months: 3,
     target_description: "Both direct Left & Right children reach Level 3 (Gold Star)"
   },
   {
     level: 5,
     name: "Level 5 (Diamond Star)",
-    monthly_amount: 32000.0,
+    monthly_amount: 16000.0,
     duration_months: 3,
     target_description: "Both direct Left & Right children reach Level 4 (Platinum Star)"
   },
   {
     level: 6,
     name: "Level 6 (Double Diamond Star)",
-    monthly_amount: 64000.0,
+    monthly_amount: 32000.0,
     duration_months: 3,
     target_description: "Both direct Left & Right children reach Level 5 (Diamond Star)"
   },
   {
     level: 7,
     name: "Level 7 (Triple Diamond Star)",
-    monthly_amount: 128000.0,
+    monthly_amount: 64000.0,
     duration_months: 3,
     target_description: "Both direct Left & Right children reach Level 6 (Double Diamond Star)"
   },
   {
     level: 8,
     name: "Level 8 (Crown Diamond Star)",
-    monthly_amount: 256000.0,
+    monthly_amount: 128000.0,
     duration_months: 3,
     target_description: "Both direct Left & Right children reach Level 7 (Triple Diamond Star)"
   },
   {
     level: 9,
     name: "Level 9 (Royal Crown Diamond)",
-    monthly_amount: 512000.0,
+    monthly_amount: 256000.0,
     duration_months: 3,
     target_description: "Both direct Left & Right children reach Level 8 (Crown Diamond Star)"
   },
   {
     level: 10,
     name: "Level 10 (Crown Ambassador)",
-    monthly_amount: 1024000.0,
+    monthly_amount: 512000.0,
     duration_months: 3,
     target_description: "Both direct Left & Right children reach Level 9 (Royal Crown Diamond)"
   }
@@ -360,7 +360,7 @@ export const Dashboard: React.FC = () => {
             </div>
 
             <p className="text-xs text-slate-400 leading-normal mb-5 font-normal">
-              For every 1 matching point on Left & Right legs you earn <span className="text-emerald-400 font-bold">₹10</span>. In addition, unlock 10 progressive monthly royalty streams starting at <span className="text-amber-400 font-bold">₹1,000/mo</span> up to <span className="text-amber-400 font-bold">₹10,24,000/mo</span> (doubling at each level) as your binary downlines advance!
+              For every 1 matching point on Left & Right legs you earn <span className="text-emerald-400 font-bold">₹10</span>. In addition, unlock 10 progressive monthly royalty streams starting at <span className="text-amber-400 font-bold">₹1,000/mo</span> up to <span className="text-amber-400 font-bold">₹5,12,000/mo</span> (doubling at each level) as your binary downlines advance!
             </p>
 
             {/* Current Level / Next Milestone Status Box */}

@@ -197,10 +197,10 @@ def run_tests():
         
         rewards_l2 = db.query(UserRankReward).filter(UserRankReward.user_id == root.id, UserRankReward.level == 2).first()
         assert rewards_l2 is not None, "Level 2 reward record should exist"
-        assert rewards_l2.monthly_amount == 4000.0, "Level 2 monthly reward should be INR 4,000"
+        assert rewards_l2.monthly_amount == 2000.0, "Level 2 monthly reward should be INR 2,000"
         assert rewards_l2.total_months == 3, "Level 2 duration should be 3 months"
         assert rewards_l2.months_paid == 1, "Month 1 should be disbursed immediately"
-        print("   ✅ Rootuser automatically promoted to Level 2 (Silver Star) with INR 4,000 Month 1 Royalty credited!")
+        print("   ✅ Rootuser automatically promoted to Level 2 (Silver Star) with INR 2,000 Month 1 Royalty credited!")
         
         # 7. Test Recurring Monthly Royalty Payout Processor
         print("\n9. Testing scheduled monthly payout processor (simulate 30 days passing)...")
@@ -221,7 +221,7 @@ def run_tests():
         from app.mlm import LEVEL_CONFIG
         print("\n10. Verifying all 10 Level Configs...")
         assert len(LEVEL_CONFIG) == 10, "Should have exactly 10 levels"
-        expected_amounts = [1000.0, 4000.0, 8000.0, 16000.0, 32000.0, 64000.0, 128000.0, 256000.0, 512000.0, 1024000.0]
+        expected_amounts = [1000.0, 2000.0, 4000.0, 8000.0, 16000.0, 32000.0, 64000.0, 128000.0, 256000.0, 512000.0]
         expected_durations = [2, 3, 3, 3, 3, 3, 3, 3, 3, 3]
         for lvl_num in range(1, 11):
             cfg = LEVEL_CONFIG[lvl_num]
