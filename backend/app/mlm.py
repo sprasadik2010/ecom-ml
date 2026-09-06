@@ -6,7 +6,7 @@ from .config import settings
 
 logger = logging.getLogger(__name__)
 
-# Standard Level Definitions with Royalty Schemes
+# Standard Level Definitions with Royalty Schemes (Levels 1 to 10)
 LEVEL_CONFIG = {
     1: {
         "level": 1,
@@ -18,39 +18,68 @@ LEVEL_CONFIG = {
     2: {
         "level": 2,
         "name": "Level 2 (Silver Star)",
-        "monthly_amount": 2000.0,
+        "monthly_amount": 4000.0,
         "duration_months": 3,
-        "target_description": "Both direct children reach Level 1"
+        "target_description": "Both direct Left & Right children reach Level 1 (Bronze Star)"
     },
     3: {
         "level": 3,
         "name": "Level 3 (Gold Star)",
-        "monthly_amount": 4000.0,
-        "duration_months": 4,
-        "target_description": "Both direct children reach Level 2 (their children reach Level 1)"
+        "monthly_amount": 8000.0,
+        "duration_months": 3,
+        "target_description": "Both direct Left & Right children reach Level 2 (Silver Star)"
     },
     4: {
         "level": 4,
         "name": "Level 4 (Platinum Star)",
-        "monthly_amount": 6000.0,
-        "duration_months": 5,
-        "target_description": "Both direct children reach Level 3"
+        "monthly_amount": 16000.0,
+        "duration_months": 3,
+        "target_description": "Both direct Left & Right children reach Level 3 (Gold Star)"
     },
     5: {
         "level": 5,
         "name": "Level 5 (Diamond Star)",
-        "monthly_amount": 8000.0,
-        "duration_months": 6,
-        "target_description": "Both direct children reach Level 4"
+        "monthly_amount": 32000.0,
+        "duration_months": 3,
+        "target_description": "Both direct Left & Right children reach Level 4 (Platinum Star)"
     },
     6: {
         "level": 6,
-        "name": "Level 6 (Crown Ambassador)",
-        "monthly_amount": 10000.0,
-        "duration_months": 6,
-        "target_description": "Both direct children reach Level 5"
+        "name": "Level 6 (Double Diamond Star)",
+        "monthly_amount": 64000.0,
+        "duration_months": 3,
+        "target_description": "Both direct Left & Right children reach Level 5 (Diamond Star)"
+    },
+    7: {
+        "level": 7,
+        "name": "Level 7 (Triple Diamond Star)",
+        "monthly_amount": 128000.0,
+        "duration_months": 3,
+        "target_description": "Both direct Left & Right children reach Level 6 (Double Diamond Star)"
+    },
+    8: {
+        "level": 8,
+        "name": "Level 8 (Crown Diamond Star)",
+        "monthly_amount": 256000.0,
+        "duration_months": 3,
+        "target_description": "Both direct Left & Right children reach Level 7 (Triple Diamond Star)"
+    },
+    9: {
+        "level": 9,
+        "name": "Level 9 (Royal Crown Diamond)",
+        "monthly_amount": 512000.0,
+        "duration_months": 3,
+        "target_description": "Both direct Left & Right children reach Level 8 (Crown Diamond Star)"
+    },
+    10: {
+        "level": 10,
+        "name": "Level 10 (Crown Ambassador)",
+        "monthly_amount": 1024000.0,
+        "duration_months": 3,
+        "target_description": "Both direct Left & Right children reach Level 9 (Royal Crown Diamond)"
     }
 }
+
 
 
 def find_binary_placement(db: Session, sponsor_id: int, position: str) -> tuple[User, str]:
@@ -173,12 +202,9 @@ def evaluate_and_award_levels(db: Session):
     Cascades bottom-up until no more level promotions occur.
     
     Rules:
-    - Level 1: total_matched_sw >= 100.0 (100 matched sales points on each side).
-    - Level 2: Both left and right direct children are >= Level 1.
-    - Level 3: Both left and right direct children are >= Level 2 (their children are Level 1).
-    - Level 4: Both direct children are >= Level 3.
-    - Level 5: Both direct children are >= Level 4.
-    - Level 6: Both direct children are >= Level 5 (up to ₹10,000/mo).
+    - Level 1: total_matched_sw >= 100.0 (100 matched sales points on each leg).
+    - Level 2 to 10: To reach level N, user must currently be at level N-1,
+      and both direct Left and Right children must be >= Level N-1.
     """
     promotions_happened = True
     
@@ -197,7 +223,7 @@ def evaluate_and_award_levels(db: Session):
                 promotions_happened = True
                 continue
                 
-            # For Level 2 and above, must have both left and right children
+            # For Level 2 and above, must have both left and right direct children
             if u.left_child_id is not None and u.right_child_id is not None:
                 left_child = user_map.get(u.left_child_id)
                 right_child = user_map.get(u.right_child_id)
@@ -206,35 +232,14 @@ def evaluate_and_award_levels(db: Session):
                     l_lvl = left_child.current_level or 0
                     r_lvl = right_child.current_level or 0
                     
-                    # 2. Evaluate Level 2 (Both children reached Level 1+)
-                    if curr_lvl == 1 and l_lvl >= 1 and r_lvl >= 1:
-                        award_level_promotion(db, u, 2)
-                        promotions_happened = True
-                        continue
-                        
-                    # 3. Evaluate Level 3 (Both children reached Level 2+)
-                    if curr_lvl == 2 and l_lvl >= 2 and r_lvl >= 2:
-                        award_level_promotion(db, u, 3)
-                        promotions_happened = True
-                        continue
-                        
-                    # 4. Evaluate Level 4 (Both children reached Level 3+)
-                    if curr_lvl == 3 and l_lvl >= 3 and r_lvl >= 3:
-                        award_level_promotion(db, u, 4)
-                        promotions_happened = True
-                        continue
-                        
-                    # 5. Evaluate Level 5 (Both children reached Level 4+)
-                    if curr_lvl == 4 and l_lvl >= 4 and r_lvl >= 4:
-                        award_level_promotion(db, u, 5)
-                        promotions_happened = True
-                        continue
-                        
-                    # 6. Evaluate Level 6 (Both children reached Level 5+)
-                    if curr_lvl == 5 and l_lvl >= 5 and r_lvl >= 5:
-                        award_level_promotion(db, u, 6)
-                        promotions_happened = True
-                        continue
+                    target_lvl = curr_lvl + 1
+                    if 2 <= target_lvl <= 10:
+                        required_child_lvl = target_lvl - 1
+                        if l_lvl >= required_child_lvl and r_lvl >= required_child_lvl:
+                            award_level_promotion(db, u, target_lvl)
+                            promotions_happened = True
+                            continue
+
 
 
 def check_and_award_commissions(db: Session, buyer: User, order_sw: float):
