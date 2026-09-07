@@ -133,66 +133,20 @@ def run_tests():
         assert rewards_root[0].status == "active", "Reward status should be active"
         print("   ✅ Level 1 qualification and instant Month 1 reward (INR 1,000) verified successfully!")
         
-        # 6. Test Level 2 Promotion:
-        # To qualify rootuser for Level 2, both children (c1 and c2) must reach Level 1!
-        # Let's qualify c1 for Level 1:
-        # c1 needs 100 matched SW on its left & right legs.
-        print("\n6. Creating downlines for c1 (c1_L, c1_R) and generating 100 matched SW for c1...")
-        c1_L = crud.create_user(db, UserCreate(
-            username="c1_l_node", email="c1_l@test.com", password="password123", full_name="c1 Left Child",
-            phone_number="+919876543212", sponsor_username="c1_node", position="left"
-        ))
-        c1_R = crud.create_user(db, UserCreate(
-            username="c1_r_node", email="c1_r@test.com", password="password123", full_name="c1 Right Child",
-            phone_number="+919876543213", sponsor_username="c1_node", position="right"
-        ))
-        c1_L.status = "active"; c1_L.personal_sw = 100.0
-        c1_R.status = "active"; c1_R.personal_sw = 100.0
-        db.add(c1_L); db.add(c1_R); db.commit()
+        # 6. Test Level 2 Promotion based on Matched Points:
+        # Root currently has 100 matched SW (and 0 left, 0 right carryover).
+        # Purchasing 100 SW under c1 (Left) and 100 SW under c2 (Right) generates 100 more matched SW.
+        # Total matched SW for root reaches 200 -> Qualifies root for Level 2 (Silver Star)!
+        print("\n6. Purchasing 100 SW on Left (under c1) and 100 SW on Right (under c2)...")
+        ord_c1_3 = crud.create_order(db, c1, OrderCreate(items=[CartItemCreate(product_id=p100.id, quantity=1)]))
+        crud.complete_checkout(db, ord_c1_3)
+        ord_c2_2 = crud.create_order(db, c2, OrderCreate(items=[CartItemCreate(product_id=p100.id, quantity=1)]))
+        crud.complete_checkout(db, ord_c2_2)
         
-        # Purchase 100 SW under c1_L and 100 SW under c1_R
-        ord_c1L = crud.create_order(db, c1_L, OrderCreate(items=[CartItemCreate(product_id=p100.id, quantity=1)]))
-        crud.complete_checkout(db, ord_c1L)
-        ord_c1R = crud.create_order(db, c1_R, OrderCreate(items=[CartItemCreate(product_id=p100.id, quantity=1)]))
-        crud.complete_checkout(db, ord_c1R)
-        
-        db.refresh(c1)
-        print(f"   c1 -> Matched SW: {c1.total_matched_sw}, Level: {c1.current_level} ({c1.level_name}), Wallet: INR {c1.wallet_balance}")
-        assert c1.current_level == 1, "c1 should now be Level 1"
-        assert c1.wallet_balance == 2000.0, "c1 wallet should be INR 2,000 (1000 matching + 1000 L1 reward)"
-        print("   ✅ c1 successfully reached Level 1!")
-        
-        # Now let's qualify c2 for Level 1:
-        print("\n7. Creating downlines for c2 (c2_L, c2_R) and generating 100 matched SW for c2...")
-        c2_L = crud.create_user(db, UserCreate(
-            username="c2_l_node", email="c2_l@test.com", password="password123", full_name="c2 Left Child",
-            phone_number="+919876543214", sponsor_username="c2_node", position="left"
-        ))
-        c2_R = crud.create_user(db, UserCreate(
-            username="c2_r_node", email="c2_r@test.com", password="password123", full_name="c2 Right Child",
-            phone_number="+919876543215", sponsor_username="c2_node", position="right"
-        ))
-
-        c2_L.status = "active"; c2_L.personal_sw = 100.0
-        c2_R.status = "active"; c2_R.personal_sw = 100.0
-        db.add(c2_L); db.add(c2_R); db.commit()
-        
-        # Purchase 100 SW under c2_L and 100 SW under c2_R
-        ord_c2L = crud.create_order(db, c2_L, OrderCreate(items=[CartItemCreate(product_id=p100.id, quantity=1)]))
-        crud.complete_checkout(db, ord_c2L)
-        ord_c2R = crud.create_order(db, c2_R, OrderCreate(items=[CartItemCreate(product_id=p100.id, quantity=1)]))
-        crud.complete_checkout(db, ord_c2R)
-        
-        db.refresh(c2)
-        print(f"   c2 -> Matched SW: {c2.total_matched_sw}, Level: {c2.current_level} ({c2.level_name}), Wallet: INR {c2.wallet_balance}")
-        assert c2.current_level == 1, "c2 should now be Level 1"
-        print("   ✅ c2 successfully reached Level 1!")
-        
-        # Now that both c1 and c2 are Level 1, rootuser should automatically promote to Level 2!
         db.refresh(root)
-        print(f"\n8. Checking rootuser promotion after both children reached Level 1...")
-        print(f"   Rootuser -> Level: {root.current_level} ({root.level_name}), Wallet: INR {root.wallet_balance}")
-        assert root.current_level == 2, "rootuser should be promoted to Level 2!"
+        print(f"   Rootuser -> Matched SW: {root.total_matched_sw}, Level: {root.current_level} ({root.level_name}), Wallet: INR {root.wallet_balance}")
+        assert root.total_matched_sw == 200.0, "Root should have 200 matched SW"
+        assert root.current_level == 2, "rootuser should be promoted to Level 2 (Silver Star) at 200 matched SW!"
         assert root.level_name == "Level 2 (Silver Star)", "Level name should be Level 2 (Silver Star)"
         
         rewards_l2 = db.query(UserRankReward).filter(UserRankReward.user_id == root.id, UserRankReward.level == 2).first()
@@ -203,7 +157,7 @@ def run_tests():
         print("   ✅ Rootuser automatically promoted to Level 2 (Silver Star) with INR 2,000 Month 1 Royalty credited!")
         
         # 7. Test Recurring Monthly Royalty Payout Processor
-        print("\n9. Testing scheduled monthly payout processor (simulate 30 days passing)...")
+        print("\n7. Testing scheduled monthly payout processor (simulate 30 days passing)...")
         rewards_l2.next_payout_at = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=1) # Set as due
         db.add(rewards_l2)
         db.commit()
@@ -217,19 +171,21 @@ def run_tests():
         print(f"   Reward schedule updated: Months paid={rewards_l2.months_paid}/{rewards_l2.total_months}, Status={rewards_l2.status}")
         print("   ✅ Recurring monthly payouts processed and verified successfully!")
 
-        # 8. Test LEVEL_CONFIG contains all 10 levels with correct doubling amounts and durations
+        # 8. Test LEVEL_CONFIG contains all 10 levels with correct target SW points, doubling amounts, and durations
         from app.mlm import LEVEL_CONFIG
-        print("\n10. Verifying all 10 Level Configs...")
+        print("\n8. Verifying all 10 Level Configs...")
         assert len(LEVEL_CONFIG) == 10, "Should have exactly 10 levels"
+        expected_sw = [100.0, 200.0, 400.0, 800.0, 1600.0, 3200.0, 6400.0, 12800.0, 25600.0, 51200.0]
         expected_amounts = [1000.0, 2000.0, 4000.0, 8000.0, 16000.0, 32000.0, 64000.0, 128000.0, 256000.0, 512000.0]
         expected_durations = [2, 3, 3, 3, 3, 3, 3, 3, 3, 3]
         for lvl_num in range(1, 11):
             cfg = LEVEL_CONFIG[lvl_num]
             assert cfg["level"] == lvl_num
+            assert cfg["target_sw"] == expected_sw[lvl_num - 1], f"Level {lvl_num} target_sw mismatch"
             assert cfg["monthly_amount"] == expected_amounts[lvl_num - 1], f"Level {lvl_num} amount mismatch"
             assert cfg["duration_months"] == expected_durations[lvl_num - 1], f"Level {lvl_num} duration mismatch"
-            print(f"   Level {lvl_num}: {cfg['name']} -> ₹{cfg['monthly_amount']:,.0f}/mo for {cfg['duration_months']} months")
-        print("   ✅ All 10 levels correctly configured with doubling rewards!")
+            print(f"   Level {lvl_num}: {cfg['name']} -> Target: {cfg['target_sw']:,.0f} SW each side | ₹{cfg['monthly_amount']:,.0f}/mo for {cfg['duration_months']} mos | Description: '{cfg['target_description']}'")
+        print("   ✅ All 10 levels correctly configured with matched points and doubling rewards!")
 
         
         print("\n" + "=" * 70)

@@ -11,72 +11,82 @@ LEVEL_CONFIG = {
     1: {
         "level": 1,
         "name": "Level 1 (Bronze Star)",
+        "target_sw": 100.0,
         "monthly_amount": 1000.0,
         "duration_months": 2,
-        "target_description": "Achieve 100 matching sales points on Left & Right legs"
+        "target_description": "100 Matched Sales Points on each side"
     },
     2: {
         "level": 2,
         "name": "Level 2 (Silver Star)",
+        "target_sw": 200.0,
         "monthly_amount": 2000.0,
         "duration_months": 3,
-        "target_description": "Both direct Left & Right children reach Level 1 (Bronze Star)"
+        "target_description": "200 Matched Sales Points on each side"
     },
     3: {
         "level": 3,
         "name": "Level 3 (Gold Star)",
+        "target_sw": 400.0,
         "monthly_amount": 4000.0,
         "duration_months": 3,
-        "target_description": "Both direct Left & Right children reach Level 2 (Silver Star)"
+        "target_description": "400 Matched Sales Points on each side"
     },
     4: {
         "level": 4,
         "name": "Level 4 (Platinum Star)",
+        "target_sw": 800.0,
         "monthly_amount": 8000.0,
         "duration_months": 3,
-        "target_description": "Both direct Left & Right children reach Level 3 (Gold Star)"
+        "target_description": "800 Matched Sales Points on each side"
     },
     5: {
         "level": 5,
         "name": "Level 5 (Diamond Star)",
+        "target_sw": 1600.0,
         "monthly_amount": 16000.0,
         "duration_months": 3,
-        "target_description": "Both direct Left & Right children reach Level 4 (Platinum Star)"
+        "target_description": "1,600 Matched Sales Points on each side"
     },
     6: {
         "level": 6,
         "name": "Level 6 (Double Diamond Star)",
+        "target_sw": 3200.0,
         "monthly_amount": 32000.0,
         "duration_months": 3,
-        "target_description": "Both direct Left & Right children reach Level 5 (Diamond Star)"
+        "target_description": "3,200 Matched Sales Points on each side"
     },
     7: {
         "level": 7,
         "name": "Level 7 (Triple Diamond Star)",
+        "target_sw": 6400.0,
         "monthly_amount": 64000.0,
         "duration_months": 3,
-        "target_description": "Both direct Left & Right children reach Level 6 (Double Diamond Star)"
+        "target_description": "6,400 Matched Sales Points on each side"
     },
     8: {
         "level": 8,
         "name": "Level 8 (Crown Diamond Star)",
+        "target_sw": 12800.0,
         "monthly_amount": 128000.0,
         "duration_months": 3,
-        "target_description": "Both direct Left & Right children reach Level 7 (Triple Diamond Star)"
+        "target_description": "12,800 Matched Sales Points on each side"
     },
     9: {
         "level": 9,
         "name": "Level 9 (Royal Crown Diamond)",
+        "target_sw": 25600.0,
         "monthly_amount": 256000.0,
         "duration_months": 3,
-        "target_description": "Both direct Left & Right children reach Level 8 (Crown Diamond Star)"
+        "target_description": "25,600 Matched Sales Points on each side"
     },
     10: {
         "level": 10,
         "name": "Level 10 (Crown Ambassador)",
+        "target_sw": 51200.0,
         "monthly_amount": 512000.0,
         "duration_months": 3,
-        "target_description": "Both direct Left & Right children reach Level 9 (Royal Crown Diamond)"
+        "target_description": "51,200 Matched Sales Points on each side"
     }
 }
 
@@ -198,47 +208,37 @@ def award_level_promotion(db: Session, user: User, level: int):
 
 def evaluate_and_award_levels(db: Session):
     """
-    Evaluates rank/level qualifications across the binary tree.
-    Cascades bottom-up until no more level promotions occur.
+    Evaluates rank/level qualifications across users based on total_matched_sw.
+    Users qualify for levels sequentially as their total matched sales points increase.
     
-    Rules:
-    - Level 1: total_matched_sw >= 100.0 (100 matched sales points on each leg).
-    - Level 2 to 10: To reach level N, user must currently be at level N-1,
-      and both direct Left and Right children must be >= Level N-1.
+    Level Targets (Points on each side / Matched Points):
+    - Level 1: >= 100 matched SW
+    - Level 2: >= 200 matched SW
+    - Level 3: >= 400 matched SW
+    - Level 4: >= 800 matched SW
+    - Level 5: >= 1,600 matched SW
+    - Level 6: >= 3,200 matched SW
+    - Level 7: >= 6,400 matched SW
+    - Level 8: >= 12,800 matched SW
+    - Level 9: >= 25,600 matched SW
+    - Level 10: >= 51,200 matched SW
     """
-    promotions_happened = True
+    users = db.query(User).filter(User.is_admin == False).all()
     
-    while promotions_happened:
-        promotions_happened = False
-        # Fetch non-admin active users in a single query
-        users = db.query(User).filter(User.is_admin == False).all()
-        user_map = {u.id: u for u in users}
+    for u in users:
+        curr_lvl = u.current_level or 0
+        matched_sw = u.total_matched_sw or 0.0
         
-        for u in users:
-            curr_lvl = u.current_level or 0
-            
-            # 1. Evaluate Level 1 (Requires 100 matched SW points)
-            if curr_lvl < 1 and (u.total_matched_sw or 0.0) >= 100.0:
-                award_level_promotion(db, u, 1)
-                promotions_happened = True
-                continue
-                
-            # For Level 2 and above, must have both left and right direct children
-            if u.left_child_id is not None and u.right_child_id is not None:
-                left_child = user_map.get(u.left_child_id)
-                right_child = user_map.get(u.right_child_id)
-                
-                if left_child and right_child:
-                    l_lvl = left_child.current_level or 0
-                    r_lvl = right_child.current_level or 0
-                    
-                    target_lvl = curr_lvl + 1
-                    if 2 <= target_lvl <= 10:
-                        required_child_lvl = target_lvl - 1
-                        if l_lvl >= required_child_lvl and r_lvl >= required_child_lvl:
-                            award_level_promotion(db, u, target_lvl)
-                            promotions_happened = True
-                            continue
+        # Check and award all eligible levels sequentially
+        for target_lvl in range(curr_lvl + 1, 11):
+            target_cfg = LEVEL_CONFIG.get(target_lvl)
+            if not target_cfg:
+                break
+            required_sw = target_cfg.get("target_sw", 0.0)
+            if matched_sw >= required_sw:
+                award_level_promotion(db, u, target_lvl)
+            else:
+                break
 
 
 

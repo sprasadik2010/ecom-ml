@@ -40,70 +40,70 @@ const DEFAULT_LEVELS: LevelDefinition[] = [
     name: "Level 1 (Bronze Star)",
     monthly_amount: 1000.0,
     duration_months: 2,
-    target_description: "100 Matched Sales Points on Left & Right legs"
+    target_description: "100 Matched Sales Points on each side"
   },
   {
     level: 2,
     name: "Level 2 (Silver Star)",
     monthly_amount: 2000.0,
     duration_months: 3,
-    target_description: "Both direct Left & Right children reach Level 1 (Bronze Star)"
+    target_description: "200 Matched Sales Points on each side"
   },
   {
     level: 3,
     name: "Level 3 (Gold Star)",
     monthly_amount: 4000.0,
     duration_months: 3,
-    target_description: "Both direct Left & Right children reach Level 2 (Silver Star)"
+    target_description: "400 Matched Sales Points on each side"
   },
   {
     level: 4,
     name: "Level 4 (Platinum Star)",
     monthly_amount: 8000.0,
     duration_months: 3,
-    target_description: "Both direct Left & Right children reach Level 3 (Gold Star)"
+    target_description: "800 Matched Sales Points on each side"
   },
   {
     level: 5,
     name: "Level 5 (Diamond Star)",
     monthly_amount: 16000.0,
     duration_months: 3,
-    target_description: "Both direct Left & Right children reach Level 4 (Platinum Star)"
+    target_description: "1,600 Matched Sales Points on each side"
   },
   {
     level: 6,
     name: "Level 6 (Double Diamond Star)",
     monthly_amount: 32000.0,
     duration_months: 3,
-    target_description: "Both direct Left & Right children reach Level 5 (Diamond Star)"
+    target_description: "3,200 Matched Sales Points on each side"
   },
   {
     level: 7,
     name: "Level 7 (Triple Diamond Star)",
     monthly_amount: 64000.0,
     duration_months: 3,
-    target_description: "Both direct Left & Right children reach Level 6 (Double Diamond Star)"
+    target_description: "6,400 Matched Sales Points on each side"
   },
   {
     level: 8,
     name: "Level 8 (Crown Diamond Star)",
     monthly_amount: 128000.0,
     duration_months: 3,
-    target_description: "Both direct Left & Right children reach Level 7 (Triple Diamond Star)"
+    target_description: "12,800 Matched Sales Points on each side"
   },
   {
     level: 9,
     name: "Level 9 (Royal Crown Diamond)",
     monthly_amount: 256000.0,
     duration_months: 3,
-    target_description: "Both direct Left & Right children reach Level 8 (Crown Diamond Star)"
+    target_description: "25,600 Matched Sales Points on each side"
   },
   {
     level: 10,
     name: "Level 10 (Crown Ambassador)",
     monthly_amount: 512000.0,
     duration_months: 3,
-    target_description: "Both direct Left & Right children reach Level 9 (Royal Crown Diamond)"
+    target_description: "51,200 Matched Sales Points on each side"
   }
 ];
 
