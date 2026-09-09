@@ -11,82 +11,92 @@ LEVEL_CONFIG = {
     1: {
         "level": 1,
         "name": "Level 1 (Bronze Star)",
+        "target_nodes": 1,
         "target_sw": 100.0,
         "monthly_amount": 1000.0,
         "duration_months": 2,
-        "target_description": "100 Matched Sales Points on each side"
+        "target_description": "Both child nodes reach 100 SW (100 SW each side)"
     },
     2: {
         "level": 2,
         "name": "Level 2 (Silver Star)",
+        "target_nodes": 2,
         "target_sw": 200.0,
         "monthly_amount": 2000.0,
         "duration_months": 3,
-        "target_description": "200 Matched Sales Points on each side"
+        "target_description": "Any 2 nodes in each side reach 100 SW (200 SW each side)"
     },
     3: {
         "level": 3,
         "name": "Level 3 (Gold Star)",
+        "target_nodes": 4,
         "target_sw": 400.0,
         "monthly_amount": 4000.0,
         "duration_months": 3,
-        "target_description": "400 Matched Sales Points on each side"
+        "target_description": "Any 4 nodes in each side reach 100 SW (400 SW each side)"
     },
     4: {
         "level": 4,
         "name": "Level 4 (Platinum Star)",
+        "target_nodes": 8,
         "target_sw": 800.0,
         "monthly_amount": 8000.0,
         "duration_months": 3,
-        "target_description": "800 Matched Sales Points on each side"
+        "target_description": "Any 8 nodes in each side reach 100 SW (800 SW each side)"
     },
     5: {
         "level": 5,
         "name": "Level 5 (Diamond Star)",
+        "target_nodes": 16,
         "target_sw": 1600.0,
         "monthly_amount": 16000.0,
         "duration_months": 3,
-        "target_description": "1,600 Matched Sales Points on each side"
+        "target_description": "Any 16 nodes in each side reach 100 SW (1,600 SW each side)"
     },
     6: {
         "level": 6,
         "name": "Level 6 (Double Diamond Star)",
+        "target_nodes": 32,
         "target_sw": 3200.0,
         "monthly_amount": 32000.0,
         "duration_months": 3,
-        "target_description": "3,200 Matched Sales Points on each side"
+        "target_description": "Any 32 nodes in each side reach 100 SW (3,200 SW each side)"
     },
     7: {
         "level": 7,
         "name": "Level 7 (Triple Diamond Star)",
+        "target_nodes": 64,
         "target_sw": 6400.0,
         "monthly_amount": 64000.0,
         "duration_months": 3,
-        "target_description": "6,400 Matched Sales Points on each side"
+        "target_description": "Any 64 nodes in each side reach 100 SW (6,400 SW each side)"
     },
     8: {
         "level": 8,
         "name": "Level 8 (Crown Diamond Star)",
+        "target_nodes": 128,
         "target_sw": 12800.0,
         "monthly_amount": 128000.0,
         "duration_months": 3,
-        "target_description": "12,800 Matched Sales Points on each side"
+        "target_description": "Any 128 nodes in each side reach 100 SW (12,800 SW each side)"
     },
     9: {
         "level": 9,
         "name": "Level 9 (Royal Crown Diamond)",
+        "target_nodes": 256,
         "target_sw": 25600.0,
         "monthly_amount": 256000.0,
         "duration_months": 3,
-        "target_description": "25,600 Matched Sales Points on each side"
+        "target_description": "Any 256 nodes in each side reach 100 SW (25,600 SW each side)"
     },
     10: {
         "level": 10,
         "name": "Level 10 (Crown Ambassador)",
+        "target_nodes": 512,
         "target_sw": 51200.0,
         "monthly_amount": 512000.0,
         "duration_months": 3,
-        "target_description": "51,200 Matched Sales Points on each side"
+        "target_description": "Any 512 nodes in each side reach 100 SW (51,200 SW each side)"
     }
 }
 
@@ -206,36 +216,91 @@ def award_level_promotion(db: Session, user: User, level: int):
         logger.info(f"PROMOTED user {user.username} to {cfg['name']}. Month 1 royalty ₹{monthly_amount} credited.")
 
 
+def get_user_qualified_nodes(db: Session, user: User) -> tuple[int, int]:
+    """
+    Counts the number of downline nodes in the Left subtree and Right subtree
+    that have accumulated at least 100 personal SW (personal_sw >= 100).
+    Returns (left_100_nodes, right_100_nodes).
+    """
+    all_users = db.query(User).filter(User.is_admin == False).all()
+    user_map = {u.id: u for u in all_users}
+    
+    def count_subtree(child_id: int | None) -> int:
+        if not child_id or child_id not in user_map:
+            return 0
+        count = 0
+        queue = [child_id]
+        while queue:
+            cid = queue.pop(0)
+            u = user_map.get(cid)
+            if not u:
+                continue
+            if (u.personal_sw or 0.0) >= 100.0:
+                count += 1
+            if u.left_child_id and u.left_child_id in user_map:
+                queue.append(u.left_child_id)
+            if u.right_child_id and u.right_child_id in user_map:
+                queue.append(u.right_child_id)
+        return count
+
+    left_count = count_subtree(user.left_child_id)
+    right_count = count_subtree(user.right_child_id)
+    return left_count, right_count
+
+
 def evaluate_and_award_levels(db: Session):
     """
-    Evaluates rank/level qualifications across users based on total_matched_sw.
-    Users qualify for levels sequentially as their total matched sales points increase.
-    
-    Level Targets (Points on each side / Matched Points):
-    - Level 1: >= 100 matched SW
-    - Level 2: >= 200 matched SW
-    - Level 3: >= 400 matched SW
-    - Level 4: >= 800 matched SW
-    - Level 5: >= 1,600 matched SW
-    - Level 6: >= 3,200 matched SW
-    - Level 7: >= 6,400 matched SW
-    - Level 8: >= 12,800 matched SW
-    - Level 9: >= 25,600 matched SW
-    - Level 10: >= 51,200 matched SW
+    Evaluates rank/level qualifications across users based on:
+    1. Node targets: Required number of >= 100 SW nodes in each side (Left and Right).
+       - Level 1: 1 node on each side (both child nodes reach 100 SW)
+       - Level 2: 2 nodes on each side reach 100 SW
+       - Level 3: 4 nodes on each side reach 100 SW
+       - Level 4: 8 nodes on each side reach 100 SW
+       - Level 5: 16 nodes on each side reach 100 SW
+       - Level 6: 32 nodes on each side reach 100 SW
+       - Level 7: 64 nodes on each side reach 100 SW
+       - Level 8: 128 nodes on each side reach 100 SW
+       - Level 9: 256 nodes on each side reach 100 SW
+       - Level 10: 512 nodes on each side reach 100 SW
+    2. Total matched SW points: min(total_left_sw, total_right_sw) or total_matched_sw.
     """
     users = db.query(User).filter(User.is_admin == False).all()
-    
+    user_map = {u.id: u for u in users}
+
+    def count_subtree(child_id: int | None) -> int:
+        if not child_id or child_id not in user_map:
+            return 0
+        count = 0
+        queue = [child_id]
+        while queue:
+            cid = queue.pop(0)
+            u = user_map.get(cid)
+            if not u:
+                continue
+            if (u.personal_sw or 0.0) >= 100.0:
+                count += 1
+            if u.left_child_id and u.left_child_id in user_map:
+                queue.append(u.left_child_id)
+            if u.right_child_id and u.right_child_id in user_map:
+                queue.append(u.right_child_id)
+        return count
+
     for u in users:
         curr_lvl = u.current_level or 0
         matched_sw = u.total_matched_sw or 0.0
+        left_nodes = count_subtree(u.left_child_id)
+        right_nodes = count_subtree(u.right_child_id)
         
         # Check and award all eligible levels sequentially
         for target_lvl in range(curr_lvl + 1, 11):
             target_cfg = LEVEL_CONFIG.get(target_lvl)
             if not target_cfg:
                 break
-            required_sw = target_cfg.get("target_sw", 0.0)
-            if matched_sw >= required_sw:
+            required_nodes = target_cfg.get("target_nodes", 1)
+            required_sw = target_cfg.get("target_sw", 100.0)
+            
+            # Qualifies if both sides meet the required node count OR total matched SW reaches target
+            if (left_nodes >= required_nodes and right_nodes >= required_nodes) or (matched_sw >= required_sw):
                 award_level_promotion(db, u, target_lvl)
             else:
                 break

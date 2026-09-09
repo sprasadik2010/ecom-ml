@@ -358,7 +358,7 @@ def get_my_rewards(current_user: models.User = Depends(auth.get_current_user), d
     return crud.get_user_rank_rewards(db, current_user.id)
 
 
-@app.get("/rewards/levels")
+@app.get("/rewards/levels", response_model=List[schemas.LevelDefinitionResponse])
 def get_level_definitions():
     from .mlm import LEVEL_CONFIG
     return list(LEVEL_CONFIG.values())

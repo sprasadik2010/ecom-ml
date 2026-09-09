@@ -29,6 +29,8 @@ interface RankReward {
 interface LevelDefinition {
   level: number;
   name: string;
+  target_nodes: number;
+  target_sw: number;
   monthly_amount: number;
   duration_months: number;
   target_description: string;
@@ -38,72 +40,92 @@ const DEFAULT_LEVELS: LevelDefinition[] = [
   {
     level: 1,
     name: "Level 1 (Bronze Star)",
+    target_nodes: 1,
+    target_sw: 100.0,
     monthly_amount: 1000.0,
     duration_months: 2,
-    target_description: "100 Matched Sales Points on each side"
+    target_description: "Both child nodes reach 100 SW (100 SW each side)"
   },
   {
     level: 2,
     name: "Level 2 (Silver Star)",
+    target_nodes: 2,
+    target_sw: 200.0,
     monthly_amount: 2000.0,
     duration_months: 3,
-    target_description: "200 Matched Sales Points on each side"
+    target_description: "Any 2 nodes in each side reach 100 SW (200 SW each side)"
   },
   {
     level: 3,
     name: "Level 3 (Gold Star)",
+    target_nodes: 4,
+    target_sw: 400.0,
     monthly_amount: 4000.0,
     duration_months: 3,
-    target_description: "400 Matched Sales Points on each side"
+    target_description: "Any 4 nodes in each side reach 100 SW (400 SW each side)"
   },
   {
     level: 4,
     name: "Level 4 (Platinum Star)",
+    target_nodes: 8,
+    target_sw: 800.0,
     monthly_amount: 8000.0,
     duration_months: 3,
-    target_description: "800 Matched Sales Points on each side"
+    target_description: "Any 8 nodes in each side reach 100 SW (800 SW each side)"
   },
   {
     level: 5,
     name: "Level 5 (Diamond Star)",
+    target_nodes: 16,
+    target_sw: 1600.0,
     monthly_amount: 16000.0,
     duration_months: 3,
-    target_description: "1,600 Matched Sales Points on each side"
+    target_description: "Any 16 nodes in each side reach 100 SW (1,600 SW each side)"
   },
   {
     level: 6,
     name: "Level 6 (Double Diamond Star)",
+    target_nodes: 32,
+    target_sw: 3200.0,
     monthly_amount: 32000.0,
     duration_months: 3,
-    target_description: "3,200 Matched Sales Points on each side"
+    target_description: "Any 32 nodes in each side reach 100 SW (3,200 SW each side)"
   },
   {
     level: 7,
     name: "Level 7 (Triple Diamond Star)",
+    target_nodes: 64,
+    target_sw: 6400.0,
     monthly_amount: 64000.0,
     duration_months: 3,
-    target_description: "6,400 Matched Sales Points on each side"
+    target_description: "Any 64 nodes in each side reach 100 SW (6,400 SW each side)"
   },
   {
     level: 8,
     name: "Level 8 (Crown Diamond Star)",
+    target_nodes: 128,
+    target_sw: 12800.0,
     monthly_amount: 128000.0,
     duration_months: 3,
-    target_description: "12,800 Matched Sales Points on each side"
+    target_description: "Any 128 nodes in each side reach 100 SW (12,800 SW each side)"
   },
   {
     level: 9,
     name: "Level 9 (Royal Crown Diamond)",
+    target_nodes: 256,
+    target_sw: 25600.0,
     monthly_amount: 256000.0,
     duration_months: 3,
-    target_description: "25,600 Matched Sales Points on each side"
+    target_description: "Any 256 nodes in each side reach 100 SW (25,600 SW each side)"
   },
   {
     level: 10,
     name: "Level 10 (Crown Ambassador)",
+    target_nodes: 512,
+    target_sw: 51200.0,
     monthly_amount: 512000.0,
     duration_months: 3,
-    target_description: "51,200 Matched Sales Points on each side"
+    target_description: "Any 512 nodes in each side reach 100 SW (51,200 SW each side)"
   }
 ];
 
@@ -180,7 +202,22 @@ export const Dashboard: React.FC = () => {
   const isActive = user.status === 'active';
   const progressPercent = Math.min((user.personal_sw / 50) * 100, 100);
   const matchedSW = user.total_matched_sw || 0;
-  const level1Progress = Math.min((matchedSW / 100) * 100, 100);
+  const left100Nodes = user.left_100_nodes || 0;
+  const right100Nodes = user.right_100_nodes || 0;
+  const matched100Nodes = Math.min(left100Nodes, right100Nodes);
+
+  const nextLevelNumber = Math.min((user.current_level || 0) + 1, 10);
+  const nextLevelDef = levelDefs.find(l => l.level === nextLevelNumber) || levelDefs[0];
+  const targetNodes = nextLevelDef?.target_nodes || 1;
+  const targetSw = nextLevelDef?.target_sw || 100;
+
+  const leftNodeProgress = Math.min((left100Nodes / targetNodes) * 100, 100);
+  const rightNodeProgress = Math.min((right100Nodes / targetNodes) * 100, 100);
+  const swProgress = Math.min((matchedSW / targetSw) * 100, 100);
+  const overallProgress = Math.max(
+    Math.min(leftNodeProgress, rightNodeProgress),
+    swProgress
+  );
 
   const getLevelBadgeColor = (lvl: number) => {
     switch (lvl) {
@@ -292,7 +329,7 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Matched SW Points */}
+        {/* Matched SW Points & Node Pairs */}
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm relative group hover:border-slate-700 transition-colors">
           <div className="flex justify-between items-start">
             <div className="flex flex-col">
@@ -304,16 +341,16 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-slate-850 flex items-center justify-between text-[10px] text-slate-400">
-            <span>Earned ₹{(matchedSW * 10).toFixed(0)} @ ₹10/SW</span>
-            <span className="text-emerald-400 font-bold">1:1 Matched</span>
+            <span>{matched100Nodes} Matched 100-SW Node{matched100Nodes !== 1 ? 's' : ''}</span>
+            <span className="text-emerald-400 font-bold">Earned ₹{(matchedSW * 10).toFixed(0)}</span>
           </div>
         </div>
 
-        {/* Left Leg Volume */}
+        {/* Left Leg Volume & 100-SW Nodes */}
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm relative group hover:border-slate-700 transition-colors">
           <div className="flex justify-between items-start">
             <div className="flex flex-col">
-              <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Left Leg Carryforward</span>
+              <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Left Leg Volume</span>
               <span className="text-2xl font-black text-slate-200 font-mono mt-1.5">{user.left_leg_sw} SW</span>
             </div>
             <div className="p-2 bg-slate-950 text-slate-400 rounded-lg border border-slate-800">
@@ -321,16 +358,16 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-slate-850 flex items-center justify-between text-[10px] text-slate-400 font-mono">
-            <span>Lifetime: {user.total_left_sw} SW</span>
-            <span className="text-slate-400">Left Leg</span>
+            <span className="text-amber-400 font-bold">{left100Nodes} Node{left100Nodes !== 1 ? 's' : ''} (≥100 SW)</span>
+            <span className="text-slate-400">Total: {user.total_left_sw} SW</span>
           </div>
         </div>
 
-        {/* Right Leg Volume */}
+        {/* Right Leg Volume & 100-SW Nodes */}
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm relative group hover:border-slate-700 transition-colors">
           <div className="flex justify-between items-start">
             <div className="flex flex-col">
-              <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Right Leg Carryforward</span>
+              <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Right Leg Volume</span>
               <span className="text-2xl font-black text-slate-200 font-mono mt-1.5">{user.right_leg_sw} SW</span>
             </div>
             <div className="p-2 bg-slate-950 text-slate-400 rounded-lg border border-slate-800">
@@ -338,8 +375,8 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-slate-850 flex items-center justify-between text-[10px] text-slate-400 font-mono">
-            <span>Lifetime: {user.total_right_sw} SW</span>
-            <span className="text-slate-400">Right Leg</span>
+            <span className="text-amber-400 font-bold">{right100Nodes} Node{right100Nodes !== 1 ? 's' : ''} (≥100 SW)</span>
+            <span className="text-slate-400">Total: {user.total_right_sw} SW</span>
           </div>
         </div>
       </div>
@@ -360,33 +397,71 @@ export const Dashboard: React.FC = () => {
             </div>
 
             <p className="text-xs text-slate-400 leading-normal mb-5 font-normal">
-              For every 1 matching point on Left & Right legs you earn <span className="text-emerald-400 font-bold">₹10</span>. In addition, unlock 10 progressive monthly royalty streams starting at <span className="text-amber-400 font-bold">₹1,000/mo</span> up to <span className="text-amber-400 font-bold">₹5,12,000/mo</span> (doubling at each level) as your binary downlines advance!
+              For every 1 matching point on Left & Right legs you earn <span className="text-emerald-400 font-bold">₹10</span>. In addition, unlock 10 progressive monthly royalty streams starting at <span className="text-amber-400 font-bold">₹1,000/mo</span> up to <span className="text-amber-400 font-bold">₹5,12,000/mo</span> as your binary network nodes achieve 100 SW on both sides!
             </p>
 
             {/* Current Level / Next Milestone Status Box */}
-            {user.current_level === 0 ? (
-              <div className="bg-slate-950/40 border border-slate-800/80 rounded-lg p-4 mb-4">
-                <div className="flex justify-between items-center text-xs mb-1.5">
+            {user.current_level < 10 ? (
+              <div className="bg-slate-950/60 border border-amber-500/40 rounded-lg p-4 mb-4 shadow-sm">
+                <div className="flex justify-between items-center text-xs mb-2">
                   <span className="font-bold text-slate-200 flex items-center gap-1.5">
-                    <Star size={14} className="text-amber-500" />
-                    Level 1 Qualification (100 Matching SW)
+                    <Star size={14} className="text-amber-500 fill-amber-500" />
+                    Target: {nextLevelDef.name}
                   </span>
-                  <span className="font-mono text-amber-400 font-bold">{matchedSW} / 100 SW ({level1Progress.toFixed(0)}%)</span>
+                  <span className="font-mono text-amber-400 font-bold text-[11px]">
+                    {nextLevelDef.target_description}
+                  </span>
                 </div>
-                <div className="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
-                  <div
-                    className="h-full bg-gradient-to-r from-amber-600 to-amber-400 rounded-full transition-all duration-500"
-                    style={{ width: `${level1Progress}%` }}
-                  />
+
+                {/* Dual Leg Node Counter Breakdown */}
+                <div className="grid grid-cols-2 gap-3 mb-3 bg-slate-900/80 p-2.5 rounded-md border border-slate-800">
+                  <div>
+                    <div className="flex justify-between text-[10px] text-slate-400 font-mono mb-1">
+                      <span>Left Leg: {left100Nodes} / {targetNodes} Nodes (≥100 SW)</span>
+                      <span className={left100Nodes >= targetNodes ? 'text-emerald-400 font-bold' : 'text-slate-400'}>
+                        {leftNodeProgress.toFixed(0)}%
+                      </span>
+                    </div>
+                    <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${
+                          left100Nodes >= targetNodes ? 'bg-emerald-400' : 'bg-amber-500'
+                        }`}
+                        style={{ width: `${leftNodeProgress}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between text-[10px] text-slate-400 font-mono mb-1">
+                      <span>Right Leg: {right100Nodes} / {targetNodes} Nodes (≥100 SW)</span>
+                      <span className={right100Nodes >= targetNodes ? 'text-emerald-400 font-bold' : 'text-slate-400'}>
+                        {rightNodeProgress.toFixed(0)}%
+                      </span>
+                    </div>
+                    <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${
+                          right100Nodes >= targetNodes ? 'bg-emerald-400' : 'bg-amber-500'
+                        }`}
+                        style={{ width: `${rightNodeProgress}%` }}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div className="mt-2 flex justify-between items-center text-[10px] text-slate-400">
-                  <span>Reward: <strong className="text-emerald-400">₹1,000/mo for 2 Months</strong> (Total ₹2,000)</span>
-                  {matchedSW >= 100 ? (
+
+                <div className="flex items-center justify-between text-[11px] text-slate-300 pt-1 border-t border-slate-850">
+                  <span>
+                    Monthly Reward: <strong className="text-emerald-400">₹{nextLevelDef.monthly_amount.toLocaleString('en-IN')}/mo for {nextLevelDef.duration_months} Months</strong> (Total ₹{(nextLevelDef.monthly_amount * nextLevelDef.duration_months).toLocaleString('en-IN')})
+                  </span>
+                  {(left100Nodes >= targetNodes && right100Nodes >= targetNodes) || matchedSW >= targetSw ? (
                     <span className="text-emerald-400 font-bold flex items-center gap-1">
-                      <CheckCircle2 size={12} /> Achieved!
+                      <CheckCircle2 size={13} /> Ready for Promotion!
                     </span>
                   ) : (
-                    <span className="text-slate-500 font-mono">{100 - matchedSW} SW remaining</span>
+                    <span className="text-slate-400 font-mono text-[10px]">
+                      Need {Math.max(0, targetNodes - left100Nodes)}L &bull; {Math.max(0, targetNodes - right100Nodes)}R more
+                    </span>
                   )}
                 </div>
               </div>
@@ -401,15 +476,9 @@ export const Dashboard: React.FC = () => {
                       <span>{user.level_name || `Level ${user.current_level}`} Achieved!</span>
                       <CheckCircle2 size={13} className="text-emerald-400" />
                     </div>
-                    {user.current_level < 10 ? (
-                      <div className="text-[11px] text-slate-400 mt-0.5">
-                        Next Goal: <span className="text-amber-300 font-semibold">{levelDefs.find(l => l.level === user.current_level + 1)?.name}</span> &bull; {levelDefs.find(l => l.level === user.current_level + 1)?.target_description}
-                      </div>
-                    ) : (
-                      <div className="text-[11px] text-emerald-400 font-semibold mt-0.5">
-                        🎉 Highest Network Rank Reached (Crown Ambassador)!
-                      </div>
-                    )}
+                    <div className="text-[11px] text-emerald-400 font-semibold mt-0.5">
+                      🎉 Highest Network Rank Reached (Crown Ambassador)!
+                    </div>
                   </div>
                 </div>
               </div>
@@ -462,6 +531,9 @@ export const Dashboard: React.FC = () => {
                           </div>
                           <div className="text-[11px] text-slate-400 mt-0.5 font-normal">
                             {lvl.target_description}
+                          </div>
+                          <div className="text-[10px] text-amber-400/80 font-mono mt-0.5">
+                            Target: {lvl.target_nodes} node{lvl.target_nodes > 1 ? 's' : ''} with ≥100 SW on each side ({lvl.target_sw.toLocaleString('en-IN')} SW)
                           </div>
                         </div>
                       </div>

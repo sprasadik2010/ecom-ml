@@ -88,6 +88,26 @@ class User(Base):
             return 0.0
         return sum(float(o.total_sw) for o in self.orders if o.status == "pending")
 
+    @property
+    def left_100_nodes(self) -> int:
+        from sqlalchemy.orm import object_session
+        session = object_session(self)
+        if not session or not self.left_child_id:
+            return 0
+        from .mlm import get_user_qualified_nodes
+        left, _ = get_user_qualified_nodes(session, self)
+        return left
+
+    @property
+    def right_100_nodes(self) -> int:
+        from sqlalchemy.orm import object_session
+        session = object_session(self)
+        if not session or not self.right_child_id:
+            return 0
+        from .mlm import get_user_qualified_nodes
+        _, right = get_user_qualified_nodes(session, self)
+        return right
+
 
 
 class Product(Base):

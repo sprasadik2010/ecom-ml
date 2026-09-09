@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from .models import User, Product, Order, OrderItem, Commission
 from .schemas import UserCreate, OrderCreate
 from .auth import get_password_hash
-from .mlm import find_binary_placement, check_and_award_commissions
+from .mlm import find_binary_placement, check_and_award_commissions, get_user_qualified_nodes
 from .config import settings
 
 logger = logging.getLogger(__name__)
@@ -181,6 +181,7 @@ def get_genealogy_tree(db: Session, root_user_id: int, current_depth: int = 0, m
     if not user:
         return None
         
+    left_100, right_100 = get_user_qualified_nodes(db, user)
     node = {
         "id": user.id,
         "username": user.username,
@@ -194,6 +195,8 @@ def get_genealogy_tree(db: Session, root_user_id: int, current_depth: int = 0, m
         "total_left_sw": user.total_left_sw,
         "total_right_sw": user.total_right_sw,
         "total_matched_sw": user.total_matched_sw or 0.0,
+        "left_100_nodes": left_100,
+        "right_100_nodes": right_100,
         "current_level": user.current_level or 0,
         "level_name": user.level_name or "Member",
         "left_child": None,

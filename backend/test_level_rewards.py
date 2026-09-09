@@ -77,11 +77,11 @@ def run_tests():
             phone_number="+919876543211", sponsor_username="rootuser", position="right"
         ))
         
-        # Activate c1 and c2 with 100 personal SW
+        # Activate c1 and c2 (they start with 0 personal_sw, which will increase through orders)
         c1.status = "active"
-        c1.personal_sw = 100.0
+        c1.personal_sw = 0.0
         c2.status = "active"
-        c2.personal_sw = 100.0
+        c2.personal_sw = 0.0
         db.add(c1)
         db.add(c2)
         db.commit()
@@ -171,21 +171,58 @@ def run_tests():
         print(f"   Reward schedule updated: Months paid={rewards_l2.months_paid}/{rewards_l2.total_months}, Status={rewards_l2.status}")
         print("   ✅ Recurring monthly payouts processed and verified successfully!")
 
-        # 8. Test LEVEL_CONFIG contains all 10 levels with correct target SW points, doubling amounts, and durations
+        # 8. Test Node-Based Multi-Level Tree Qualifications
+        print("\n8. Testing Downline Node Qualification Tracking (get_user_qualified_nodes)...")
+        from app.mlm import get_user_qualified_nodes
+        left_n, right_n = get_user_qualified_nodes(db, root)
+        print(f"   Rootuser downline nodes with >=100 personal SW -> Left: {left_n}, Right: {right_n}")
+        assert left_n >= 1, "Root should have at least 1 qualified node on Left"
+        assert right_n >= 1, "Root should have at least 1 qualified node on Right"
+
+        # Create additional nodes under Left and Right downlines to test Level 2 and Level 3 node qualifications
+        # Left leg nodes: c1 already has >= 100 SW. Add l_node2 under c1
+        l2 = crud.create_user(db, UserCreate(
+            username="l2_node", email="l2@test.com", password="password123", full_name="Left Child 2",
+            phone_number="+919876543212", sponsor_username="c1_node", position="left"
+        ))
+        l2.status = "active"
+        l2.personal_sw = 100.0
+        db.add(l2)
+
+        # Right leg nodes: c2 already has >= 100 SW. Add r_node2 under c2
+        r2 = crud.create_user(db, UserCreate(
+            username="r2_node", email="r2@test.com", password="password123", full_name="Right Child 2",
+            phone_number="+919876543213", sponsor_username="c2_node", position="right"
+        ))
+        r2.status = "active"
+        r2.personal_sw = 100.0
+        db.add(r2)
+        db.commit()
+
+        left_n, right_n = get_user_qualified_nodes(db, root)
+        print(f"   After adding l2 and r2 -> Root qualified nodes: Left={left_n}, Right={right_n}")
+        assert left_n >= 2, "Root should have >=2 qualified nodes on Left (qualifies for Level 2)"
+        assert right_n >= 2, "Root should have >=2 qualified nodes on Right (qualifies for Level 2)"
+        print("   ✅ Downline 100-SW Node counting verified successfully!")
+
+        # 9. Test LEVEL_CONFIG contains all 10 levels with correct target nodes, SW points, doubling amounts, and durations
         from app.mlm import LEVEL_CONFIG
-        print("\n8. Verifying all 10 Level Configs...")
+        print("\n9. Verifying all 10 Level Configs and Node Requirements...")
         assert len(LEVEL_CONFIG) == 10, "Should have exactly 10 levels"
+        expected_nodes = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512]
         expected_sw = [100.0, 200.0, 400.0, 800.0, 1600.0, 3200.0, 6400.0, 12800.0, 25600.0, 51200.0]
         expected_amounts = [1000.0, 2000.0, 4000.0, 8000.0, 16000.0, 32000.0, 64000.0, 128000.0, 256000.0, 512000.0]
         expected_durations = [2, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+
         for lvl_num in range(1, 11):
             cfg = LEVEL_CONFIG[lvl_num]
             assert cfg["level"] == lvl_num
+            assert cfg["target_nodes"] == expected_nodes[lvl_num - 1], f"Level {lvl_num} target_nodes mismatch"
             assert cfg["target_sw"] == expected_sw[lvl_num - 1], f"Level {lvl_num} target_sw mismatch"
             assert cfg["monthly_amount"] == expected_amounts[lvl_num - 1], f"Level {lvl_num} amount mismatch"
             assert cfg["duration_months"] == expected_durations[lvl_num - 1], f"Level {lvl_num} duration mismatch"
-            print(f"   Level {lvl_num}: {cfg['name']} -> Target: {cfg['target_sw']:,.0f} SW each side | ₹{cfg['monthly_amount']:,.0f}/mo for {cfg['duration_months']} mos | Description: '{cfg['target_description']}'")
-        print("   ✅ All 10 levels correctly configured with matched points and doubling rewards!")
+            print(f"   Level {lvl_num:2d}: {cfg['name']:<28} -> Nodes: {cfg['target_nodes']:3d} / side | SW: {cfg['target_sw']:6,.0f} | ₹{cfg['monthly_amount']:7,.0f}/mo ({cfg['duration_months']} mos) | {cfg['target_description']}")
+        print("   ✅ All 10 levels correctly configured with node targets (1, 2, 4, 8, ... 512) and doubling rewards!")
 
         
         print("\n" + "=" * 70)

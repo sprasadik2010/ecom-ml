@@ -26,6 +26,8 @@ export interface User {
   total_left_sw: number;
   total_right_sw: number;
   total_matched_sw: number;
+  left_100_nodes?: number;
+  right_100_nodes?: number;
   wallet_balance: number;
   current_level: number;
   level_name: string;
