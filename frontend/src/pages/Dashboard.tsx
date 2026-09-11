@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { IndianRupee, Award, Users, Share2, Clipboard, ShieldCheck, ShieldAlert, ShoppingBag, Landmark, ArrowRight, Star, Zap, Calendar, CheckCircle2, TrendingUp, Sparkles, Clock } from 'lucide-react';
 import { API_BASE_URL } from '../context/AuthContext';
 
@@ -131,6 +131,7 @@ const DEFAULT_LEVELS: LevelDefinition[] = [
 
 export const Dashboard: React.FC = () => {
   const { user, token } = useAuth();
+  const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [rewards, setRewards] = useState<RankReward[]>([]);
   const [levelDefs, setLevelDefs] = useState<LevelDefinition[]>(DEFAULT_LEVELS);
@@ -139,8 +140,14 @@ export const Dashboard: React.FC = () => {
   const [loadingOrders, setLoadingOrders] = useState(true);
 
   useEffect(() => {
+    if (user?.is_admin) {
+      navigate('/admin', { replace: true });
+    }
+  }, [user, navigate]);
+
+  useEffect(() => {
     const fetchOrdersAndRewards = async () => {
-      if (!token) return;
+      if (!token || user?.is_admin) return;
       try {
         const [ordRes, rewRes, lvlRes] = await Promise.all([
           fetch(`${API_BASE_URL}/orders/my`, {
@@ -173,9 +180,9 @@ export const Dashboard: React.FC = () => {
       }
     };
     fetchOrdersAndRewards();
-  }, [token]);
+  }, [token, user]);
 
-  if (!user) {
+  if (!user || user.is_admin) {
     return (
       <div className="max-w-xl mx-auto px-4 py-20 text-center">
         <div className="h-10 w-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>

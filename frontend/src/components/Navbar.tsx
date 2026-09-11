@@ -53,50 +53,79 @@ export const Navbar: React.FC = () => {
       {/* Upper Navbar */}
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity shrink-0">
+        <Link
+          to={user?.is_admin ? "/admin" : "/"}
+          className="flex items-center gap-2 hover:opacity-90 transition-opacity shrink-0"
+        >
           <span className="text-xl font-extrabold tracking-widest text-amber-500 flex items-center gap-1 uppercase font-sans">
             <span className="text-slate-100">apex</span>zone
           </span>
-          <span className="bg-amber-500/10 text-[9px] uppercase font-bold text-amber-500 px-1.5 py-0.5 rounded border border-amber-500/20 font-mono">
-            Network
+          <span className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border font-mono ${
+            user?.is_admin
+              ? 'bg-rose-500/10 text-rose-500 border-rose-500/30'
+              : 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+          }`}>
+            {user?.is_admin ? 'Admin' : 'Network'}
           </span>
         </Link>
 
-        {/* Search Bar (Desktop) */}
-        <form onSubmit={handleSearchSubmit} className="flex-1 max-w-lg hidden md:flex items-center">
-          <div className="relative w-full flex items-center">
-            <input
-              type="text"
-              placeholder="Search for items, clothing, dupattas..."
-              className="w-full bg-slate-950 border border-slate-800 text-slate-100 rounded-full pl-5 pr-12 py-2 focus:outline-none focus:border-amber-500 text-xs transition-colors"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <button
-              type="submit"
-              className="absolute right-4 text-slate-400 hover:text-amber-500 transition-colors cursor-pointer"
-            >
-              <Search size={15} />
-            </button>
-          </div>
-        </form>
+        {/* Search Bar (Desktop - hidden for Admin) */}
+        {!user?.is_admin && (
+          <form onSubmit={handleSearchSubmit} className="flex-1 max-w-lg hidden md:flex items-center">
+            <div className="relative w-full flex items-center">
+              <input
+                type="text"
+                placeholder="Search for items, clothing, dupattas..."
+                className="w-full bg-slate-950 border border-slate-800 text-slate-100 rounded-full pl-5 pr-12 py-2 focus:outline-none focus:border-amber-500 text-xs transition-colors"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <button
+                type="submit"
+                className="absolute right-4 text-slate-400 hover:text-amber-500 transition-colors cursor-pointer"
+              >
+                <Search size={15} />
+              </button>
+            </div>
+          </form>
+        )}
 
         {/* Action Items */}
         <nav className="flex items-center gap-3 md:gap-4 text-sm font-medium">
           {/* Desktop Links Container */}
           <div className="hidden md:flex items-center gap-5">
-            <Link to="/" className="text-slate-300 hover:text-amber-500 transition-colors">
-              Shop
-            </Link>
-
-            {user ? (
+            {user?.is_admin ? (
+              /* Admin Specific Navigation */
               <>
-                {user.is_admin && (
-                  <Link to="/admin" className="flex items-center gap-1.5 text-rose-500 hover:text-rose-600 font-bold transition-colors">
-                    <ShieldCheck size={15} className="text-rose-500" />
-                    <span>Admin Panel</span>
-                  </Link>
-                )}
+                <Link
+                  to="/admin"
+                  className="flex items-center gap-1.5 text-rose-500 hover:text-rose-400 font-bold px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 rounded-lg transition-colors text-xs"
+                >
+                  <ShieldCheck size={16} />
+                  <span>Admin Panel</span>
+                </Link>
+
+                {/* Admin User Info & Logout */}
+                <div className="flex items-center gap-2 border-l border-slate-700 pl-3">
+                  <div className="flex flex-col text-right hidden lg:flex">
+                    <span className="text-[9px] text-rose-400 font-bold uppercase tracking-wider font-mono">Administrator</span>
+                    <span className="text-xs font-bold text-slate-200">@{user.username}</span>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="p-1.5 bg-slate-950 hover:bg-red-50 text-red-400 border border-slate-800 hover:border-red-400/30 rounded transition-colors"
+                    title="Sign Out"
+                  >
+                    <LogOut size={15} />
+                  </button>
+                </div>
+              </>
+            ) : user ? (
+              /* Member Navigation */
+              <>
+                <Link to="/" className="text-slate-300 hover:text-amber-500 transition-colors">
+                  Shop
+                </Link>
                 <Link to="/dashboard" className="flex items-center gap-1.5 text-slate-300 hover:text-amber-500 transition-colors">
                   <ShieldCheck size={15} />
                   <span>Dashboard</span>
@@ -105,20 +134,16 @@ export const Navbar: React.FC = () => {
                   <Network size={15} />
                   <span>Business Tree</span>
                 </Link>
-                 {!user.is_admin && (
-                  <Link to="/commissions" className="flex items-center gap-1.5 text-slate-300 hover:text-amber-500 transition-colors">
-                    <IndianRupee size={15} />
-                    <span>Commissions</span>
-                  </Link>
-                )}
+                <Link to="/commissions" className="flex items-center gap-1.5 text-slate-300 hover:text-amber-500 transition-colors">
+                  <IndianRupee size={15} />
+                  <span>Commissions</span>
+                </Link>
 
                 {/* Wallet Pill */}
-                {!user.is_admin && (
-                  <div className="bg-slate-950 border border-amber-400/20 px-3 py-1 rounded-full flex items-center gap-1.5 text-amber-400 text-xs font-bold font-mono">
-                    <span className="text-[9px] text-slate-400 uppercase font-sans font-bold">Wallet:</span>
-                    ₹{user.wallet_balance.toFixed(2)}
-                  </div>
-                )}
+                <div className="bg-slate-950 border border-amber-400/20 px-3 py-1 rounded-full flex items-center gap-1.5 text-amber-400 text-xs font-bold font-mono">
+                  <span className="text-[9px] text-slate-400 uppercase font-sans font-bold">Wallet:</span>
+                  ₹{user.wallet_balance.toFixed(2)}
+                </div>
 
                 {/* User Dropdown/Pill */}
                 <div className="flex items-center gap-2 border-l border-slate-700 pl-3">
@@ -136,19 +161,25 @@ export const Navbar: React.FC = () => {
                 </div>
               </>
             ) : (
-              <div className="flex items-center gap-4 pl-2">
-                <Link
-                  to="/login"
-                  className="bg-amber-500 hover:bg-amber-600 text-slate-950 px-4 py-1.5 rounded-full font-bold transition-colors text-xs"
-                >
-                  Sign In
+              /* Guest Navigation */
+              <>
+                <Link to="/" className="text-slate-300 hover:text-amber-500 transition-colors">
+                  Shop
                 </Link>
-              </div>
+                <div className="flex items-center gap-4 pl-2">
+                  <Link
+                    to="/login"
+                    className="bg-amber-500 hover:bg-amber-600 text-slate-950 px-4 py-1.5 rounded-full font-bold transition-colors text-xs"
+                  >
+                    Sign In
+                  </Link>
+                </div>
+              </>
             )}
           </div>
 
           {/* Cart Icon (Only visible to non-admins) */}
-          {(!user || !user.is_admin) && (
+          {!user?.is_admin && (
             <Link to="/cart" className="relative p-2 text-slate-300 hover:text-amber-500 transition-colors flex items-center">
               <ShoppingCart size={18} />
               {cartCount > 0 && (
@@ -173,168 +204,205 @@ export const Navbar: React.FC = () => {
       {/* Mobile Drawer Navigation */}
       {isMobileMenuOpen && (
         <div className="md:hidden bg-white border-t border-slate-700 px-4 py-4 flex flex-col gap-4 shadow-lg">
-          {/* Mobile Search Bar */}
-          <form onSubmit={handleSearchSubmit} className="flex items-center w-full">
-            <div className="relative w-full">
-              <input
-                type="text"
-                placeholder="Search products..."
-                className="w-full bg-slate-950 border border-slate-800 text-slate-100 rounded-full px-4 py-2 focus:outline-none focus:border-amber-500 text-xs"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <button
-                type="submit"
-                className="absolute right-4 top-2.5 text-slate-400 hover:text-amber-500 transition-colors"
+          {user?.is_admin ? (
+            /* Admin Mobile Drawer */
+            <div className="flex flex-col gap-2 text-xs font-semibold">
+              <Link
+                to="/admin"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="px-3 py-2 bg-rose-500/10 hover:bg-rose-500/20 rounded-md text-rose-500 font-bold flex items-center gap-2 transition-colors border border-rose-500/20"
               >
-                <Search size={14} />
+                <ShieldCheck size={16} className="text-rose-500" />
+                Admin Center
+              </Link>
+
+              <div className="border-t border-slate-700 my-2" />
+
+              <div className="px-3 py-2 bg-slate-950/30 border border-slate-700 rounded-md flex justify-between items-center text-xs">
+                <div className="flex flex-col">
+                  <span className="text-[9px] text-rose-400 uppercase font-bold font-mono">Administrator</span>
+                  <span className="font-bold text-slate-200">@{user.username}</span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  handleLogout();
+                }}
+                className="w-full mt-2 py-2 px-4 bg-red-500/10 hover:bg-red-50 text-red-400 rounded border border-red-200/20 transition-colors text-center font-bold text-xs"
+              >
+                Sign Out Account
               </button>
             </div>
-          </form>
-
-          {/* Navigation Links */}
-          <div className="flex flex-col gap-1 text-xs font-semibold">
-            <Link
-              to="/"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="px-3 py-2 bg-slate-950/20 hover:bg-slate-950/50 rounded-md text-slate-300 hover:text-amber-500 transition-colors"
-            >
-              Shop Catalog
-            </Link>
-
-            {user ? (
-              <>
-                {user.is_admin && (
-                  <Link
-                    to="/admin"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="px-3 py-2 bg-rose-500/10 hover:bg-rose-500/20 rounded-md text-rose-500 font-bold flex items-center gap-2 transition-colors border border-rose-500/20"
+          ) : (
+            /* Member & Guest Mobile Drawer */
+            <>
+              {/* Mobile Search Bar */}
+              <form onSubmit={handleSearchSubmit} className="flex items-center w-full">
+                <div className="relative w-full">
+                  <input
+                    type="text"
+                    placeholder="Search products..."
+                    className="w-full bg-slate-950 border border-slate-800 text-slate-100 rounded-full px-4 py-2 focus:outline-none focus:border-amber-500 text-xs"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <button
+                    type="submit"
+                    className="absolute right-4 top-2.5 text-slate-400 hover:text-amber-500 transition-colors"
                   >
-                    <ShieldCheck size={14} className="text-rose-500" />
-                    Admin Panel
-                  </Link>
-                )}
-                <Link
-                  to="/dashboard"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="px-3 py-2 bg-slate-950/20 hover:bg-slate-950/50 rounded-md text-slate-300 hover:text-amber-500 flex items-center gap-2 transition-colors"
-                >
-                  <ShieldCheck size={14} className="text-amber-500" />
-                  Dashboard
-                </Link>
-                <Link
-                  to="/tree"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="px-3 py-2 bg-slate-950/20 hover:bg-slate-950/50 rounded-md text-slate-300 hover:text-amber-500 flex items-center gap-2 transition-colors"
-                >
-                  <Network size={14} className="text-amber-500" />
-                  Business Tree
-                </Link>
-                {!user.is_admin && (
-                  <Link
-                    to="/commissions"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="px-3 py-2 bg-slate-950/20 hover:bg-slate-950/50 rounded-md text-slate-300 hover:text-amber-500 flex items-center gap-2 transition-colors"
-                  >
-                    <IndianRupee size={14} className="text-amber-500" />
-                    Commissions Ledger
-                  </Link>
-                )}
-
-                <div className="border-t border-slate-700 my-2" />
-
-                {/* Mobile Wallet & User Pill */}
-                <div className="px-3 py-2 bg-slate-950/30 border border-slate-700 rounded-md flex justify-between items-center text-xs">
-                  <div className="flex flex-col">
-                    <span className="text-[9px] text-slate-400 uppercase">Logged in as</span>
-                    <span className="font-bold text-slate-200">@{user.username}</span>
-                  </div>
-                  {!user.is_admin && (
-                    <div className="bg-slate-950 border border-amber-400/20 px-2.5 py-1 rounded text-amber-400 font-bold font-mono">
-                      Wallet: ₹{user.wallet_balance.toFixed(2)}
-                    </div>
-                  )}
+                    <Search size={14} />
+                  </button>
                 </div>
+              </form>
 
-                <button
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    handleLogout();
-                  }}
-                  className="w-full mt-2 py-2 px-4 bg-red-500/10 hover:bg-red-50 text-red-400 rounded border border-red-200/20 transition-colors text-center font-bold text-xs"
-                >
-                  Sign Out Account
-                </button>
-              </>
-            ) : (
-              <div className="flex flex-col gap-2 mt-2">
+              {/* Navigation Links */}
+              <div className="flex flex-col gap-1 text-xs font-semibold">
                 <Link
-                  to="/login"
+                  to="/"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="w-full py-2.5 text-center bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-full font-bold text-xs transition-colors"
+                  className="px-3 py-2 bg-slate-950/20 hover:bg-slate-950/50 rounded-md text-slate-300 hover:text-amber-500 transition-colors"
                 >
-                  Sign In
+                  Shop Catalog
                 </Link>
+
+                {user ? (
+                  <>
+                    <Link
+                      to="/dashboard"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="px-3 py-2 bg-slate-950/20 hover:bg-slate-950/50 rounded-md text-slate-300 hover:text-amber-500 flex items-center gap-2 transition-colors"
+                    >
+                      <ShieldCheck size={14} className="text-amber-500" />
+                      Dashboard
+                    </Link>
+                    <Link
+                      to="/tree"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="px-3 py-2 bg-slate-950/20 hover:bg-slate-950/50 rounded-md text-slate-300 hover:text-amber-500 flex items-center gap-2 transition-colors"
+                    >
+                      <Network size={14} className="text-amber-500" />
+                      Business Tree
+                    </Link>
+                    <Link
+                      to="/commissions"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="px-3 py-2 bg-slate-950/20 hover:bg-slate-950/50 rounded-md text-slate-300 hover:text-amber-500 flex items-center gap-2 transition-colors"
+                    >
+                      <IndianRupee size={14} className="text-amber-500" />
+                      Commissions Ledger
+                    </Link>
+
+                    <div className="border-t border-slate-700 my-2" />
+
+                    {/* Mobile Wallet & User Pill */}
+                    <div className="px-3 py-2 bg-slate-950/30 border border-slate-700 rounded-md flex justify-between items-center text-xs">
+                      <div className="flex flex-col">
+                        <span className="text-[9px] text-slate-400 uppercase">Logged in as</span>
+                        <span className="font-bold text-slate-200">@{user.username}</span>
+                      </div>
+                      <div className="bg-slate-950 border border-amber-400/20 px-2.5 py-1 rounded text-amber-400 font-bold font-mono">
+                        Wallet: ₹{user.wallet_balance.toFixed(2)}
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        handleLogout();
+                      }}
+                      className="w-full mt-2 py-2 px-4 bg-red-500/10 hover:bg-red-50 text-red-400 rounded border border-red-200/20 transition-colors text-center font-bold text-xs"
+                    >
+                      Sign Out Account
+                    </button>
+                  </>
+                ) : (
+                  <div className="flex flex-col gap-2 mt-2">
+                    <Link
+                      to="/login"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="w-full py-2.5 text-center bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-full font-bold text-xs transition-colors"
+                    >
+                      Sign In
+                    </Link>
+                  </div>
+                )}
               </div>
-            )}
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Sub-navbar (Categories & Referral Prompt - Hidden for Admin) */}
+      {!user?.is_admin && (
+        <div className="bg-slate-950 py-2 px-4 text-xs font-normal border-t border-slate-850 hidden sm:block">
+          <div className="max-w-7xl mx-auto flex items-center gap-6 text-slate-355 overflow-x-auto scrollbar-none">
+            <Link to="/" className="font-bold text-slate-200 flex items-center gap-1 hover:text-amber-500 transition-colors shrink-0">
+              All Products
+            </Link>
+            {categories.map((cat) => (
+              <Link key={cat} to={`/?category=${encodeURIComponent(cat)}`} className="hover:text-amber-500 transition-colors shrink-0">
+                {cat}
+              </Link>
+            ))}
+            <div className="ml-auto text-slate-400 flex items-center gap-1.5 font-mono text-[9px] shrink-0">
+              {user && (
+                <>
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>Referral Links: <Link to="/dashboard" className="text-amber-400 hover:text-amber-300 transition-colors underline font-bold font-sans">Copy from Dashboard</Link></span>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}
 
-      {/* Sub-navbar */}
-      <div className="bg-slate-950 py-2 px-4 text-xs font-normal border-t border-slate-850 hidden sm:block">
-        <div className="max-w-7xl mx-auto flex items-center gap-6 text-slate-355 overflow-x-auto scrollbar-none">
-          <Link to="/" className="font-bold text-slate-200 flex items-center gap-1 hover:text-amber-500 transition-colors shrink-0">
-            All Products
-          </Link>
-          {categories.map((cat) => (
-            <Link key={cat} to={`/?category=${encodeURIComponent(cat)}`} className="hover:text-amber-500 transition-colors shrink-0">
-              {cat}
-            </Link>
-          ))}
-          <div className="ml-auto text-slate-400 flex items-center gap-1.5 font-mono text-[9px] shrink-0">
-            {user && (
-              <>
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>Referral Links: <Link to="/dashboard" className="text-amber-400 hover:text-amber-300 transition-colors underline font-bold font-sans">Copy from Dashboard</Link></span>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
       {/* Persistent Mobile Bottom Navigation Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-700 py-2.5 px-6 flex items-center justify-between z-50 shadow-[0_-4px_12px_rgba(0,0,0,0.03)]">
-        <Link to="/" className="flex flex-col items-center gap-1 text-slate-400 hover:text-amber-500 transition-colors">
-          <Home size={18} className={window.location.pathname === '/' && !searchParams.get('category') ? 'text-amber-500' : ''} />
-          <span className={`text-[9px] font-bold tracking-wide ${window.location.pathname === '/' && !searchParams.get('category') ? 'text-amber-500' : ''}`}>Home</span>
-        </Link>
-        <Link to="/?category=Apparel" className="flex flex-col items-center gap-1 text-slate-400 hover:text-amber-500 transition-colors">
-          <Compass size={18} className={searchParams.get('category') ? 'text-amber-500' : ''} />
-          <span className={`text-[9px] font-bold tracking-wide ${searchParams.get('category') ? 'text-amber-500' : ''}`}>Category</span>
-        </Link>
-        <Link to="/cart" className="flex flex-col items-center gap-1 text-slate-400 hover:text-amber-500 relative transition-colors">
-          <ShoppingCart size={18} className={window.location.pathname === '/cart' ? 'text-amber-500' : ''} />
-          {cartCount > 0 && (
-            <span className="absolute -top-1 -right-2 bg-amber-500 text-slate-950 text-[9px] font-black rounded-full h-4.5 w-4.5 flex items-center justify-center border border-white">
-              {cartCount}
-            </span>
-          )}
-          <span className={`text-[9px] font-bold tracking-wide ${window.location.pathname === '/cart' ? 'text-amber-500' : ''}`}>Cart</span>
-        </Link>
-        {user && (
-          <Link to="/tree" className="flex flex-col items-center gap-1 text-slate-400 hover:text-amber-500 transition-colors">
-            <Network size={18} className={window.location.pathname === '/tree' ? 'text-amber-500' : ''} />
-            <span className={`text-[9px] font-bold tracking-wide ${window.location.pathname === '/tree' ? 'text-amber-500' : ''}`}>Network</span>
+      {user?.is_admin ? (
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 py-2.5 px-6 flex items-center justify-around z-50 shadow-lg">
+          <Link to="/admin" className="flex flex-col items-center gap-1 text-rose-400">
+            <ShieldCheck size={18} />
+            <span className="text-[9px] font-bold tracking-wide">Admin Center</span>
           </Link>
-        )}
-        <Link to={user ? "/dashboard" : "/login"} className="flex flex-col items-center gap-1 text-slate-400 hover:text-amber-500 transition-colors">
-          <UserIcon size={18} className={window.location.pathname === '/dashboard' || window.location.pathname === '/login' ? 'text-amber-500' : ''} />
-          <span className={`text-[9px] font-bold tracking-wide ${window.location.pathname === '/dashboard' || window.location.pathname === '/login' ? 'text-amber-500' : ''}`}>
-            {user ? 'Profile' : 'Profile'}
-          </span>
-        </Link>
-      </nav>
+          <button onClick={handleLogout} className="flex flex-col items-center gap-1 text-slate-400 hover:text-red-400 cursor-pointer">
+            <LogOut size={18} />
+            <span className="text-[9px] font-bold tracking-wide">Sign Out</span>
+          </button>
+        </nav>
+      ) : (
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-700 py-2.5 px-6 flex items-center justify-between z-50 shadow-[0_-4px_12px_rgba(0,0,0,0.03)]">
+          <Link to="/" className="flex flex-col items-center gap-1 text-slate-400 hover:text-amber-500 transition-colors">
+            <Home size={18} className={window.location.pathname === '/' && !searchParams.get('category') ? 'text-amber-500' : ''} />
+            <span className={`text-[9px] font-bold tracking-wide ${window.location.pathname === '/' && !searchParams.get('category') ? 'text-amber-500' : ''}`}>Home</span>
+          </Link>
+          <Link to="/?category=Apparel" className="flex flex-col items-center gap-1 text-slate-400 hover:text-amber-500 transition-colors">
+            <Compass size={18} className={searchParams.get('category') ? 'text-amber-500' : ''} />
+            <span className={`text-[9px] font-bold tracking-wide ${searchParams.get('category') ? 'text-amber-500' : ''}`}>Category</span>
+          </Link>
+          <Link to="/cart" className="flex flex-col items-center gap-1 text-slate-400 hover:text-amber-500 relative transition-colors">
+            <ShoppingCart size={18} className={window.location.pathname === '/cart' ? 'text-amber-500' : ''} />
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-2 bg-amber-500 text-slate-950 text-[9px] font-black rounded-full h-4.5 w-4.5 flex items-center justify-center border border-white">
+                {cartCount}
+              </span>
+            )}
+            <span className={`text-[9px] font-bold tracking-wide ${window.location.pathname === '/cart' ? 'text-amber-500' : ''}`}>Cart</span>
+          </Link>
+          {user && (
+            <Link to="/tree" className="flex flex-col items-center gap-1 text-slate-400 hover:text-amber-500 transition-colors">
+              <Network size={18} className={window.location.pathname === '/tree' ? 'text-amber-500' : ''} />
+              <span className={`text-[9px] font-bold tracking-wide ${window.location.pathname === '/tree' ? 'text-amber-500' : ''}`}>Network</span>
+            </Link>
+          )}
+          <Link to={user ? "/dashboard" : "/login"} className="flex flex-col items-center gap-1 text-slate-400 hover:text-amber-500 transition-colors">
+            <UserIcon size={18} className={window.location.pathname === '/dashboard' || window.location.pathname === '/login' ? 'text-amber-500' : ''} />
+            <span className={`text-[9px] font-bold tracking-wide ${window.location.pathname === '/dashboard' || window.location.pathname === '/login' ? 'text-amber-500' : ''}`}>
+              {user ? 'Profile' : 'Profile'}
+            </span>
+          </Link>
+        </nav>
+      )}
     </header>
   );
 };

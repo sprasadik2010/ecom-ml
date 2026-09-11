@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../context/AuthContext';
 import { IndianRupee, Landmark, ArrowRight, Award, Compass, HelpCircle, Star, Sparkles, Zap } from 'lucide-react';
@@ -13,12 +14,19 @@ interface Commission {
 
 export const Commissions: React.FC = () => {
   const { user, token } = useAuth();
+  const navigate = useNavigate();
   const [commissions, setCommissions] = useState<Commission[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (user?.is_admin) {
+      navigate('/admin', { replace: true });
+    }
+  }, [user, navigate]);
+
+  useEffect(() => {
     const fetchCommissions = async () => {
-      if (!token) return;
+      if (!token || user?.is_admin) return;
       try {
         const response = await fetch(`${API_BASE_URL}/commissions/my`, {
           headers: {
@@ -37,9 +45,9 @@ export const Commissions: React.FC = () => {
     };
 
     fetchCommissions();
-  }, [token]);
+  }, [token, user]);
 
-  if (!user) {
+  if (!user || user.is_admin) {
     return (
       <div className="max-w-xl mx-auto px-4 py-20 text-center">
         <div className="h-10 w-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>

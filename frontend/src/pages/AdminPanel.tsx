@@ -1782,7 +1782,7 @@ export const AdminPanel: React.FC = () => {
                       Member Rank & Royalty Schedules
                     </h3>
                     <p className="text-[11px] text-slate-400 mt-0.5">
-                      Schedule details for Level 1 (₹1,000/mo × 2) up to Level 6 (₹10,000/mo × 6).
+                      Schedule and audit details for all member rank royalties (Levels 1 to 10).
                     </p>
                   </div>
                 </div>

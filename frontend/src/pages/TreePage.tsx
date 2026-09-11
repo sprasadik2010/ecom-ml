@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { BinaryTree, TreeData } from '../components/BinaryTree';
 import { API_BASE_URL } from '../context/AuthContext';
@@ -6,6 +7,7 @@ import { Search, ArrowLeft, RefreshCcw, Home, ShieldAlert, ArrowUpCircle } from 
 
 export const TreePage: React.FC = () => {
   const { user, token } = useAuth();
+  const navigate = useNavigate();
   
   const [treeData, setTreeData] = useState<TreeData | null>(null);
   const [currentRootUsername, setCurrentRootUsername] = useState(user?.username || '');
@@ -15,8 +17,14 @@ export const TreePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    if (user?.is_admin) {
+      navigate('/admin', { replace: true });
+    }
+  }, [user, navigate]);
+
   const fetchTree = async (username: string) => {
-    if (!token) return;
+    if (!token || user?.is_admin) return;
     setLoading(true);
     setError('');
     
@@ -49,10 +57,10 @@ export const TreePage: React.FC = () => {
   }, [user, currentRootUsername]);
 
   useEffect(() => {
-    if (currentRootUsername && token) {
+    if (currentRootUsername && token && !user?.is_admin) {
       fetchTree(currentRootUsername);
     }
-  }, [currentRootUsername, token]);
+  }, [currentRootUsername, token, user]);
 
   const handleSelectNode = (selectedUsername: string) => {
     if (selectedUsername.toLowerCase() === currentRootUsername.toLowerCase()) return;

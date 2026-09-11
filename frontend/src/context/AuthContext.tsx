@@ -40,7 +40,7 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   loading: boolean;
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<User | null>;
   logout: () => void;
   register: (
     username: string,
@@ -96,7 +96,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initAuth();
   }, [token]);
 
-  const login = async (username: string, password: string) => {
+  const login = async (username: string, password: string): Promise<User | null> => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -119,7 +119,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const data = await response.json();
       localStorage.setItem('mlm_token', data.access_token);
       setToken(data.access_token);
-      await fetchUserProfile(data.access_token);
+      return await fetchUserProfile(data.access_token);
     } catch (error) {
       setLoading(false);
       throw error;

@@ -12,12 +12,16 @@ export const Login: React.FC = () => {
   const { login, user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const redirect = searchParams.get('redirect') || 'dashboard';
+  const redirect = searchParams.get('redirect');
 
   // If already authenticated, redirect
   useEffect(() => {
     if (user) {
-      navigate(`/${redirect === 'dashboard' ? 'dashboard' : redirect}`);
+      if (user.is_admin) {
+        navigate('/admin', { replace: true });
+      } else {
+        navigate(`/${redirect && redirect !== 'dashboard' ? redirect : 'dashboard'}`, { replace: true });
+      }
     }
   }, [user, navigate, redirect]);
 
@@ -27,8 +31,12 @@ export const Login: React.FC = () => {
     setSubmitting(true);
 
     try {
-      await login(username, password);
-      // Success redirection is handled by the useEffect above
+      const loggedInUser = await login(username, password);
+      if (loggedInUser?.is_admin) {
+        navigate('/admin', { replace: true });
+      } else {
+        navigate(`/${redirect && redirect !== 'dashboard' ? redirect : 'dashboard'}`, { replace: true });
+      }
     } catch (err: any) {
       console.error('Login error:', err);
       setError(err.message || 'Incorrect username or password. Please try again.');

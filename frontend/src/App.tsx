@@ -14,9 +14,9 @@ import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { AdminPanel } from './pages/AdminPanel';
 
-// Protected Route Component
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { token, loading } = useAuth();
+// Protected Route for authenticated members (Admins are redirected to /admin)
+const MemberRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, token, loading } = useAuth();
   
   if (loading) {
     return (
@@ -30,7 +30,30 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   if (!token) {
     return <Navigate to="/login" replace />;
   }
+
+  if (user?.is_admin) {
+    return <Navigate to="/admin" replace />;
+  }
   
+  return <>{children}</>;
+};
+
+// Store / Public Route (Admins are redirected to /admin)
+const StoreRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center gap-4">
+        <div className="h-10 w-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (user?.is_admin) {
+    return <Navigate to="/admin" replace />;
+  }
+
   return <>{children}</>;
 };
 
@@ -40,9 +63,9 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-105 flex flex-col items-center justify-center gap-4">
-        <div className="h-10 w-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-slate-400 text-xs font-bold font-mono">Verifying authorization...</p>
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center gap-4">
+        <div className="h-10 w-10 border-4 border-rose-500 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-slate-400 text-xs font-bold font-mono">Verifying administrative authorization...</p>
       </div>
     );
   }
@@ -52,6 +75,13 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }
   
   return <>{children}</>;
+};
+
+// Catch-all Fallback Redirection
+const CatchAllRoute: React.FC = () => {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  return <Navigate to={user?.is_admin ? "/admin" : "/"} replace />;
 };
 
 export const App: React.FC = () => {
@@ -66,48 +96,48 @@ export const App: React.FC = () => {
             {/* Main Page Content */}
             <main className="flex-1 bg-slate-950">
               <Routes>
-                {/* Public Store routes */}
-                <Route path="/" element={<Home />} />
-                <Route path="/products/:id" element={<ProductDetails />} />
-                <Route path="/cart" element={<Cart />} />
+                {/* Public Store routes (Admins redirect to /admin) */}
+                <Route path="/" element={<StoreRoute><Home /></StoreRoute>} />
+                <Route path="/products/:id" element={<StoreRoute><ProductDetails /></StoreRoute>} />
+                <Route path="/cart" element={<StoreRoute><Cart /></StoreRoute>} />
                 
                 {/* Authentication routes */}
                 <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
+                <Route path="/register" element={<StoreRoute><Register /></StoreRoute>} />
                 
                 {/* Protected Checkout route */}
                 <Route 
                   path="/checkout" 
                   element={
-                    <ProtectedRoute>
+                    <MemberRoute>
                       <Checkout />
-                    </ProtectedRoute>
+                    </MemberRoute>
                   } 
                 />
 
-                {/* Protected MLM Member routes */}
+                {/* Protected MLM Member routes (Admins redirect to /admin) */}
                 <Route 
                   path="/dashboard" 
                   element={
-                    <ProtectedRoute>
+                    <MemberRoute>
                       <Dashboard />
-                    </ProtectedRoute>
+                    </MemberRoute>
                   } 
                 />
                 <Route 
                   path="/tree" 
                   element={
-                    <ProtectedRoute>
+                    <MemberRoute>
                       <TreePage />
-                    </ProtectedRoute>
+                    </MemberRoute>
                   } 
                 />
                 <Route 
                   path="/commissions" 
                   element={
-                    <ProtectedRoute>
+                    <MemberRoute>
                       <Commissions />
-                    </ProtectedRoute>
+                    </MemberRoute>
                   } 
                 />
                 
@@ -122,7 +152,7 @@ export const App: React.FC = () => {
                 />
 
                 {/* Catch-all Redirect */}
-                <Route path="*" element={<Navigate to="/" replace />} />
+                <Route path="*" element={<CatchAllRoute />} />
               </Routes>
             </main>
 
