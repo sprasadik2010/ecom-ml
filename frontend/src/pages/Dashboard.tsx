@@ -220,11 +220,7 @@ export const Dashboard: React.FC = () => {
 
   const leftNodeProgress = Math.min((left100Nodes / targetNodes) * 100, 100);
   const rightNodeProgress = Math.min((right100Nodes / targetNodes) * 100, 100);
-  const swProgress = Math.min((matchedSW / targetSw) * 100, 100);
-  const overallProgress = Math.max(
-    Math.min(leftNodeProgress, rightNodeProgress),
-    swProgress
-  );
+  const overallProgress = Math.min(leftNodeProgress, rightNodeProgress);
 
   const getLevelBadgeColor = (lvl: number) => {
     switch (lvl) {
@@ -461,7 +457,7 @@ export const Dashboard: React.FC = () => {
                   <span>
                     Monthly Reward: <strong className="text-emerald-400">₹{nextLevelDef.monthly_amount.toLocaleString('en-IN')}/mo for {nextLevelDef.duration_months} Months</strong> (Total ₹{(nextLevelDef.monthly_amount * nextLevelDef.duration_months).toLocaleString('en-IN')})
                   </span>
-                  {(left100Nodes >= targetNodes && right100Nodes >= targetNodes) || matchedSW >= targetSw ? (
+                  {left100Nodes >= targetNodes && right100Nodes >= targetNodes ? (
                     <span className="text-emerald-400 font-bold flex items-center gap-1">
                       <CheckCircle2 size={13} /> Ready for Promotion!
                     </span>

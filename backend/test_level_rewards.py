@@ -133,31 +133,67 @@ def run_tests():
         assert rewards_root[0].status == "active", "Reward status should be active"
         print("   ✅ Level 1 qualification and instant Month 1 reward (INR 1,000) verified successfully!")
         
-        # 6. Test Level 2 Promotion based on Matched Points:
-        # Root currently has 100 matched SW (and 0 left, 0 right carryover).
-        # Purchasing 100 SW under c1 (Left) and 100 SW under c2 (Right) generates 100 more matched SW.
-        # Total matched SW for root reaches 200 -> Qualifies root for Level 2 (Silver Star)!
-        print("\n6. Purchasing 100 SW on Left (under c1) and 100 SW on Right (under c2)...")
+        # 6. Test Single Node Purchasing 200+ SW (Must NOT trigger Level 2 without 2 separate qualified nodes):
+        # Root currently has 100 matched SW.
+        # Purchasing 100 SW more under c1 (Left, total 200 SW) and 100 SW more under c2 (Right, total 200 SW).
+        # Total matched SW for root reaches 200, BUT node count is still only 1 on Left and 1 on Right.
+        # Root MUST remain at Level 1 because Level 2 strictly requires 2 distinct qualified nodes on each side!
+        print("\n6. Purchasing 100 SW more on Left (under c1) and 100 SW more on Right (under c2)...")
         ord_c1_3 = crud.create_order(db, c1, OrderCreate(items=[CartItemCreate(product_id=p100.id, quantity=1)]))
         crud.complete_checkout(db, ord_c1_3)
         ord_c2_2 = crud.create_order(db, c2, OrderCreate(items=[CartItemCreate(product_id=p100.id, quantity=1)]))
         crud.complete_checkout(db, ord_c2_2)
         
         db.refresh(root)
-        print(f"   Rootuser -> Matched SW: {root.total_matched_sw}, Level: {root.current_level} ({root.level_name}), Wallet: INR {root.wallet_balance}")
+        from app.mlm import get_user_qualified_nodes
+        left_n, right_n = get_user_qualified_nodes(db, root)
+        print(f"   Rootuser -> Matched SW: {root.total_matched_sw}, Nodes: {left_n}L/{right_n}R, Level: {root.current_level} ({root.level_name}), Wallet: INR {root.wallet_balance}")
         assert root.total_matched_sw == 200.0, "Root should have 200 matched SW"
-        assert root.current_level == 2, "rootuser should be promoted to Level 2 (Silver Star) at 200 matched SW!"
+        assert left_n == 1 and right_n == 1, "Root should only have 1 node per side (c1 and c2)"
+        assert root.current_level == 1, "Root MUST stay at Level 1 because Level 2 requires 2 distinct nodes on each side!"
+        print("   ✅ Verified: Purchasing 200+ SW on single child nodes correctly does NOT promote root to Level 2!")
+
+        # 7. Test Level 2 Promotion by adding 2nd qualified node on Left and Right:
+        # Left leg: add l2_node under c1 and make an order for 100 SW
+        # Right leg: add r2_node under c2 and make an order for 100 SW
+        print("\n7. Adding 2nd qualified node on Left (l2_node) and Right (r2_node) with 100 SW each...")
+        l2 = crud.create_user(db, UserCreate(
+            username="l2_node", email="l2@test.com", password="password123", full_name="Left Child 2",
+            phone_number="+919876543212", sponsor_username="c1_node", position="left"
+        ))
+        l2.status = "active"
+        db.add(l2)
+        db.commit()
+        ord_l2 = crud.create_order(db, l2, OrderCreate(items=[CartItemCreate(product_id=p100.id, quantity=1)]))
+        crud.complete_checkout(db, ord_l2)
+
+        r2 = crud.create_user(db, UserCreate(
+            username="r2_node", email="r2@test.com", password="password123", full_name="Right Child 2",
+            phone_number="+919876543213", sponsor_username="c2_node", position="right"
+        ))
+        r2.status = "active"
+        db.add(r2)
+        db.commit()
+        ord_r2 = crud.create_order(db, r2, OrderCreate(items=[CartItemCreate(product_id=p100.id, quantity=1)]))
+        crud.complete_checkout(db, ord_r2)
+
+        db.refresh(root)
+        left_n, right_n = get_user_qualified_nodes(db, root)
+        print(f"   Rootuser -> Qualified Nodes: {left_n}L/{right_n}R, Level: {root.current_level} ({root.level_name}), Wallet: INR {root.wallet_balance}")
+        assert left_n >= 2, "Root should have 2 qualified nodes on Left"
+        assert right_n >= 2, "Root should have 2 qualified nodes on Right"
+        assert root.current_level == 2, "Root MUST now be promoted to Level 2 (Silver Star)!"
         assert root.level_name == "Level 2 (Silver Star)", "Level name should be Level 2 (Silver Star)"
-        
+
         rewards_l2 = db.query(UserRankReward).filter(UserRankReward.user_id == root.id, UserRankReward.level == 2).first()
         assert rewards_l2 is not None, "Level 2 reward record should exist"
         assert rewards_l2.monthly_amount == 2000.0, "Level 2 monthly reward should be INR 2,000"
         assert rewards_l2.total_months == 3, "Level 2 duration should be 3 months"
         assert rewards_l2.months_paid == 1, "Month 1 should be disbursed immediately"
-        print("   ✅ Rootuser automatically promoted to Level 2 (Silver Star) with INR 2,000 Month 1 Royalty credited!")
-        
-        # 7. Test Recurring Monthly Royalty Payout Processor
-        print("\n7. Testing scheduled monthly payout processor (simulate 30 days passing)...")
+        print("   ✅ Rootuser successfully promoted to Level 2 (Silver Star) when 2 qualified nodes exist on both legs!")
+
+        # 8. Test Recurring Monthly Royalty Payout Processor
+        print("\n8. Testing scheduled monthly payout processor (simulate 30 days passing)...")
         rewards_l2.next_payout_at = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=1) # Set as due
         db.add(rewards_l2)
         db.commit()
@@ -170,40 +206,6 @@ def run_tests():
         assert rewards_l2.months_paid == 2, "Months paid should now be 2 of 3"
         print(f"   Reward schedule updated: Months paid={rewards_l2.months_paid}/{rewards_l2.total_months}, Status={rewards_l2.status}")
         print("   ✅ Recurring monthly payouts processed and verified successfully!")
-
-        # 8. Test Node-Based Multi-Level Tree Qualifications
-        print("\n8. Testing Downline Node Qualification Tracking (get_user_qualified_nodes)...")
-        from app.mlm import get_user_qualified_nodes
-        left_n, right_n = get_user_qualified_nodes(db, root)
-        print(f"   Rootuser downline nodes with >=100 personal SW -> Left: {left_n}, Right: {right_n}")
-        assert left_n >= 1, "Root should have at least 1 qualified node on Left"
-        assert right_n >= 1, "Root should have at least 1 qualified node on Right"
-
-        # Create additional nodes under Left and Right downlines to test Level 2 and Level 3 node qualifications
-        # Left leg nodes: c1 already has >= 100 SW. Add l_node2 under c1
-        l2 = crud.create_user(db, UserCreate(
-            username="l2_node", email="l2@test.com", password="password123", full_name="Left Child 2",
-            phone_number="+919876543212", sponsor_username="c1_node", position="left"
-        ))
-        l2.status = "active"
-        l2.personal_sw = 100.0
-        db.add(l2)
-
-        # Right leg nodes: c2 already has >= 100 SW. Add r_node2 under c2
-        r2 = crud.create_user(db, UserCreate(
-            username="r2_node", email="r2@test.com", password="password123", full_name="Right Child 2",
-            phone_number="+919876543213", sponsor_username="c2_node", position="right"
-        ))
-        r2.status = "active"
-        r2.personal_sw = 100.0
-        db.add(r2)
-        db.commit()
-
-        left_n, right_n = get_user_qualified_nodes(db, root)
-        print(f"   After adding l2 and r2 -> Root qualified nodes: Left={left_n}, Right={right_n}")
-        assert left_n >= 2, "Root should have >=2 qualified nodes on Left (qualifies for Level 2)"
-        assert right_n >= 2, "Root should have >=2 qualified nodes on Right (qualifies for Level 2)"
-        print("   ✅ Downline 100-SW Node counting verified successfully!")
 
         # 9. Test LEVEL_CONFIG contains all 10 levels with correct target nodes, SW points, doubling amounts, and durations
         from app.mlm import LEVEL_CONFIG

@@ -251,18 +251,17 @@ def get_user_qualified_nodes(db: Session, user: User) -> tuple[int, int]:
 def evaluate_and_award_levels(db: Session):
     """
     Evaluates rank/level qualifications across users based on:
-    1. Node targets: Required number of >= 100 SW nodes in each side (Left and Right).
+    Strict qualified node targets (each node must have accumulated >= 100 personal SW):
        - Level 1: 1 node on each side (both child nodes reach 100 SW)
-       - Level 2: 2 nodes on each side reach 100 SW
-       - Level 3: 4 nodes on each side reach 100 SW
-       - Level 4: 8 nodes on each side reach 100 SW
-       - Level 5: 16 nodes on each side reach 100 SW
-       - Level 6: 32 nodes on each side reach 100 SW
-       - Level 7: 64 nodes on each side reach 100 SW
-       - Level 8: 128 nodes on each side reach 100 SW
-       - Level 9: 256 nodes on each side reach 100 SW
-       - Level 10: 512 nodes on each side reach 100 SW
-    2. Total matched SW points: min(total_left_sw, total_right_sw) or total_matched_sw.
+       - Level 2: 2 nodes on each side reach 100 SW (200 SW each side)
+       - Level 3: 4 nodes on each side reach 100 SW (400 SW each side)
+       - Level 4: 8 nodes on each side reach 100 SW (800 SW each side)
+       - Level 5: 16 nodes on each side reach 100 SW (1,600 SW each side)
+       - Level 6: 32 nodes on each side reach 100 SW (3,200 SW each side)
+       - Level 7: 64 nodes on each side reach 100 SW (6,400 SW each side)
+       - Level 8: 128 nodes on each side reach 100 SW (12,800 SW each side)
+       - Level 9: 256 nodes on each side reach 100 SW (25,600 SW each side)
+       - Level 10: 512 nodes on each side reach 100 SW (51,200 SW each side)
     """
     users = db.query(User).filter(User.is_admin == False).all()
     user_map = {u.id: u for u in users}
@@ -287,7 +286,6 @@ def evaluate_and_award_levels(db: Session):
 
     for u in users:
         curr_lvl = u.current_level or 0
-        matched_sw = u.total_matched_sw or 0.0
         left_nodes = count_subtree(u.left_child_id)
         right_nodes = count_subtree(u.right_child_id)
         
@@ -297,10 +295,9 @@ def evaluate_and_award_levels(db: Session):
             if not target_cfg:
                 break
             required_nodes = target_cfg.get("target_nodes", 1)
-            required_sw = target_cfg.get("target_sw", 100.0)
             
-            # Qualifies if both sides meet the required node count OR total matched SW reaches target
-            if (left_nodes >= required_nodes and right_nodes >= required_nodes) or (matched_sw >= required_sw):
+            # Level qualification strictly requires enough >=100 SW nodes on both left and right sides
+            if left_nodes >= required_nodes and right_nodes >= required_nodes:
                 award_level_promotion(db, u, target_lvl)
             else:
                 break

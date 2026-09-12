@@ -352,7 +352,6 @@ def seed_300_users():
         created_rewards = []
         for u in tree_nodes:
             curr_lvl = u.current_level or 0
-            matched_sw = u.total_matched_sw or 0.0
             left_nodes = count_qualified_subnodes(left_child_map.get(u.id))
             right_nodes = count_qualified_subnodes(right_child_map.get(u.id))
             
@@ -361,9 +360,8 @@ def seed_300_users():
                 if not target_cfg:
                     break
                 req_nodes = target_cfg.get("target_nodes", 1)
-                req_sw = target_cfg.get("target_sw", 100.0)
                 
-                if (left_nodes >= req_nodes and right_nodes >= req_nodes) or (matched_sw >= req_sw):
+                if left_nodes >= req_nodes and right_nodes >= req_nodes:
                     u.current_level = target_lvl
                     u.level_name = target_cfg["name"]
                     
