@@ -122,18 +122,24 @@ export const Checkout: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
+        <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
+          <Link
+            to="/orders"
+            className="flex-1 text-center py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-md font-bold text-xs transition-colors"
+          >
+            View My Orders
+          </Link>
           <Link
             to="/dashboard"
-            className="flex-1 text-center py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-md font-bold text-xs transition-colors"
+            className="flex-1 text-center py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-md font-bold text-xs border border-slate-700 transition-colors"
           >
             Go to Dashboard
           </Link>
           <Link
             to="/"
-            className="flex-1 text-center py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-md font-bold text-xs border border-slate-700 transition-colors"
+            className="flex-1 text-center py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded-md font-bold text-xs border border-slate-800 transition-colors"
           >
-            Back to Store
+            Store
           </Link>
         </div>
       </div>

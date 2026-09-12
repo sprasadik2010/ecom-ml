@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth, API_BASE_URL } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import { ShoppingCart, LogOut, User as UserIcon, Network, IndianRupee, Search, ShieldCheck, Menu, X, Compass, Home } from 'lucide-react';
+import { ShoppingCart, LogOut, User as UserIcon, Network, IndianRupee, Search, ShieldCheck, Menu, X, Compass, Home, ShoppingBag } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -125,6 +125,10 @@ export const Navbar: React.FC = () => {
               <>
                 <Link to="/" className="text-slate-300 hover:text-amber-500 transition-colors">
                   Shop
+                </Link>
+                <Link to="/orders" className="flex items-center gap-1.5 text-slate-300 hover:text-amber-500 transition-colors">
+                  <ShoppingBag size={15} />
+                  <span>My Orders</span>
                 </Link>
                 <Link to="/dashboard" className="flex items-center gap-1.5 text-slate-300 hover:text-amber-500 transition-colors">
                   <ShieldCheck size={15} />
@@ -270,6 +274,14 @@ export const Navbar: React.FC = () => {
                 {user ? (
                   <>
                     <Link
+                      to="/orders"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="px-3 py-2 bg-slate-950/20 hover:bg-slate-950/50 rounded-md text-slate-300 hover:text-amber-500 flex items-center gap-2 transition-colors"
+                    >
+                      <ShoppingBag size={14} className="text-amber-500" />
+                      My Orders
+                    </Link>
+                    <Link
                       to="/dashboard"
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="px-3 py-2 bg-slate-950/20 hover:bg-slate-950/50 rounded-md text-slate-300 hover:text-amber-500 flex items-center gap-2 transition-colors"
@@ -376,10 +388,17 @@ export const Navbar: React.FC = () => {
             <Home size={18} className={window.location.pathname === '/' && !searchParams.get('category') ? 'text-amber-500' : ''} />
             <span className={`text-[9px] font-bold tracking-wide ${window.location.pathname === '/' && !searchParams.get('category') ? 'text-amber-500' : ''}`}>Home</span>
           </Link>
-          <Link to="/?category=Apparel" className="flex flex-col items-center gap-1 text-slate-400 hover:text-amber-500 transition-colors">
-            <Compass size={18} className={searchParams.get('category') ? 'text-amber-500' : ''} />
-            <span className={`text-[9px] font-bold tracking-wide ${searchParams.get('category') ? 'text-amber-500' : ''}`}>Category</span>
-          </Link>
+          {user ? (
+            <Link to="/orders" className="flex flex-col items-center gap-1 text-slate-400 hover:text-amber-500 transition-colors">
+              <ShoppingBag size={18} className={window.location.pathname === '/orders' ? 'text-amber-500' : ''} />
+              <span className={`text-[9px] font-bold tracking-wide ${window.location.pathname === '/orders' ? 'text-amber-500' : ''}`}>Orders</span>
+            </Link>
+          ) : (
+            <Link to="/?category=Apparel" className="flex flex-col items-center gap-1 text-slate-400 hover:text-amber-500 transition-colors">
+              <Compass size={18} className={searchParams.get('category') ? 'text-amber-500' : ''} />
+              <span className={`text-[9px] font-bold tracking-wide ${searchParams.get('category') ? 'text-amber-500' : ''}`}>Category</span>
+            </Link>
+          )}
           <Link to="/cart" className="flex flex-col items-center gap-1 text-slate-400 hover:text-amber-500 relative transition-colors">
             <ShoppingCart size={18} className={window.location.pathname === '/cart' ? 'text-amber-500' : ''} />
             {cartCount > 0 && (

@@ -10,6 +10,7 @@ import { Checkout } from './pages/Checkout';
 import { Dashboard } from './pages/Dashboard';
 import { TreePage } from './pages/TreePage';
 import { Commissions } from './pages/Commissions';
+import { Orders } from './pages/Orders';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { AdminPanel } from './pages/AdminPanel';
@@ -137,6 +138,14 @@ export const App: React.FC = () => {
                   element={
                     <MemberRoute>
                       <Commissions />
+                    </MemberRoute>
+                  } 
+                />
+                <Route 
+                  path="/orders" 
+                  element={
+                    <MemberRoute>
+                      <Orders />
                     </MemberRoute>
                   } 
                 />

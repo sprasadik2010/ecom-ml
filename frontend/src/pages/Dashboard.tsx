@@ -760,10 +760,19 @@ export const Dashboard: React.FC = () => {
         {/* Right Side: Recent Orders Table */}
         <div className="lg:col-span-8 space-y-6">
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-md">
-            <h3 className="font-extrabold text-sm text-slate-100 uppercase tracking-wider mb-4 flex items-center gap-2">
-              <ShoppingBag size={18} className="text-amber-500" />
-              Recent E-commerce Orders
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-extrabold text-sm text-slate-100 uppercase tracking-wider flex items-center gap-2">
+                <ShoppingBag size={18} className="text-amber-500" />
+                Recent E-commerce Orders
+              </h3>
+              <Link 
+                to="/orders" 
+                className="text-xs text-amber-500 hover:text-amber-400 font-bold flex items-center gap-1 transition-colors"
+              >
+                <span>View All Orders</span>
+                <ArrowRight size={13} />
+              </Link>
+            </div>
 
             {loadingOrders ? (
               <div className="py-10 text-center text-slate-500 text-xs">Loading order history...</div>
