@@ -1,7 +1,7 @@
 import logging
 from typing import Optional, List
 from sqlalchemy.orm import Session
-from .models import User, Product, Order, OrderItem, Commission
+from .models import User, Product, Order, OrderItem, Commission, UserRankReward
 from .schemas import UserCreate, OrderCreate
 from .auth import get_password_hash
 from .mlm import find_binary_placement, check_and_award_commissions, get_user_qualified_nodes
@@ -215,7 +215,26 @@ def get_genealogy_tree(db: Session, root_user_id: int, current_depth: int = 0, m
 
 # --- Rank & Monthly Reward CRUD ---
 def get_user_rank_rewards(db: Session, user_id: int):
-    return db.query(UserRankReward).filter(UserRankReward.user_id == user_id).order_by(UserRankReward.level.desc()).all()
+    rewards = db.query(UserRankReward).filter(UserRankReward.user_id == user_id).order_by(UserRankReward.level.desc()).all()
+    user = db.query(User).filter(User.id == user_id).first()
+    username = user.username if user else f"User #{user_id}"
+    results = []
+    for r in rewards:
+        results.append({
+            "id": r.id,
+            "user_id": r.user_id,
+            "level": r.level,
+            "level_name": r.level_name,
+            "monthly_amount": r.monthly_amount,
+            "total_months": r.total_months,
+            "months_paid": r.months_paid,
+            "status": r.status,
+            "created_at": r.created_at,
+            "last_payout_at": r.last_payout_at,
+            "next_payout_at": r.next_payout_at,
+            "user_username": username
+        })
+    return results
 
 
 def get_all_rank_rewards(db: Session):

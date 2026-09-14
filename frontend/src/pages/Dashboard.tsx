@@ -138,6 +138,7 @@ export const Dashboard: React.FC = () => {
   const [copiedLeft, setCopiedLeft] = useState(false);
   const [copiedRight, setCopiedRight] = useState(false);
   const [loadingOrders, setLoadingOrders] = useState(true);
+  const [loadingRewards, setLoadingRewards] = useState(true);
 
   useEffect(() => {
     if (user?.is_admin) {
@@ -146,41 +147,70 @@ export const Dashboard: React.FC = () => {
   }, [user, navigate]);
 
   useEffect(() => {
-    const fetchOrdersAndRewards = async () => {
-      if (!token || user?.is_admin) return;
-      try {
-        const [ordRes, rewRes, lvlRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/orders/my`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(`${API_BASE_URL}/rewards/my`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(`${API_BASE_URL}/rewards/levels`).catch(() => null),
-        ]);
+    if (!token || user?.is_admin) return;
 
-        if (ordRes.ok) {
-          const ordData = await ordRes.json();
-          setOrders(ordData.slice(0, 5));
+    let isMounted = true;
+
+    const fetchOrders = async () => {
+      try {
+        setLoadingOrders(true);
+        const res = await fetch(`${API_BASE_URL}/orders/my`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const ordData = await res.json();
+          if (isMounted && Array.isArray(ordData)) {
+            setOrders(ordData.slice(0, 5));
+          }
         }
-        if (rewRes.ok) {
-          const rewData = await rewRes.json();
-          setRewards(rewData);
+      } catch (err) {
+        console.error('Error fetching dashboard orders:', err);
+      } finally {
+        if (isMounted) setLoadingOrders(false);
+      }
+    };
+
+    const fetchRewards = async () => {
+      try {
+        setLoadingRewards(true);
+        const res = await fetch(`${API_BASE_URL}/rewards/my`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const rewData = await res.json();
+          if (isMounted && Array.isArray(rewData)) {
+            setRewards(rewData);
+          }
         }
-        if (lvlRes && lvlRes.ok) {
-          const lvlData = await lvlRes.json();
-          if (Array.isArray(lvlData) && lvlData.length > 0) {
+      } catch (err) {
+        console.error('Error fetching dashboard rewards:', err);
+      } finally {
+        if (isMounted) setLoadingRewards(false);
+      }
+    };
+
+    const fetchLevelDefs = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/rewards/levels`);
+        if (res.ok) {
+          const lvlData = await res.json();
+          if (isMounted && Array.isArray(lvlData) && lvlData.length > 0) {
             setLevelDefs(lvlData);
           }
         }
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-      } finally {
-        setLoadingOrders(false);
+      } catch (err) {
+        console.error('Error fetching level definitions:', err);
       }
     };
-    fetchOrdersAndRewards();
-  }, [token, user]);
+
+    fetchOrders();
+    fetchRewards();
+    fetchLevelDefs();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [token, user?.id, user?.is_admin]);
 
   if (!user || user.is_admin) {
     return (
@@ -578,7 +608,9 @@ export const Dashboard: React.FC = () => {
           </span>
         </div>
 
-        {rewards.length === 0 ? (
+        {loadingRewards ? (
+          <div className="py-8 text-center text-slate-500 text-xs">Loading royalty streams...</div>
+        ) : rewards.length === 0 ? (
           <div className="py-8 text-center text-slate-500 border border-dashed border-slate-800 rounded-lg flex flex-col items-center justify-center gap-2">
             <Award size={32} className="text-slate-700" />
             <p className="text-xs font-bold text-slate-300">No Royalty Streams Active Yet</p>
