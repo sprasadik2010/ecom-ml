@@ -175,16 +175,16 @@ def run_tests():
         assert rootuser.total_matched_sw == 100.0, "Total matched SW should be 100.0"
         assert rootuser.current_level == 1, "Rootuser should be Level 1"
         
-        # Rootuser matching commission from 100 SW match = 1000 INR
+        # Rootuser matching commission from 100 SW match = 900 INR (1000 gross - 10% cut)
         # PLUS Level 1 achievement Month 1 Royalty = 1000 INR
-        # Total rootuser wallet balance = 2000 INR
+        # Total rootuser wallet balance = 1900 INR
         all_commissions = db.query(Commission).filter(Commission.user_id == rootuser.id).all()
         print(f"   Rootuser total commissions records count: {len(all_commissions)}")
         for c in all_commissions:
             print(f"   - Type: {c.type}, Amount: {c.amount} INR, Desc: {c.description}")
             
         assert len(all_commissions) == 2, "Should have 2 commission records (binary_matching + rank_level_reward)"
-        assert rootuser.wallet_balance == 2000.0, "Rootuser wallet balance should be 2000.0"
+        assert rootuser.wallet_balance == 1900.0, "Rootuser wallet balance should be 1900.0 (900 net matching + 1000 Level 1 reward)"
         
         print("\n" + "=" * 60)
         print("ALL TESTS PASSED SUCCESSFULLY! BACKEND MLM SW ALGORITHMS ARE CORRECT.")

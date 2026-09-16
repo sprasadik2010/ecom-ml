@@ -310,19 +310,43 @@ def seed_300_users():
                 matchable_sw = min(unmatched_left, unmatched_right)
                 
                 if matchable_sw > 0 and parent.status == "active":
-                    commission_amount = matchable_sw * 10.0
-                    parent.wallet_balance = (parent.wallet_balance or 0.0) + commission_amount
+                    gross_commission = matchable_sw * 10.0
+                    tda_amount = gross_commission * 0.02
+                    sponsor_pool = gross_commission * 0.08
+                    net_commission = gross_commission * 0.90
+                    
+                    parent.wallet_balance = (parent.wallet_balance or 0.0) + net_commission
                     parent.left_leg_sw = unmatched_left - matchable_sw
                     parent.right_leg_sw = unmatched_right - matchable_sw
                     parent.total_matched_sw = (parent.total_matched_sw or 0.0) + matchable_sw
                     
                     created_commissions.append(Commission(
                         user_id=parent.id,
-                        amount=commission_amount,
+                        amount=net_commission,
                         type="binary_matching",
-                        description=f"Team Match: {matchable_sw:g} matching SW paired @ ₹10 = ₹{commission_amount:,.2f}",
+                        description=f"Team Match: {matchable_sw:g} SW paired @ ₹10 = ₹{gross_commission:,.2f} (Net ₹{net_commission:,.2f} after 10% deduction: 2% TDA + 8% Sponsor Royalty)",
                         created_at=order.created_at
                     ))
+                    
+                    # 4-level upline sponsor distribution
+                    s_lvl = 1
+                    s_id = parent.sponsor_id
+                    while s_id is not None and s_lvl <= 4:
+                        sponsor = user_map.get(s_id)
+                        if not sponsor:
+                            break
+                        if not sponsor.is_admin and sponsor.status == "active":
+                            s_bonus = gross_commission * 0.02
+                            sponsor.wallet_balance = (sponsor.wallet_balance or 0.0) + s_bonus
+                            created_commissions.append(Commission(
+                                user_id=sponsor.id,
+                                amount=s_bonus,
+                                type="sponsor_matching_bonus",
+                                description=f"Level {s_lvl} Sponsor Match Bonus: 2% from @{parent.username}'s SW match (₹{gross_commission:,.2f}) = ₹{s_bonus:,.2f}",
+                                created_at=order.created_at
+                            ))
+                        s_id = sponsor.sponsor_id
+                        s_lvl += 1
                     
                 child = parent
                 curr_parent_id = parent.parent_id

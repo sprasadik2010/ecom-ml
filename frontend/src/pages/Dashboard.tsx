@@ -36,6 +36,14 @@ interface LevelDefinition {
   target_description: string;
 }
 
+interface Commission {
+  id: number;
+  amount: number;
+  type: string;
+  description: string;
+  created_at: string;
+}
+
 const DEFAULT_LEVELS: LevelDefinition[] = [
   {
     level: 1,
@@ -134,11 +142,13 @@ export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [rewards, setRewards] = useState<RankReward[]>([]);
+  const [commissions, setCommissions] = useState<Commission[]>([]);
   const [levelDefs, setLevelDefs] = useState<LevelDefinition[]>(DEFAULT_LEVELS);
   const [copiedLeft, setCopiedLeft] = useState(false);
   const [copiedRight, setCopiedRight] = useState(false);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [loadingRewards, setLoadingRewards] = useState(true);
+  const [loadingCommissions, setLoadingCommissions] = useState(true);
 
   useEffect(() => {
     if (user?.is_admin) {
@@ -189,6 +199,25 @@ export const Dashboard: React.FC = () => {
       }
     };
 
+    const fetchCommissions = async () => {
+      try {
+        setLoadingCommissions(true);
+        const res = await fetch(`${API_BASE_URL}/commissions/my`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const commData = await res.json();
+          if (isMounted && Array.isArray(commData)) {
+            setCommissions(commData);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching dashboard commissions:', err);
+      } finally {
+        if (isMounted) setLoadingCommissions(false);
+      }
+    };
+
     const fetchLevelDefs = async () => {
       try {
         const res = await fetch(`${API_BASE_URL}/rewards/levels`);
@@ -205,6 +234,7 @@ export const Dashboard: React.FC = () => {
 
     fetchOrders();
     fetchRewards();
+    fetchCommissions();
     fetchLevelDefs();
 
     return () => {
@@ -269,6 +299,18 @@ export const Dashboard: React.FC = () => {
   };
 
 
+  const totalMatchingEarned = commissions
+    .filter((c) => c.type === 'binary_matching')
+    .reduce((sum, c) => sum + c.amount, 0);
+
+  const totalSponsorBonusEarned = commissions
+    .filter((c) => c.type === 'sponsor_matching_bonus')
+    .reduce((sum, c) => sum + c.amount, 0);
+
+  const totalRankRoyaltyEarned = commissions
+    .filter((c) => c.type === 'rank_level_reward')
+    .reduce((sum, c) => sum + c.amount, 0);
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Top Banner: Welcome, Rank & Status */}
@@ -283,7 +325,7 @@ export const Dashboard: React.FC = () => {
               </span>
             )}
           </div>
-          <p className="text-slate-400 text-xs mt-1">Welcome to your network dashboard. Track 1:1 business matching pairs and progressive monthly royalties.</p>
+          <p className="text-slate-400 text-xs mt-1">Welcome to your network dashboard. Track 1:1 business matching pairs, 4-level sponsor overrides, and progressive monthly royalties.</p>
         </div>
 
         {/* Member Status Pill */}
@@ -375,7 +417,7 @@ export const Dashboard: React.FC = () => {
           </div>
           <div className="mt-4 pt-3 border-t border-slate-850 flex items-center justify-between text-[10px] text-slate-400">
             <span>{matched100Nodes} Matched 100-SW Node{matched100Nodes !== 1 ? 's' : ''}</span>
-            <span className="text-emerald-400 font-bold">Earned ₹{(matchedSW * 10).toFixed(0)}</span>
+            <span className="text-emerald-400 font-bold">Earned ₹{(matchedSW * 10 * 0.90).toFixed(0)} Net</span>
           </div>
         </div>
 
@@ -592,6 +634,104 @@ export const Dashboard: React.FC = () => {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+      </div>
+
+      {/* 2b. Network Earnings & Sponsor Match Bonuses */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-md mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-slate-800">
+          <div>
+            <h3 className="font-extrabold text-sm text-slate-100 uppercase tracking-wider flex items-center gap-2">
+              <Landmark size={18} className="text-amber-500" />
+              Network Earnings & Commission Streams
+            </h3>
+            <p className="text-xs text-slate-400 leading-normal mt-0.5 font-normal">
+              1:1 Team Match Bonuses (90% Net), 4-Level Sponsor Overrides (2% per level), and Monthly Royalties.
+            </p>
+          </div>
+          <Link 
+            to="/commissions" 
+            className="text-xs text-amber-500 hover:text-amber-400 font-bold flex items-center gap-1 transition-colors shrink-0 self-start sm:self-auto"
+          >
+            <span>Full Ledger</span>
+            <ArrowRight size={13} />
+          </Link>
+        </div>
+
+        {/* 3 mini summary cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+          <div className="p-3.5 bg-slate-950/60 border border-slate-850 rounded-lg flex items-center justify-between">
+            <div>
+              <span className="text-[9px] uppercase font-bold text-slate-500 tracking-wider block">1:1 Team Matching</span>
+              <span className="text-base font-black font-mono text-emerald-400">₹{totalMatchingEarned.toFixed(2)}</span>
+            </div>
+            <div className="p-2 bg-slate-900 text-emerald-400 rounded-md border border-slate-800">
+              <Zap size={16} />
+            </div>
+          </div>
+
+          <div className="p-3.5 bg-slate-950/60 border border-slate-850 rounded-lg flex items-center justify-between">
+            <div>
+              <span className="text-[9px] uppercase font-bold text-slate-500 tracking-wider block">4-Level Sponsor Royalty</span>
+              <span className="text-base font-black font-mono text-purple-400">₹{totalSponsorBonusEarned.toFixed(2)}</span>
+            </div>
+            <div className="p-2 bg-slate-900 text-purple-400 rounded-md border border-slate-800">
+              <Users size={16} />
+            </div>
+          </div>
+
+          <div className="p-3.5 bg-slate-950/60 border border-slate-850 rounded-lg flex items-center justify-between">
+            <div>
+              <span className="text-[9px] uppercase font-bold text-slate-500 tracking-wider block">Rank Royalties</span>
+              <span className="text-base font-black font-mono text-amber-400">₹{totalRankRoyaltyEarned.toFixed(2)}</span>
+            </div>
+            <div className="p-2 bg-slate-900 text-amber-400 rounded-md border border-slate-800">
+              <Star size={16} className="fill-amber-400" />
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Transactions list */}
+        {loadingCommissions ? (
+          <div className="py-6 text-center text-slate-500 text-xs">Loading commission streams...</div>
+        ) : commissions.length === 0 ? (
+          <div className="py-8 text-center text-slate-500 border border-dashed border-slate-800 rounded-lg flex flex-col items-center justify-center gap-1.5">
+            <Landmark size={24} className="text-slate-700 mb-1" />
+            <p className="text-xs font-bold text-slate-300">No Commission Earnings Yet</p>
+            <p className="text-[11px] text-slate-500">Pair child sales volumes or sponsor active team members to earn matching overrides!</p>
+          </div>
+        ) : (
+          <div className="space-y-2.5">
+            {commissions.slice(0, 5).map((c) => {
+              const isRank = c.type === 'rank_level_reward';
+              const isMatching = c.type === 'binary_matching';
+              const isSponsor = c.type === 'sponsor_matching_bonus';
+              return (
+                <div key={c.id} className="p-3 bg-slate-950/40 border border-slate-850 rounded-lg flex items-center justify-between gap-3 text-xs hover:border-slate-800 transition-colors">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className={`p-1.5 rounded-md shrink-0 border ${
+                      isRank ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                      isMatching ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                      isSponsor ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
+                      'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                    }`}>
+                      {isRank && <Star size={13} className="fill-current" />}
+                      {isMatching && <Zap size={13} />}
+                      {isSponsor && <Users size={13} />}
+                      {!isRank && !isMatching && !isSponsor && <IndianRupee size={13} />}
+                    </span>
+                    <div className="min-w-0 truncate">
+                      <p className="text-slate-300 font-medium truncate">{c.description}</p>
+                      <span className="text-[10px] text-slate-500 font-mono">{new Date(c.created_at).toLocaleString()}</span>
+                    </div>
+                  </div>
+                  <span className="font-black font-mono text-emerald-400 shrink-0 text-sm">
+                    +₹{c.amount.toFixed(2)}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

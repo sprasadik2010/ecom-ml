@@ -102,13 +102,13 @@ def run_tests():
         db.refresh(root)
         print(f"   Root leg volumes -> Left: {root.left_leg_sw} SW, Right: {root.right_leg_sw} SW, Matched: {root.total_matched_sw} SW, Wallet: INR {root.wallet_balance}")
         
-        # 50 SW matched: 50 * 10 = INR 500
+        # 50 SW matched: 50 * 10 = INR 500 gross (Net 90% = INR 450)
         # Remaining: Left = 0, Right = 50 carryover
         assert root.left_leg_sw == 0.0, "Root left leg should be 0 SW after match"
         assert root.right_leg_sw == 50.0, "Root right leg carryover should be 50 SW"
         assert root.total_matched_sw == 50.0, "Total matched SW should be 50"
-        assert root.wallet_balance == 500.0, "Root wallet should be INR 500 (50 SW * 10)"
-        print("   ✅ 1:1 Binary leg matching at INR 10/SW with carryforward works correctly!")
+        assert root.wallet_balance == 450.0, "Root wallet should be INR 450 (50 SW * 10 * 0.90 net)"
+        print("   ✅ 1:1 Binary leg matching at INR 10/SW (90% net after 10% cut) with carryforward works correctly!")
         
         # Buy another 50 SW under c1 (Left subtree) -> triggers 50 more matching SW -> Total matched = 100 SW!
         print("\n5. Purchasing 50 SW more on Left -> Root reaches 100 Matched SW -> Tests Level 1 Promotion...")
@@ -117,12 +117,12 @@ def run_tests():
         db.refresh(root)
         
         print(f"   Root after 2nd match -> Matched: {root.total_matched_sw} SW, Level: {root.current_level} ({root.level_name}), Wallet: INR {root.wallet_balance}")
-        # Matching commission: 50 SW * 10 = INR 500 (Wallet was 500 -> 1000)
-        # PLUS Level 1 achievement: INR 1,000 Month 1 Royalty credited! -> Wallet = 1000 + 1000 = INR 2,000
+        # Matching commission: 50 SW * 10 * 0.90 = INR 450 (Wallet was 450 -> 900)
+        # PLUS Level 1 achievement: INR 1,000 Month 1 Royalty credited! -> Wallet = 900 + 1000 = INR 1,900
         assert root.total_matched_sw == 100.0, "Total matched SW should be 100"
         assert root.current_level == 1, "Root should be promoted to Level 1"
         assert root.level_name == "Level 1 (Bronze Star)", "Level name should be Level 1 (Bronze Star)"
-        assert root.wallet_balance == 2000.0, "Root wallet should be INR 2,000 (INR 1,000 matching + INR 1,000 Level 1 reward)"
+        assert root.wallet_balance == 1900.0, "Root wallet should be INR 1,900 (INR 900 net matching + INR 1,000 Level 1 reward)"
         
         rewards_root = db.query(UserRankReward).filter(UserRankReward.user_id == root.id).all()
         assert len(rewards_root) == 1, "Should have 1 rank reward schedule"

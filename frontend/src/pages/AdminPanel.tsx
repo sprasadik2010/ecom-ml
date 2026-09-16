@@ -1669,13 +1669,17 @@ export const AdminPanel: React.FC = () => {
                               <span
                                 className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase ${
                                   c.type === 'binary_matching'
-                                    ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                    : c.type === 'sponsor_matching_bonus'
+                                    ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+                                    : c.type === 'rank_level_reward'
+                                    ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                                     : c.type === 'direct_referral'
                                     ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20'
                                     : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
                                 }`}
                               >
-                                {c.type === 'binary_matching' ? 'Business Match' : c.type.replace('_', ' ')}
+                                {c.type === 'binary_matching' ? 'Business Match' : c.type === 'sponsor_matching_bonus' ? '4-Level Sponsor' : c.type === 'rank_level_reward' ? 'Rank Royalty' : c.type.replace('_', ' ')}
                               </span>
                             </td>
                             <td className="py-3 px-4 text-slate-350 italic max-w-xs truncate" title={c.description || ''}>
@@ -1715,8 +1719,18 @@ export const AdminPanel: React.FC = () => {
                         <div className="space-y-1.5 text-[11px] font-normal text-slate-350">
                           <div className="flex items-center gap-1.5">
                             <span className="text-slate-500 text-[8px] uppercase font-bold">Reward Type:</span>
-                            <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${c.type === 'binary_matching' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : c.type === 'direct_referral' ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20' : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'}`}>
-                              {c.type === 'binary_matching' ? 'Business Match' : c.type.replace('_', ' ')}
+                            <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${
+                              c.type === 'binary_matching'
+                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                : c.type === 'sponsor_matching_bonus'
+                                ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+                                : c.type === 'rank_level_reward'
+                                ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                : c.type === 'direct_referral'
+                                ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20'
+                                : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
+                            }`}>
+                              {c.type === 'binary_matching' ? 'Business Match' : c.type === 'sponsor_matching_bonus' ? '4-Level Sponsor' : c.type === 'rank_level_reward' ? 'Rank Royalty' : c.type.replace('_', ' ')}
                             </span>
                           </div>
                           <div>

@@ -165,7 +165,7 @@ class Commission(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     amount = Column(Float, nullable=False)
-    type = Column(String, nullable=False) # 'direct_referral', 'binary_matching', 'rank_level_reward', 'admin_adjustment'
+    type = Column(String, nullable=False) # 'direct_referral', 'binary_matching', 'rank_level_reward', 'admin_adjustment', 'sponsor_matching_bonus'
     description = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
