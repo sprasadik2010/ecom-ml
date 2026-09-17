@@ -339,7 +339,7 @@ def check_and_award_commissions(db: Session, buyer: User, order_sw: float):
         if matchable_sw > 0:
             if parent.status == "active":
                 gross_commission = matchable_sw * 10.0
-                tda_amount = gross_commission * 0.02
+                tds_amount = gross_commission * 0.02
                 sponsor_pool = gross_commission * 0.08
                 net_commission = gross_commission * 0.90
                 
@@ -358,21 +358,23 @@ def check_and_award_commissions(db: Session, buyer: User, order_sw: float):
                     user_id=parent.id,
                     amount=net_commission,
                     type="binary_matching",
-                    description=f"Team Match: {matchable_sw:g} SW paired @ ₹10 = ₹{gross_commission:,.2f} (Net ₹{net_commission:,.2f} after 10% deduction: 2% TDA + 8% Sponsor Royalty)"
+                    description=f"Team Match: {matchable_sw:g} SW paired @ ₹10 = ₹{gross_commission:,.2f} (Net ₹{net_commission:,.2f} after 10% deduction: 2% TDS + 8% 5-Level Sponsor Royalty)"
                 )
                 db.add(commission_record)
-                logger.info(f"Awarded ₹{net_commission:,.2f} net matching commission to {parent.username} (Gross: ₹{gross_commission:,.2f}, 10% cut: 2% TDA ₹{tda_amount:,.2f} + 8% Sponsor ₹{sponsor_pool:,.2f}).")
+                logger.info(f"Awarded ₹{net_commission:,.2f} net matching commission to {parent.username} (Gross: ₹{gross_commission:,.2f}, 10% cut: 2% TDS ₹{tds_amount:,.2f} + 8% Sponsor ₹{sponsor_pool:,.2f}).")
                 
-                # Distribute 8% across up to 4 levels of upline sponsors (2% each)
+                # Distribute 8% across up to 5 levels of upline sponsors (L1: 4% Direct, L2-L5: 1% each)
                 sponsor_level = 1
                 curr_sponsor_id = parent.sponsor_id
-                while curr_sponsor_id is not None and sponsor_level <= 4:
+                while curr_sponsor_id is not None and sponsor_level <= 5:
                     sponsor = db.query(User).filter(User.id == curr_sponsor_id).first()
                     if not sponsor:
                         break
                     
                     if not sponsor.is_admin and sponsor.status == "active":
-                        sponsor_bonus = gross_commission * 0.02 # 2% per level
+                        rate = 0.04 if sponsor_level == 1 else 0.01
+                        rate_pct = "4%" if sponsor_level == 1 else "1%"
+                        sponsor_bonus = gross_commission * rate
                         sponsor.wallet_balance = (sponsor.wallet_balance or 0.0) + sponsor_bonus
                         db.add(sponsor)
                         
@@ -380,10 +382,10 @@ def check_and_award_commissions(db: Session, buyer: User, order_sw: float):
                             user_id=sponsor.id,
                             amount=sponsor_bonus,
                             type="sponsor_matching_bonus",
-                            description=f"Level {sponsor_level} Sponsor Match Bonus: 2% from @{parent.username}'s SW match (₹{gross_commission:,.2f}) = ₹{sponsor_bonus:,.2f}"
+                            description=f"Level {sponsor_level} Sponsor Match Bonus: {rate_pct} from @{parent.username}'s SW match (₹{gross_commission:,.2f}) = ₹{sponsor_bonus:,.2f}"
                         )
                         db.add(sponsor_comm)
-                        logger.info(f"Awarded Level {sponsor_level} Sponsor Match Bonus ₹{sponsor_bonus:,.2f} to sponsor {sponsor.username} from downline {parent.username}.")
+                        logger.info(f"Awarded Level {sponsor_level} Sponsor Match Bonus ₹{sponsor_bonus:,.2f} ({rate_pct}) to sponsor {sponsor.username} from downline {parent.username}.")
                     
                     curr_sponsor_id = sponsor.sponsor_id
                     sponsor_level += 1

@@ -99,7 +99,7 @@ export const Commissions: React.FC = () => {
         };
       case 'sponsor_matching_bonus':
         return {
-          label: '4-Level Sponsor Bonus',
+          label: '5-Level Sponsor Bonus',
           classes: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
           icon: <Users size={11} />
         };
@@ -124,7 +124,7 @@ export const Commissions: React.FC = () => {
       <div className="border-b border-slate-800 pb-4 mb-6">
         <h1 className="text-2xl font-black text-white">Commissions Ledger</h1>
         <p className="text-slate-400 text-xs mt-0.5">
-          Review your network earnings. Track your 1:1 matching bonuses (with 10% auto-deduction: 2% TDA + 8% 4-level sponsor distribution), sponsor matching overrides, and progressive level monthly royalties in real-time.
+          Review your network earnings. Track your 1:1 matching bonuses (with 10% auto-deduction: 2% TDS + 8% 5-level sponsor distribution: 4% direct sponsor + 1% for 4 uplines), sponsor matching overrides, and progressive level monthly royalties in real-time.
         </p>
       </div>
 
@@ -164,11 +164,11 @@ export const Commissions: React.FC = () => {
           </div>
         </div>
 
-        {/* 4-Level Sponsor Bonus Total */}
+        {/* 5-Level Sponsor Bonus Total */}
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
           <div className="flex justify-between items-start">
             <div>
-              <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">4-Level Sponsor Royalty</span>
+              <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">5-Level Sponsor Royalty</span>
               <div className="text-2xl font-black text-purple-400 font-mono mt-1.5">₹{totalSponsorBonus.toFixed(2)}</div>
             </div>
             <div className="p-2 bg-slate-950 text-purple-400 rounded-lg border border-slate-800">
@@ -176,7 +176,7 @@ export const Commissions: React.FC = () => {
             </div>
           </div>
           <div className="mt-3 pt-3 border-t border-slate-850 flex items-center justify-between text-[10px] text-slate-400">
-            <span>2% per Level (Up to 4 Levels)</span>
+            <span>4% Direct, 1% L2-L5 (5 Levels)</span>
             <span className="font-mono">{commissions.filter(c => c.type === 'sponsor_matching_bonus').length} Bonuses</span>
           </div>
         </div>

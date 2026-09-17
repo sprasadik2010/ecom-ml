@@ -1679,7 +1679,7 @@ export const AdminPanel: React.FC = () => {
                                     : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
                                 }`}
                               >
-                                {c.type === 'binary_matching' ? 'Business Match' : c.type === 'sponsor_matching_bonus' ? '4-Level Sponsor' : c.type === 'rank_level_reward' ? 'Rank Royalty' : c.type.replace('_', ' ')}
+                                {c.type === 'binary_matching' ? 'Business Match' : c.type === 'sponsor_matching_bonus' ? '5-Level Sponsor' : c.type === 'rank_level_reward' ? 'Rank Royalty' : c.type.replace('_', ' ')}
                               </span>
                             </td>
                             <td className="py-3 px-4 text-slate-350 italic max-w-xs truncate" title={c.description || ''}>
@@ -1730,7 +1730,7 @@ export const AdminPanel: React.FC = () => {
                                 ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20'
                                 : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
                             }`}>
-                              {c.type === 'binary_matching' ? 'Business Match' : c.type === 'sponsor_matching_bonus' ? '4-Level Sponsor' : c.type === 'rank_level_reward' ? 'Rank Royalty' : c.type.replace('_', ' ')}
+                              {c.type === 'binary_matching' ? 'Business Match' : c.type === 'sponsor_matching_bonus' ? '5-Level Sponsor' : c.type === 'rank_level_reward' ? 'Rank Royalty' : c.type.replace('_', ' ')}
                             </span>
                           </div>
                           <div>

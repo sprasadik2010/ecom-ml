@@ -325,7 +325,7 @@ export const Dashboard: React.FC = () => {
               </span>
             )}
           </div>
-          <p className="text-slate-400 text-xs mt-1">Welcome to your network dashboard. Track 1:1 business matching pairs, 4-level sponsor overrides, and progressive monthly royalties.</p>
+          <p className="text-slate-400 text-xs mt-1">Welcome to your network dashboard. Track 1:1 business matching pairs, 5-level sponsor overrides, and progressive monthly royalties.</p>
         </div>
 
         {/* Member Status Pill */}
@@ -647,7 +647,7 @@ export const Dashboard: React.FC = () => {
               Network Earnings & Commission Streams
             </h3>
             <p className="text-xs text-slate-400 leading-normal mt-0.5 font-normal">
-              1:1 Team Match Bonuses (90% Net), 4-Level Sponsor Overrides (2% per level), and Monthly Royalties.
+              1:1 Team Match Bonuses (90% Net), 5-Level Sponsor Overrides (4% Direct, 1% L2-L5), and Monthly Royalties.
             </p>
           </div>
           <Link 
@@ -673,7 +673,7 @@ export const Dashboard: React.FC = () => {
 
           <div className="p-3.5 bg-slate-950/60 border border-slate-850 rounded-lg flex items-center justify-between">
             <div>
-              <span className="text-[9px] uppercase font-bold text-slate-500 tracking-wider block">4-Level Sponsor Royalty</span>
+              <span className="text-[9px] uppercase font-bold text-slate-500 tracking-wider block">5-Level Sponsor Royalty</span>
               <span className="text-base font-black font-mono text-purple-400">₹{totalSponsorBonusEarned.toFixed(2)}</span>
             </div>
             <div className="p-2 bg-slate-900 text-purple-400 rounded-md border border-slate-800">

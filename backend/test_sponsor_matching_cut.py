@@ -18,7 +18,7 @@ from app import crud
 
 def test_sponsor_matching_cut():
     print("=" * 70)
-    print("TESTING 10% SW MATCHING CUT & 4-LEVEL UPLINE SPONSOR DISTRIBUTION")
+    print("TESTING 10% SW MATCHING CUT & 5-LEVEL UPLINE SPONSOR DISTRIBUTION")
     print("=" * 70)
     
     if os.path.exists("./test_sponsor_cut.db"):
@@ -59,12 +59,16 @@ def test_sponsor_matching_cut():
         db.commit()
         db.refresh(rootuser)
         
-        # 3. Create 5-tier sponsor hierarchy:
-        # rootuser -> up4 -> up3 -> up2 -> up1 -> user1
-        print("1. Creating 5-tier sponsor hierarchy (rootuser -> up4 -> up3 -> up2 -> up1 -> user1)...")
+        # 3. Create 6-tier sponsor hierarchy:
+        # rootuser -> up5 -> up4 -> up3 -> up2 -> up1 -> user1
+        print("1. Creating 6-tier sponsor hierarchy (rootuser -> up5 -> up4 -> up3 -> up2 -> up1 -> user1)...")
+        up5 = crud.create_user(db, UserCreate(
+            username="up5", email="up5@test.com", password="password123", full_name="Upline Level 5",
+            phone_number="9876543200", sponsor_username="rootuser", position="left"
+        ))
         up4 = crud.create_user(db, UserCreate(
             username="up4", email="up4@test.com", password="password123", full_name="Upline Level 4",
-            phone_number="9876543201", sponsor_username="rootuser", position="left"
+            phone_number="9876543201", sponsor_username="up5", position="left"
         ))
         up3 = crud.create_user(db, UserCreate(
             username="up3", email="up3@test.com", password="password123", full_name="Upline Level 3",
@@ -75,7 +79,7 @@ def test_sponsor_matching_cut():
             phone_number="9876543203", sponsor_username="up3", position="left"
         ))
         up1 = crud.create_user(db, UserCreate(
-            username="up1", email="up1@test.com", password="password123", full_name="Upline Level 1",
+            username="up1", email="up1@test.com", password="password123", full_name="Upline Level 1 (Direct Sponsor)",
             phone_number="9876543204", sponsor_username="up2", position="left"
         ))
         user1 = crud.create_user(db, UserCreate(
@@ -84,7 +88,7 @@ def test_sponsor_matching_cut():
         ))
         
         # Activate all uplines & user1
-        for u in [up4, up3, up2, up1, user1]:
+        for u in [up5, up4, up3, up2, up1, user1]:
             u.status = "active"
             u.personal_sw = 100.0
             u.wallet_balance = 0.0
@@ -122,20 +126,22 @@ def test_sponsor_matching_cut():
         ord_right = crud.create_order(db, c_right, OrderCreate(items=[CartItemCreate(product_id=p100.id, quantity=1)]))
         crud.complete_checkout(db, ord_right)
         
-        # 6. Verify User1 earnings
+        # 6. Verify User1 and Uplines earnings
         db.refresh(user1)
         db.refresh(up1)
         db.refresh(up2)
         db.refresh(up3)
         db.refresh(up4)
+        db.refresh(up5)
         db.refresh(rootuser)
         
         print(f"\n5. Verifying Wallets & Deductions:")
-        print(f"   - user1: Wallet = ₹{user1.wallet_balance} (Expected ₹900.0 from 100 SW match @ 90%)")
-        print(f"   - up1 (Level 1 sponsor): Wallet = ₹{up1.wallet_balance} (Expected ₹20.0 = 2% of ₹1000)")
-        print(f"   - up2 (Level 2 sponsor): Wallet = ₹{up2.wallet_balance} (Expected ₹20.0 = 2% of ₹1000)")
-        print(f"   - up3 (Level 3 sponsor): Wallet = ₹{up3.wallet_balance} (Expected ₹20.0 = 2% of ₹1000)")
-        print(f"   - up4 (Level 4 sponsor): Wallet = ₹{up4.wallet_balance} (Expected ₹20.0 = 2% of ₹1000)")
+        print(f"   - user1: Wallet = ₹{user1.wallet_balance} (Expected ₹900.0 from 100 SW match @ 90% + ₹1000 Level 1 reward)")
+        print(f"   - up1 (Level 1 Direct sponsor): Wallet = ₹{up1.wallet_balance} (Expected ₹40.0 = 4% of ₹1000)")
+        print(f"   - up2 (Level 2 sponsor): Wallet = ₹{up2.wallet_balance} (Expected ₹10.0 = 1% of ₹1000)")
+        print(f"   - up3 (Level 3 sponsor): Wallet = ₹{up3.wallet_balance} (Expected ₹10.0 = 1% of ₹1000)")
+        print(f"   - up4 (Level 4 sponsor): Wallet = ₹{up4.wallet_balance} (Expected ₹10.0 = 1% of ₹1000)")
+        print(f"   - up5 (Level 5 sponsor): Wallet = ₹{up5.wallet_balance} (Expected ₹10.0 = 1% of ₹1000)")
         
         # Check user1's net income: ₹900 net matching + ₹1,000 Level 1 reward = ₹1,900
         matching_comm = db.query(Commission).filter(Commission.user_id == user1.id, Commission.type == "binary_matching").first()
@@ -143,36 +149,37 @@ def test_sponsor_matching_cut():
         assert matching_comm.amount == 900.0, f"user1 net matching commission should be ₹900.0, got {matching_comm.amount}"
         assert user1.wallet_balance == 1900.0, f"user1 should receive ₹900 net matching + ₹1000 Level 1 royalty (₹1900.0), got {user1.wallet_balance}"
         
-        # Check 4 upline sponsors (₹20 each = 2% of ₹1000 gross)
-        assert up1.wallet_balance == 20.0, f"up1 (L1) should receive 2% (₹20.0), got {up1.wallet_balance}"
-        assert up2.wallet_balance == 20.0, f"up2 (L2) should receive 2% (₹20.0), got {up2.wallet_balance}"
-        assert up3.wallet_balance == 20.0, f"up3 (L3) should receive 2% (₹20.0), got {up3.wallet_balance}"
-        assert up4.wallet_balance == 20.0, f"up4 (L4) should receive 2% (₹20.0), got {up4.wallet_balance}"
+        # Check 5 upline sponsors: L1 gets 4% (₹40), L2-L5 get 1% each (₹10)
+        assert up1.wallet_balance == 40.0, f"up1 (L1 Direct Sponsor) should receive 4% (₹40.0), got {up1.wallet_balance}"
+        assert up2.wallet_balance == 10.0, f"up2 (L2) should receive 1% (₹10.0), got {up2.wallet_balance}"
+        assert up3.wallet_balance == 10.0, f"up3 (L3) should receive 1% (₹10.0), got {up3.wallet_balance}"
+        assert up4.wallet_balance == 10.0, f"up4 (L4) should receive 1% (₹10.0), got {up4.wallet_balance}"
+        assert up5.wallet_balance == 10.0, f"up5 (L5) should receive 1% (₹10.0), got {up5.wallet_balance}"
         
         # Check commissions ledger records
         user1_comms = db.query(Commission).filter(Commission.user_id == user1.id).all()
         assert len(user1_comms) == 2, f"user1 should have 2 commissions (matching + rank reward), got {len(user1_comms)}"
-        assert "2% TDA" in matching_comm.description
-        assert "8% Sponsor Royalty" in matching_comm.description
+        assert "2% TDS" in matching_comm.description
+        assert "8% 5-Level Sponsor Royalty" in matching_comm.description
         print(f"   user1 matching commission record: {matching_comm.description}")
         
         up1_comms = db.query(Commission).filter(Commission.user_id == up1.id).all()
         assert len(up1_comms) == 1
         assert up1_comms[0].type == "sponsor_matching_bonus"
-        assert up1_comms[0].amount == 20.0
-        assert "Level 1 Sponsor Match Bonus" in up1_comms[0].description
+        assert up1_comms[0].amount == 40.0
+        assert "Level 1 Sponsor Match Bonus: 4%" in up1_comms[0].description
         assert "@user1" in up1_comms[0].description
         print(f"   up1 commission record: {up1_comms[0].description}")
         
-        up4_comms = db.query(Commission).filter(Commission.user_id == up4.id).all()
-        assert len(up4_comms) == 1
-        assert up4_comms[0].type == "sponsor_matching_bonus"
-        assert up4_comms[0].amount == 20.0
-        assert "Level 4 Sponsor Match Bonus" in up4_comms[0].description
-        print(f"   up4 commission record: {up4_comms[0].description}")
+        up5_comms = db.query(Commission).filter(Commission.user_id == up5.id).all()
+        assert len(up5_comms) == 1
+        assert up5_comms[0].type == "sponsor_matching_bonus"
+        assert up5_comms[0].amount == 10.0
+        assert "Level 5 Sponsor Match Bonus: 1%" in up5_comms[0].description
+        print(f"   up5 commission record: {up5_comms[0].description}")
         
         print("\n" + "=" * 70)
-        print("ALL SPONSOR MATCHING CUT & 4-LEVEL DISTRIBUTION TESTS PASSED!")
+        print("ALL SPONSOR MATCHING CUT & 5-LEVEL DISTRIBUTION TESTS PASSED!")
         print("=" * 70)
         
     finally:
