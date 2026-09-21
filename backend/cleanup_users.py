@@ -10,8 +10,8 @@ from app.models import User, Order, OrderItem, Commission, UserRankReward
 
 def cleanup_users():
     print("=" * 60)
-    print("STARTING DATABASE USER CLEANUP")
-    print("Preserving ONLY: 'admin' and 'rootuser'")
+    print("STARTING COMPLETE DATABASE CLEANUP & FRESH RESET")
+    print("Preserving ONLY: 'admin' and 'rootuser' (as fresh users)")
     print("=" * 60)
 
     db = SessionLocal()
@@ -40,40 +40,30 @@ def cleanup_users():
         delete_ids = [u.id for u in users_to_delete]
 
         print(f"Total users before cleanup: {total_users_before}")
-        print(f"Users to delete: {delete_count}")
+        print(f"Non-root/admin users to delete: {delete_count}")
 
         # 3. Disconnect self-referencing foreign keys on all users
         print("\nStep 1: Clearing tree pointers and foreign key links...")
         db.execute(text("UPDATE users SET sponsor_id = NULL, parent_id = NULL, left_child_id = NULL, right_child_id = NULL"))
         db.commit()
 
-        # 4. Remove dependent records for deleted users (orders, order items, commissions, rank rewards)
-        print("Step 2: Removing dependent records (orders, commissions, rewards)...")
-        if delete_ids:
-            # Delete order items for orders of deleted users
-            orders_to_delete = db.query(Order).filter(Order.user_id.in_(delete_ids)).all()
-            order_ids_to_delete = [o.id for o in orders_to_delete]
-            if order_ids_to_delete:
-                db.query(OrderItem).filter(OrderItem.order_id.in_(order_ids_to_delete)).delete(synchronize_session=False)
-                db.query(Order).filter(Order.id.in_(order_ids_to_delete)).delete(synchronize_session=False)
+        # 4. Remove ALL transactional data from all tables (orders, order items, commissions, rank rewards)
+        print("Step 2: Wiping ALL order items, orders, commissions, and rank rewards...")
+        db.query(OrderItem).delete(synchronize_session=False)
+        db.query(Order).delete(synchronize_session=False)
+        db.query(Commission).delete(synchronize_session=False)
+        db.query(UserRankReward).delete(synchronize_session=False)
+        db.commit()
 
-            # Delete commissions for deleted users
-            db.query(Commission).filter(Commission.user_id.in_(delete_ids)).delete(synchronize_session=False)
-
-            # Delete rank rewards for deleted users
-            db.query(UserRankReward).filter(UserRankReward.user_id.in_(delete_ids)).delete(synchronize_session=False)
-
-            db.commit()
-
-        # 5. Delete non-preserved users
-        print("Step 3: Deleting users...")
+        # 5. Delete all non-preserved users
+        print("Step 3: Deleting non-preserved users...")
         if delete_ids:
             deleted_rows = db.query(User).filter(User.id.in_(delete_ids)).delete(synchronize_session=False)
             db.commit()
             print(f"Deleted {deleted_rows} user rows from database.")
 
-        # 6. Reset tree & volume attributes on rootuser and admin to clean state
-        print("Step 4: Resetting rootuser & admin tree state...")
+        # 6. Reset tree, SW volumes, wallet balance & rank on rootuser and admin to clean fresh state
+        print("Step 4: Resetting rootuser & admin tree and volume state to fresh zeros...")
         if rootuser:
             rootuser = db.query(User).filter(User.username == "rootuser").first()
             rootuser.sponsor_id = None
@@ -116,12 +106,21 @@ def cleanup_users():
 
         # 7. Verification
         total_users_after = db.query(User).count()
+        orders_count = db.query(Order).count()
+        order_items_count = db.query(OrderItem).count()
+        commissions_count = db.query(Commission).count()
+        rewards_count = db.query(UserRankReward).count()
         remaining_users = db.query(User).all()
 
         print("\n" + "=" * 60)
-        print(f"CLEANUP COMPLETE! Total users remaining: {total_users_after}")
+        print("CLEANUP & RESET COMPLETE!")
+        print(f"Users remaining: {total_users_after}")
+        print(f"Orders remaining: {orders_count}")
+        print(f"OrderItems remaining: {order_items_count}")
+        print(f"Commissions remaining: {commissions_count}")
+        print(f"Rank Rewards remaining: {rewards_count}")
         for u in remaining_users:
-            print(f" - ID: {u.id} | Username: {u.username} | Email: {u.email} | Status: {u.status} | IsAdmin: {u.is_admin} | LeftChild: {u.left_child_id} | RightChild: {u.right_child_id}")
+            print(f" - ID: {u.id} | Username: {u.username} | Email: {u.email} | Status: {u.status} | IsAdmin: {u.is_admin} | PersonalSW: {u.personal_sw} | Wallet: {u.wallet_balance} | LeftSW: {u.left_leg_sw} | RightSW: {u.right_leg_sw}")
         print("=" * 60)
 
     except Exception as e:

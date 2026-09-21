@@ -121,7 +121,7 @@ def run_tests():
         # PLUS Level 1 achievement: INR 1,000 Month 1 Royalty credited! -> Wallet = 900 + 1000 = INR 1,900
         assert root.total_matched_sw == 100.0, "Total matched SW should be 100"
         assert root.current_level == 1, "Root should be promoted to Level 1"
-        assert root.level_name == "Level 1 (Bronze Star)", "Level name should be Level 1 (Bronze Star)"
+        assert root.level_name == "Level 1 (Associate)", "Level name should be Level 1 (Associate)"
         assert root.wallet_balance == 1900.0, "Root wallet should be INR 1,900 (INR 900 net matching + INR 1,000 Level 1 reward)"
         
         rewards_root = db.query(UserRankReward).filter(UserRankReward.user_id == root.id).all()
@@ -182,15 +182,15 @@ def run_tests():
         print(f"   Rootuser -> Qualified Nodes: {left_n}L/{right_n}R, Level: {root.current_level} ({root.level_name}), Wallet: INR {root.wallet_balance}")
         assert left_n >= 2, "Root should have 2 qualified nodes on Left"
         assert right_n >= 2, "Root should have 2 qualified nodes on Right"
-        assert root.current_level == 2, "Root MUST now be promoted to Level 2 (Silver Star)!"
-        assert root.level_name == "Level 2 (Silver Star)", "Level name should be Level 2 (Silver Star)"
+        assert root.current_level == 2, "Root MUST now be promoted to Level 2 (Promoter)!"
+        assert root.level_name == "Level 2 (Promoter)", "Level name should be Level 2 (Promoter)"
 
         rewards_l2 = db.query(UserRankReward).filter(UserRankReward.user_id == root.id, UserRankReward.level == 2).first()
         assert rewards_l2 is not None, "Level 2 reward record should exist"
         assert rewards_l2.monthly_amount == 2000.0, "Level 2 monthly reward should be INR 2,000"
         assert rewards_l2.total_months == 3, "Level 2 duration should be 3 months"
         assert rewards_l2.months_paid == 1, "Month 1 should be disbursed immediately"
-        print("   ✅ Rootuser successfully promoted to Level 2 (Silver Star) when 2 qualified nodes exist on both legs!")
+        print("   ✅ Rootuser successfully promoted to Level 2 (Promoter) when 2 qualified nodes exist on both legs!")
 
         # 8. Test Recurring Monthly Royalty Payout Processor
         print("\n8. Testing scheduled monthly payout processor (simulate 30 days passing)...")
@@ -207,14 +207,14 @@ def run_tests():
         print(f"   Reward schedule updated: Months paid={rewards_l2.months_paid}/{rewards_l2.total_months}, Status={rewards_l2.status}")
         print("   ✅ Recurring monthly payouts processed and verified successfully!")
 
-        # 9. Test LEVEL_CONFIG contains all 10 levels with correct target nodes, SW points, doubling amounts, and durations
+        # 9. Test LEVEL_CONFIG contains all 10 levels with correct target nodes, SW points, amounts, and durations
         from app.mlm import LEVEL_CONFIG
         print("\n9. Verifying all 10 Level Configs and Node Requirements...")
         assert len(LEVEL_CONFIG) == 10, "Should have exactly 10 levels"
         expected_nodes = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512]
         expected_sw = [100.0, 200.0, 400.0, 800.0, 1600.0, 3200.0, 6400.0, 12800.0, 25600.0, 51200.0]
-        expected_amounts = [1000.0, 2000.0, 4000.0, 8000.0, 16000.0, 32000.0, 64000.0, 128000.0, 256000.0, 512000.0]
-        expected_durations = [2, 3, 3, 3, 3, 3, 3, 3, 3, 3]
+        expected_amounts = [1000.0, 2000.0, 5000.0, 8000.0, 12500.0, 20000.0, 40000.0, 70000.0, 100000.0, 100000.0]
+        expected_durations = [2, 3, 3, 4, 4, 4, 5, 5, 5, 5]
 
         for lvl_num in range(1, 11):
             cfg = LEVEL_CONFIG[lvl_num]
@@ -223,8 +223,8 @@ def run_tests():
             assert cfg["target_sw"] == expected_sw[lvl_num - 1], f"Level {lvl_num} target_sw mismatch"
             assert cfg["monthly_amount"] == expected_amounts[lvl_num - 1], f"Level {lvl_num} amount mismatch"
             assert cfg["duration_months"] == expected_durations[lvl_num - 1], f"Level {lvl_num} duration mismatch"
-            print(f"   Level {lvl_num:2d}: {cfg['name']:<28} -> Nodes: {cfg['target_nodes']:3d} / side | SW: {cfg['target_sw']:6,.0f} | ₹{cfg['monthly_amount']:7,.0f}/mo ({cfg['duration_months']} mos) | {cfg['target_description']}")
-        print("   ✅ All 10 levels correctly configured with node targets (1, 2, 4, 8, ... 512) and doubling rewards!")
+            print(f"   Level {lvl_num:2d}: {cfg['name']:<30} -> Nodes: {cfg['target_nodes']:3d} / side | SW: {cfg['target_sw']:6,.0f} | ₹{cfg['monthly_amount']:7,.0f}/mo ({cfg['duration_months']} mos) | {cfg['target_description']}")
+        print("   ✅ All 10 levels correctly configured with node targets and updated rewards!")
 
         
         print("\n" + "=" * 70)

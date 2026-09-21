@@ -178,7 +178,7 @@ class UserRankReward(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     level = Column(Integer, nullable=False) # 1, 2, 3, etc.
-    level_name = Column(String, nullable=False) # e.g. "Level 1 (Bronze Star)"
+    level_name = Column(String, nullable=False) # e.g. "Level 1 (Associate)"
     monthly_amount = Column(Float, nullable=False) # e.g. 1000.0, 2000.0, etc.
     total_months = Column(Integer, nullable=False) # e.g. 2, 3, 4, etc.
     months_paid = Column(Integer, default=1, nullable=False) # Starts at 1 since month 1 paid on qualification

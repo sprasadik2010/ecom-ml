@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 LEVEL_CONFIG = {
     1: {
         "level": 1,
-        "name": "Level 1 (Bronze Star)",
+        "name": "Level 1 (Associate)",
         "target_nodes": 1,
         "target_sw": 100.0,
         "monthly_amount": 1000.0,
@@ -19,7 +19,7 @@ LEVEL_CONFIG = {
     },
     2: {
         "level": 2,
-        "name": "Level 2 (Silver Star)",
+        "name": "Level 2 (Promoter)",
         "target_nodes": 2,
         "target_sw": 200.0,
         "monthly_amount": 2000.0,
@@ -28,74 +28,74 @@ LEVEL_CONFIG = {
     },
     3: {
         "level": 3,
-        "name": "Level 3 (Gold Star)",
+        "name": "Level 3 (Team Leader)",
         "target_nodes": 4,
         "target_sw": 400.0,
-        "monthly_amount": 4000.0,
+        "monthly_amount": 5000.0,
         "duration_months": 3,
         "target_description": "Any 4 nodes in each side reach 100 SW (400 SW each side)"
     },
     4: {
         "level": 4,
-        "name": "Level 4 (Platinum Star)",
+        "name": "Level 4 (Senior Team Leader)",
         "target_nodes": 8,
         "target_sw": 800.0,
         "monthly_amount": 8000.0,
-        "duration_months": 3,
+        "duration_months": 4,
         "target_description": "Any 8 nodes in each side reach 100 SW (800 SW each side)"
     },
     5: {
         "level": 5,
-        "name": "Level 5 (Diamond Star)",
+        "name": "Level 5 (Team Manager)",
         "target_nodes": 16,
         "target_sw": 1600.0,
-        "monthly_amount": 16000.0,
-        "duration_months": 3,
+        "monthly_amount": 12500.0,
+        "duration_months": 4,
         "target_description": "Any 16 nodes in each side reach 100 SW (1,600 SW each side)"
     },
     6: {
         "level": 6,
-        "name": "Level 6 (Double Diamond Star)",
+        "name": "Level 6 (Senior Team Manager)",
         "target_nodes": 32,
         "target_sw": 3200.0,
-        "monthly_amount": 32000.0,
-        "duration_months": 3,
+        "monthly_amount": 20000.0,
+        "duration_months": 4,
         "target_description": "Any 32 nodes in each side reach 100 SW (3,200 SW each side)"
     },
     7: {
         "level": 7,
-        "name": "Level 7 (Triple Diamond Star)",
+        "name": "Level 7 (Area Manager)",
         "target_nodes": 64,
         "target_sw": 6400.0,
-        "monthly_amount": 64000.0,
-        "duration_months": 3,
+        "monthly_amount": 40000.0,
+        "duration_months": 5,
         "target_description": "Any 64 nodes in each side reach 100 SW (6,400 SW each side)"
     },
     8: {
         "level": 8,
-        "name": "Level 8 (Crown Diamond Star)",
+        "name": "Level 8 (Regional Manager)",
         "target_nodes": 128,
         "target_sw": 12800.0,
-        "monthly_amount": 128000.0,
-        "duration_months": 3,
+        "monthly_amount": 70000.0,
+        "duration_months": 5,
         "target_description": "Any 128 nodes in each side reach 100 SW (12,800 SW each side)"
     },
     9: {
         "level": 9,
-        "name": "Level 9 (Royal Crown Diamond)",
+        "name": "Level 9 (Manager)",
         "target_nodes": 256,
         "target_sw": 25600.0,
-        "monthly_amount": 256000.0,
-        "duration_months": 3,
+        "monthly_amount": 100000.0,
+        "duration_months": 5,
         "target_description": "Any 256 nodes in each side reach 100 SW (25,600 SW each side)"
     },
     10: {
         "level": 10,
-        "name": "Level 10 (Crown Ambassador)",
+        "name": "Level 10 (Senior Manager)",
         "target_nodes": 512,
         "target_sw": 51200.0,
-        "monthly_amount": 512000.0,
-        "duration_months": 3,
+        "monthly_amount": 100000.0,
+        "duration_months": 5,
         "target_description": "Any 512 nodes in each side reach 100 SW (51,200 SW each side)"
     }
 }
