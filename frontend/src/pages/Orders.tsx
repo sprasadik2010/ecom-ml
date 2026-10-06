@@ -45,6 +45,9 @@ interface Order {
   total_amount: number;
   total_sw: number;
   status: 'pending' | 'completed' | 'cancelled' | string;
+  payment_method?: string;
+  upi_trans_id?: string;
+  upi_payer_vpa?: string;
   created_at: string;
   items: OrderItem[];
 }
@@ -389,6 +392,13 @@ export const Orders: React.FC = () => {
                             ? 'PENDING APPROVAL'
                             : order.status.toUpperCase()}
                         </span>
+
+                        {/* UPI UTR Badge */}
+                        {order.upi_trans_id && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-950 text-emerald-400 border border-emerald-500/20 rounded-full font-mono text-[10px] font-bold">
+                            UTR: {order.upi_trans_id}
+                          </span>
+                        )}
                       </div>
 
                       <div className="flex items-center gap-3 text-[11px] text-slate-400 mt-1 flex-wrap">
@@ -407,6 +417,14 @@ export const Orders: React.FC = () => {
                           <Layers size={12} className="text-slate-500" />
                           {order.items?.length || 0} {order.items?.length === 1 ? 'item' : 'items'}
                         </span>
+                        {order.payment_method && (
+                          <>
+                            <span>•</span>
+                            <span className="uppercase text-[10px] text-slate-500 font-bold">
+                              {order.payment_method.replace('_', ' ')}
+                            </span>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>

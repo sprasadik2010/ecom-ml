@@ -24,7 +24,9 @@ import {
   Star,
   Award,
   Sparkles,
-  Zap
+  Zap,
+  Copy,
+  QrCode
 } from 'lucide-react';
 import { API_BASE_URL } from '../context/AuthContext';
 
@@ -91,6 +93,10 @@ interface OrderListItem {
   total_amount: number;
   total_sw: number;
   status: 'pending' | 'completed' | 'cancelled';
+  payment_method?: string;
+  upi_trans_id?: string;
+  upi_payer_vpa?: string;
+  payment_proof_url?: string;
   created_at: string;
   items: OrderItem[];
   user?: {
@@ -677,10 +683,12 @@ export const AdminPanel: React.FC = () => {
   const filteredOrders = orders.filter((o) => {
     const buyerName = o.user?.full_name || getUserById(o.user_id)?.full_name || '';
     const buyerUser = o.user?.username || getUserById(o.user_id)?.username || '';
+    const utr = o.upi_trans_id || '';
     return (
       o.id.toString().includes(orderSearch) ||
       buyerName.toLowerCase().includes(orderSearch.toLowerCase()) ||
       buyerUser.toLowerCase().includes(orderSearch.toLowerCase()) ||
+      utr.toLowerCase().includes(orderSearch.toLowerCase()) ||
       o.status.toLowerCase().includes(orderSearch.toLowerCase())
     );
   });
@@ -1444,7 +1452,7 @@ export const AdminPanel: React.FC = () => {
                       <th className="py-3 px-4">Order ID & Date</th>
                       <th className="py-3 px-4">Buyer Member</th>
                       <th className="py-3 px-4">Items Summary</th>
-                      <th className="py-3 px-4 text-right">Payment</th>
+                      <th className="py-3 px-4 text-right">Payment & UTR</th>
                       <th className="py-3 px-4 text-center">Volume (SW)</th>
                       <th className="py-3 px-4 text-center">Checkout Status</th>
                       <th className="py-3 px-4 text-center">Actions</th>
@@ -1485,8 +1493,34 @@ export const AdminPanel: React.FC = () => {
                                 ))}
                               </div>
                             </td>
-                            <td className="py-3 px-4 text-right font-mono font-bold text-slate-200">
-                              ₹{o.total_amount.toFixed(2)}
+                            <td className="py-3 px-4 text-right">
+                              <div className="font-mono font-bold text-slate-200 text-sm">
+                                ₹{o.total_amount.toFixed(2)}
+                              </div>
+                              {o.upi_trans_id ? (
+                                <div className="flex items-center justify-end gap-1.5 mt-0.5">
+                                  <span className="font-mono text-emerald-400 bg-slate-950 px-1.5 py-0.5 rounded border border-emerald-500/20 text-[10px] font-bold">
+                                    UTR: {o.upi_trans_id}
+                                  </span>
+                                  <button
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(o.upi_trans_id || '');
+                                      triggerSuccess(`Copied UTR: ${o.upi_trans_id}`);
+                                    }}
+                                    className="p-1 text-slate-400 hover:text-slate-200 bg-slate-950 rounded border border-slate-800 transition-colors cursor-pointer"
+                                    title="Copy UTR to verify in Bank"
+                                  >
+                                    <Copy size={11} />
+                                  </button>
+                                </div>
+                              ) : (
+                                <span className="text-[10px] text-slate-500 font-mono">No UTR logged</span>
+                              )}
+                              {o.upi_payer_vpa && (
+                                <div className="text-[9px] text-slate-400 font-mono mt-0.5">
+                                  VPA: {o.upi_payer_vpa}
+                                </div>
+                              )}
                             </td>
                             <td className="py-3 px-4 text-center font-mono font-bold text-amber-400">
                               {o.total_sw} SW
@@ -1591,8 +1625,15 @@ export const AdminPanel: React.FC = () => {
 
                         <div className="flex items-center justify-between pt-2.5 border-t border-slate-850/60 text-[10px]">
                           <div className="space-y-0.5">
-                            <div className="font-bold text-slate-350">Gross Price: <span className="font-mono text-slate-200 font-bold">₹{o.total_amount.toFixed(2)}</span></div>
+                            <div className="font-bold text-slate-350">
+                              Gross Price: <span className="font-mono text-slate-200 font-bold">₹{o.total_amount.toFixed(2)}</span>
+                            </div>
                             <div className="font-bold text-amber-500 font-mono">{o.total_sw} SW</div>
+                            {o.upi_trans_id && (
+                              <div className="font-mono text-emerald-400 font-bold text-[10px]">
+                                UTR: {o.upi_trans_id}
+                              </div>
+                            )}
                           </div>
 
                           {o.status === 'pending' && (

@@ -69,6 +69,35 @@ def on_startup():
         logger.info("Added level_name column to users table.")
     except Exception as e:
         db.rollback()
+
+    # Migration for orders table payment fields
+    try:
+        db.execute(text("ALTER TABLE orders ADD COLUMN payment_method VARCHAR DEFAULT 'upi_qr'"))
+        db.commit()
+        logger.info("Added payment_method column to orders table.")
+    except Exception as e:
+        db.rollback()
+
+    try:
+        db.execute(text("ALTER TABLE orders ADD COLUMN upi_trans_id VARCHAR"))
+        db.commit()
+        logger.info("Added upi_trans_id column to orders table.")
+    except Exception as e:
+        db.rollback()
+
+    try:
+        db.execute(text("ALTER TABLE orders ADD COLUMN upi_payer_vpa VARCHAR"))
+        db.commit()
+        logger.info("Added upi_payer_vpa column to orders table.")
+    except Exception as e:
+        db.rollback()
+
+    try:
+        db.execute(text("ALTER TABLE orders ADD COLUMN payment_proof_url VARCHAR"))
+        db.commit()
+        logger.info("Added payment_proof_url column to orders table.")
+    except Exception as e:
+        db.rollback()
     finally:
         db.close()
 
@@ -316,15 +345,28 @@ def place_order(
         raise HTTPException(status_code=500, detail="Error placing order.")
 
 
+@app.get("/payment/config", response_model=schemas.PaymentConfigResponse)
+def get_payment_config():
+    """
+    Returns public merchant UPI payment details for QR code rendering.
+    """
+    return {
+        "upi_id": settings.UPI_ID,
+        "upi_name": settings.UPI_NAME
+    }
+
+
 @app.post("/orders/{order_id}/checkout", response_model=schemas.OrderResponse)
 def checkout_order(
     order_id: int, 
+    checkout_data: schemas.OrderCheckoutRequest = schemas.OrderCheckoutRequest(),
     current_user: models.User = Depends(auth.get_current_user), 
     db: Session = Depends(get_db)
 ):
     """
-    Checkout submission endpoint. Validates the order belongs to the user
-    and keeps the order in 'pending' status awaiting administrator approval.
+    Checkout submission endpoint. Validates the order belongs to the user,
+    records payment method and UPI transaction ID (UTR), and keeps the order 
+    in 'pending' status awaiting administrator approval.
     """
     order = db.query(models.Order).filter(models.Order.id == order_id).first()
     if not order:
@@ -336,7 +378,18 @@ def checkout_order(
     if order.status == "cancelled":
         raise HTTPException(status_code=400, detail="Order has been cancelled.")
         
-    # The order remains pending admin approval; SW and commissions will be awarded upon Admin approval
+    # Record payment transaction metadata
+    if checkout_data.payment_method:
+        order.payment_method = checkout_data.payment_method
+    if checkout_data.upi_trans_id:
+        order.upi_trans_id = checkout_data.upi_trans_id.strip()
+    if checkout_data.upi_payer_vpa:
+        order.upi_payer_vpa = checkout_data.upi_payer_vpa.strip()
+    if checkout_data.payment_proof_url:
+        order.payment_proof_url = checkout_data.payment_proof_url.strip()
+
+    db.commit()
+    db.refresh(order)
     return order
 
 

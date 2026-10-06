@@ -171,17 +171,32 @@ class OrderItemResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class OrderCheckoutRequest(BaseModel):
+    payment_method: Optional[str] = "upi_qr"
+    upi_trans_id: Optional[str] = None
+    upi_payer_vpa: Optional[str] = None
+    payment_proof_url: Optional[str] = None
+
 class OrderResponse(BaseModel):
     id: int
     user_id: int
     total_amount: float
     total_sw: int
     status: str
+    payment_method: Optional[str] = "upi_qr"
+    upi_trans_id: Optional[str] = None
+    upi_payer_vpa: Optional[str] = None
+    payment_proof_url: Optional[str] = None
     created_at: datetime
     items: List[OrderItemResponse]
 
     class Config:
         from_attributes = True
+
+
+class PaymentConfigResponse(BaseModel):
+    upi_id: str
+    upi_name: str
 
 
 # --- Commission Schemas ---

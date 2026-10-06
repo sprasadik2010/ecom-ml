@@ -138,7 +138,14 @@ class Order(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     total_amount = Column(Float, nullable=False)
     total_sw = Column(Integer, nullable=False)
-    status = Column(String, default="pending") # 'pending' or 'completed'
+    status = Column(String, default="pending") # 'pending', 'completed', 'cancelled'
+    
+    # Payment & UPI Details
+    payment_method = Column(String, default="upi_qr") # 'upi_qr', 'card', 'bank_transfer'
+    upi_trans_id = Column(String, nullable=True)     # 12-digit UPI Reference / UTR
+    upi_payer_vpa = Column(String, nullable=True)    # Payer's VPA / UPI ID (e.g. user@okaxis)
+    payment_proof_url = Column(String, nullable=True) # Optional payment screenshot
+    
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     user = relationship("User", back_populates="orders")

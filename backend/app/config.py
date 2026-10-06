@@ -15,4 +15,8 @@ class Settings:
     # MLM Rules
     MIN_PURCHASE_FOR_ACTIVATION: float = 50.0   # 50 SW to become active member
 
+    # UPI Payment Configuration
+    UPI_ID: str = os.getenv("UPI_ID", "merchant@okhdfcbank")
+    UPI_NAME: str = os.getenv("UPI_NAME", "Business MLM Store")
+
 settings = Settings()
