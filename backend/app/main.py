@@ -101,6 +101,14 @@ def on_startup():
     finally:
         db.close()
 
+    # Automatically ensure default admin, root user, and product catalog are seeded
+    try:
+        from .seed import seed_db
+        seed_db()
+        logger.info("Startup database seeding verified.")
+    except Exception as e:
+        logger.warning(f"Startup database seeding notice: {e}")
+
 
 # Configure CORS
 origins = [
