@@ -20,7 +20,7 @@ import confetti from 'canvas-confetti';
 
 export const Checkout: React.FC = () => {
   const { items, totalAmount, totalSw, clearCart } = useCart();
-  const { token, refreshUser } = useAuth();
+  const { token, user, refreshUser } = useAuth();
   const navigate = useNavigate();
 
   const [checkoutStep, setCheckoutStep] = useState<'checkout' | 'success'>('checkout');
@@ -34,14 +34,21 @@ export const Checkout: React.FC = () => {
   const [merchantUpiName, setMerchantUpiName] = useState('Business MLM Store');
 
   // Form states
-  const [fullName, setFullName] = useState('');
+  const [fullName, setFullName] = useState(user?.full_name || '');
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
+  const [stateName, setStateName] = useState('');
   const [zipCode, setZipCode] = useState('');
+  const [phone, setPhone] = useState(user?.phone_number || '');
   const [upiTransId, setUpiTransId] = useState('');
   const [upiPayerVpa, setUpiPayerVpa] = useState('');
 
   // Fetch backend payment configuration on mount
+  useEffect(() => {
+    if (user?.full_name && !fullName) setFullName(user.full_name);
+    if (user?.phone_number && !phone) setPhone(user.phone_number);
+  }, [user]);
+
   useEffect(() => {
     const fetchPaymentConfig = async () => {
       try {
@@ -83,12 +90,18 @@ export const Checkout: React.FC = () => {
     setError('');
 
     try {
-      // 1. Create order on the backend
+      // 1. Create order on the backend with shipping details
       const orderPayload = {
         items: items.map((item) => ({
           product_id: item.product.id,
           quantity: item.quantity,
         })),
+        shipping_name: fullName.trim() || undefined,
+        shipping_address: address.trim() || undefined,
+        shipping_city: city.trim() || undefined,
+        shipping_state: stateName.trim() || undefined,
+        shipping_zip: zipCode.trim() || undefined,
+        shipping_phone: phone.trim() || undefined,
       };
 
       const orderResponse = await fetch(`${API_BASE_URL}/orders`, {
@@ -113,6 +126,12 @@ export const Checkout: React.FC = () => {
         payment_method: 'upi_qr',
         upi_trans_id: upiTransId.trim(),
         upi_payer_vpa: upiPayerVpa.trim() || undefined,
+        shipping_name: fullName.trim() || undefined,
+        shipping_address: address.trim() || undefined,
+        shipping_city: city.trim() || undefined,
+        shipping_state: stateName.trim() || undefined,
+        shipping_zip: zipCode.trim() || undefined,
+        shipping_phone: phone.trim() || undefined,
       };
 
       const checkoutResponse = await fetch(`${API_BASE_URL}/orders/${orderId}/checkout`, {
@@ -262,25 +281,47 @@ export const Checkout: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="text-slate-400 block mb-1">City</label>
+                <label className="text-slate-400 block mb-1">City / District</label>
                 <input
                   type="text"
                   required
-                  placeholder="Mumbai"
+                  placeholder="e.g. Mumbai"
                   className="w-full bg-slate-950 border border-slate-800 rounded p-2.5 focus:outline-none focus:border-amber-500 text-slate-200"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
                 />
               </div>
               <div>
-                <label className="text-slate-400 block mb-1">ZIP / Postal Code</label>
+                <label className="text-slate-400 block mb-1">State / Province</label>
                 <input
                   type="text"
                   required
-                  placeholder="400001"
+                  placeholder="e.g. Maharashtra"
+                  className="w-full bg-slate-950 border border-slate-800 rounded p-2.5 focus:outline-none focus:border-amber-500 text-slate-200"
+                  value={stateName}
+                  onChange={(e) => setStateName(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-slate-400 block mb-1">PIN / Postal Code</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. 400001"
                   className="w-full bg-slate-950 border border-slate-800 rounded p-2.5 focus:outline-none focus:border-amber-500 text-slate-200"
                   value={zipCode}
                   onChange={(e) => setZipCode(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-slate-400 block mb-1">Delivery Contact Phone</label>
+                <input
+                  type="tel"
+                  required
+                  placeholder="e.g. +91 98765 43210"
+                  className="w-full bg-slate-950 border border-slate-800 rounded p-2.5 focus:outline-none focus:border-amber-500 text-slate-200"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                 />
               </div>
             </div>

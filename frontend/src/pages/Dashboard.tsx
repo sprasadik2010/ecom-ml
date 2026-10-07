@@ -10,6 +10,10 @@ interface Order {
   total_sw: number;
   status: string;
   created_at: string;
+  dispatch_status?: string;
+  courier_name?: string;
+  tracking_number?: string;
+  tracking_url?: string;
 }
 
 interface RankReward {

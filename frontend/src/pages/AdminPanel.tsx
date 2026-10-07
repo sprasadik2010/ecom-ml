@@ -26,7 +26,16 @@ import {
   Sparkles,
   Zap,
   Copy,
-  QrCode
+  QrCode,
+  Truck,
+  ExternalLink,
+  Printer,
+  MapPin,
+  Mail,
+  Phone,
+  Package,
+  Send,
+  CheckCircle2
 } from 'lucide-react';
 import { API_BASE_URL } from '../context/AuthContext';
 
@@ -53,6 +62,9 @@ interface UserListItem {
   username: string;
   email: string;
   full_name: string;
+  phone_number?: string;
+  phone?: string;
+  address?: string;
   status: 'active' | 'inactive';
   is_admin: boolean;
   sponsor_id: number | null;
@@ -92,16 +104,33 @@ interface OrderListItem {
   user_id: number;
   total_amount: number;
   total_sw: number;
-  status: 'pending' | 'completed' | 'cancelled';
+  status: 'pending' | 'completed' | 'cancelled' | string;
   payment_method?: string;
   upi_trans_id?: string;
   upi_payer_vpa?: string;
   payment_proof_url?: string;
+  shipping_name?: string;
+  shipping_address?: string;
+  shipping_city?: string;
+  shipping_state?: string;
+  shipping_zip?: string;
+  shipping_phone?: string;
+  dispatch_status?: string;
+  courier_name?: string;
+  tracking_number?: string;
+  tracking_url?: string;
+  dispatched_at?: string;
+  delivered_at?: string;
+  dispatch_notes?: string;
+  user_username?: string;
+  user_full_name?: string;
+  user_phone?: string;
   created_at: string;
   items: OrderItem[];
   user?: {
     username: string;
     full_name: string;
+    phone_number?: string;
   };
 }
 
@@ -169,6 +198,17 @@ export const AdminPanel: React.FC = () => {
   const [rewards, setRewards] = useState<RankRewardItem[]>([]);
   const [processingRewards, setProcessingRewards] = useState(false);
 
+  // Dispatch Management State
+  const [isDispatchModalOpen, setIsDispatchModalOpen] = useState(false);
+  const [selectedDispatchOrder, setSelectedDispatchOrder] = useState<OrderListItem | null>(null);
+  const [dispatchFilter, setDispatchFilter] = useState<'all' | 'pending' | 'ready_dispatch' | 'dispatched' | 'delivered' | 'cancelled'>('all');
+  const [dispatchForm, setDispatchForm] = useState({
+    dispatch_status: 'dispatched',
+    courier_name: 'India Post (Speed Post)',
+    tracking_number: '',
+    tracking_url: 'https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx',
+    dispatch_notes: ''
+  });
 
   // Product Modals / Forms
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
@@ -660,6 +700,167 @@ export const AdminPanel: React.FC = () => {
     }
   };
 
+  // Dispatch & Postal Tracking Operations
+  const handleOpenDispatchModal = (order: OrderListItem) => {
+    setSelectedDispatchOrder(order);
+    setDispatchForm({
+      dispatch_status: order.dispatch_status && order.dispatch_status !== 'pending' ? order.dispatch_status : 'dispatched',
+      courier_name: order.courier_name || 'India Post (Speed Post)',
+      tracking_number: order.tracking_number || '',
+      tracking_url: order.tracking_url || 'https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx',
+      dispatch_notes: order.dispatch_notes || ''
+    });
+    setIsDispatchModalOpen(true);
+  };
+
+  const handleDispatchSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedDispatchOrder) return;
+    if (dispatchForm.dispatch_status === 'dispatched' && !dispatchForm.tracking_number.trim()) {
+      triggerError('Please enter a postal tracking / consignment number (e.g. EK123456789IN).');
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/orders/${selectedDispatchOrder.id}/dispatch`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(dispatchForm)
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.detail || 'Failed to update dispatch tracking.');
+      }
+
+      triggerSuccess(`Order #${selectedDispatchOrder.id} postal dispatch details saved! Tracking ID: ${dispatchForm.tracking_number || 'Updated'}`);
+      setIsDispatchModalOpen(false);
+      fetchOrders();
+    } catch (err: any) {
+      triggerError(err.message || 'Error updating dispatch tracking.');
+    }
+  };
+
+  const handleQuickMarkDelivered = async (orderId: number) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/orders/${orderId}/dispatch`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          dispatch_status: 'delivered',
+          courier_name: 'India Post',
+          tracking_url: 'https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx'
+        })
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.detail || 'Failed to update order to delivered.');
+      }
+
+      triggerSuccess(`Order #${orderId} marked as DELIVERED to recipient!`);
+      fetchOrders();
+    } catch (err: any) {
+      triggerError(err.message || 'Error marking order delivered.');
+    }
+  };
+
+  const handlePrintPostalSlip = (order: OrderListItem) => {
+    const buyer = order.user || getUserById(order.user_id);
+    const recipientName = order.shipping_name || buyer?.full_name || `Customer #${order.user_id}`;
+    const address = order.shipping_address || 'Address on file';
+    const city = order.shipping_city || '';
+    const state = order.shipping_state || '';
+    const zip = order.shipping_zip || '';
+    const phone = order.shipping_phone || buyer?.phone_number || '';
+    const trackingNo = order.tracking_number || 'PENDING DISPATCH';
+    const courier = order.courier_name || 'India Post - Speed Post';
+    const itemsList = order.items.map(i => `${i.quantity}x ${i.product ? i.product.name : 'Product'} (₹${i.price.toFixed(2)})`).join(', ');
+
+    const printWindow = window.open('', '_blank', 'width=750,height=600');
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Postal Dispatch Label - Order #${order.id}</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 25px; color: #111; }
+          .parcel-label { border: 2px dashed #222; padding: 22px; max-width: 620px; margin: 0 auto; }
+          .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #000; padding-bottom: 12px; margin-bottom: 15px; }
+          .title { font-size: 20px; font-weight: 900; text-transform: uppercase; color: #991b1b; }
+          .subtitle { font-size: 11px; color: #444; font-weight: bold; }
+          .tracking-box { background: #f4f4f5; border: 1.5px solid #71717a; padding: 10px 14px; margin: 14px 0; font-family: 'Courier New', monospace; font-size: 16px; font-weight: 900; }
+          .address-section { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px; }
+          .box { border: 1px solid #a1a1aa; padding: 12px; border-radius: 6px; }
+          .box h4 { margin: 0 0 6px 0; font-size: 11px; text-transform: uppercase; color: #52525b; border-bottom: 1px solid #e4e4e7; padding-bottom: 4px; }
+          .box p { margin: 3px 0; font-size: 13px; line-height: 1.4; }
+          .bold { font-weight: bold; }
+          .items { margin-top: 14px; font-size: 11px; border-top: 1px solid #e4e4e7; padding-top: 10px; color: #3f3f46; }
+          .barcode { font-family: 'Courier New', monospace; letter-spacing: 5px; font-size: 22px; text-align: center; margin: 10px 0; }
+          @media print { .no-print { display: none; } }
+        </style>
+      </head>
+      <body>
+        <div class="no-print" style="margin-bottom: 15px; text-align: right;">
+          <button onclick="window.print()" style="padding: 9px 18px; background: #0f172a; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">🖨️ Print Postal Label</button>
+        </div>
+        <div class="parcel-label">
+          <div class="header">
+            <div>
+              <div class="title">${courier}</div>
+              <div class="subtitle">Postal Dept Logistics & Consignment Delivery</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 15px; font-weight: 900;">ORDER #00${order.id}</div>
+              <div style="font-size: 11px; color: #666;">Date: ${new Date(order.created_at).toLocaleDateString()}</div>
+            </div>
+          </div>
+
+          <div class="tracking-box">
+            <span>CONSIGNMENT / POSTAL TRACKING NO: </span>
+            <span style="color: #0284c7; text-decoration: underline;">${trackingNo}</span>
+          </div>
+
+          <div class="barcode">||| ||||| || |||||| | ||| |||| | |||||</div>
+
+          <div class="address-section">
+            <div class="box">
+              <h4>📦 DELIVER TO (CONSIGNEE):</h4>
+              <p class="bold" style="font-size: 14px; color: #0f172a;">${recipientName}</p>
+              <p>${address}</p>
+              <p>${city} ${state ? ', ' + state : ''}</p>
+              <p class="bold" style="font-size: 14px; margin-top: 4px;">PIN: ${zip || 'N/A'}</p>
+              ${phone ? `<p class="bold" style="margin-top: 6px; color: #047857;">📞 Mobile: ${phone}</p>` : ''}
+            </div>
+
+            <div class="box">
+              <h4>🏢 SENDER (DISPATCH HUB):</h4>
+              <p class="bold">Business MLM Fulfillment Center</p>
+              <p>National Logistics & Distribution Central Hub</p>
+              <p>Customer Support: support@business-mlm.com</p>
+              <p style="margin-top: 8px; font-size: 11px; color: #555;">Payment Status: <strong>PAID (Prepaid UPI)</strong></p>
+            </div>
+          </div>
+
+          <div class="items">
+            <strong>Package Contents:</strong> ${itemsList} <br/>
+            <strong>Total Order Value:</strong> ₹${order.total_amount.toFixed(2)} (${order.total_sw} SW)
+          </div>
+        </div>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
   // Resolvers to look up usernames from user IDs
   const getUserById = (id: number | null): UserListItem | undefined => {
     if (!id) return undefined;
@@ -684,13 +885,28 @@ export const AdminPanel: React.FC = () => {
     const buyerName = o.user?.full_name || getUserById(o.user_id)?.full_name || '';
     const buyerUser = o.user?.username || getUserById(o.user_id)?.username || '';
     const utr = o.upi_trans_id || '';
-    return (
+    const tracking = o.tracking_number || '';
+    const courier = o.courier_name || '';
+
+    const matchesSearch =
       o.id.toString().includes(orderSearch) ||
       buyerName.toLowerCase().includes(orderSearch.toLowerCase()) ||
       buyerUser.toLowerCase().includes(orderSearch.toLowerCase()) ||
       utr.toLowerCase().includes(orderSearch.toLowerCase()) ||
-      o.status.toLowerCase().includes(orderSearch.toLowerCase())
-    );
+      tracking.toLowerCase().includes(orderSearch.toLowerCase()) ||
+      courier.toLowerCase().includes(orderSearch.toLowerCase()) ||
+      o.status.toLowerCase().includes(orderSearch.toLowerCase());
+
+    if (!matchesSearch) return false;
+
+    if (dispatchFilter === 'all') return true;
+    if (dispatchFilter === 'pending') return o.status === 'pending';
+    if (dispatchFilter === 'ready_dispatch') return o.status === 'completed' && (!o.dispatch_status || o.dispatch_status === 'pending');
+    if (dispatchFilter === 'dispatched') return o.dispatch_status === 'dispatched' || o.dispatch_status === 'in_transit';
+    if (dispatchFilter === 'delivered') return o.dispatch_status === 'delivered';
+    if (dispatchFilter === 'cancelled') return o.status === 'cancelled';
+
+    return true;
   });
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -1428,77 +1644,294 @@ export const AdminPanel: React.FC = () => {
             </div>
           )}
 
-          {/* ORDERS TAB */}
+          {/* ORDERS & DISPATCH MANAGEMENT TAB */}
           {activeTab === 'orders' && (
             <div className="bg-slate-900 border border-slate-850 rounded-2xl shadow-sm p-6 space-y-6">
-              {/* Search orders */}
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="relative flex-1 max-w-sm">
+              {/* Header & Stats Banner */}
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-850 pb-5">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="p-1.5 bg-blue-500/10 text-blue-400 rounded border border-blue-500/20 font-bold uppercase text-[9px] tracking-wider font-sans flex items-center gap-1">
+                      <Truck size={12} />
+                      Logistics & Dispatch Management
+                    </span>
+                    <span className="text-slate-400 font-mono text-xs">Postal Department Integration</span>
+                  </div>
+                  <h2 className="text-xl font-black text-white mt-1 uppercase tracking-tight font-sans flex items-center gap-2">
+                    <span>Order Processing & Postal Fulfillment</span>
+                  </h2>
+                  <p className="text-slate-400 text-xs mt-0.5">
+                    Verify UPI payments, print postal parcel slips, enter postal consignment tracking numbers (India Post / Speed Post), and keep members updated with live tracking.
+                  </p>
+                </div>
+              </div>
+
+              {/* Metric Highlights */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                <div 
+                  onClick={() => setDispatchFilter('all')}
+                  className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
+                    dispatchFilter === 'all' 
+                      ? 'bg-slate-850 border-amber-500/50 shadow-md' 
+                      : 'bg-slate-950/60 border-slate-850 hover:border-slate-800'
+                  }`}
+                >
+                  <span className="text-slate-500 text-[9px] uppercase font-bold tracking-wider block">Total Orders</span>
+                  <div className="text-lg font-black text-white font-mono mt-0.5">{orders.length}</div>
+                  <span className="text-[9px] text-slate-400">All placed orders</span>
+                </div>
+
+                <div 
+                  onClick={() => setDispatchFilter('pending')}
+                  className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
+                    dispatchFilter === 'pending' 
+                      ? 'bg-amber-950/30 border-amber-500 shadow-md' 
+                      : 'bg-slate-950/60 border-slate-850 hover:border-slate-800'
+                  }`}
+                >
+                  <span className="text-amber-400 text-[9px] uppercase font-bold tracking-wider block">Awaiting Verification</span>
+                  <div className="text-lg font-black text-amber-300 font-mono mt-0.5">
+                    {orders.filter(o => o.status === 'pending').length}
+                  </div>
+                  <span className="text-[9px] text-slate-400">Needs admin approval</span>
+                </div>
+
+                <div 
+                  onClick={() => setDispatchFilter('ready_dispatch')}
+                  className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
+                    dispatchFilter === 'ready_dispatch' 
+                      ? 'bg-blue-950/40 border-blue-500 shadow-md ring-1 ring-blue-500/30' 
+                      : 'bg-slate-950/60 border-slate-850 hover:border-slate-800'
+                  }`}
+                >
+                  <span className="text-blue-400 text-[9px] uppercase font-bold tracking-wider block flex items-center gap-1">
+                    <Package size={10} />
+                    Ready for Dispatch
+                  </span>
+                  <div className="text-lg font-black text-blue-300 font-mono mt-0.5">
+                    {orders.filter(o => o.status === 'completed' && (!o.dispatch_status || o.dispatch_status === 'pending')).length}
+                  </div>
+                  <span className="text-[9px] text-blue-400/80 font-bold">Needs postal booking</span>
+                </div>
+
+                <div 
+                  onClick={() => setDispatchFilter('dispatched')}
+                  className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
+                    dispatchFilter === 'dispatched' 
+                      ? 'bg-sky-950/40 border-sky-500 shadow-md' 
+                      : 'bg-slate-950/60 border-slate-850 hover:border-slate-800'
+                  }`}
+                >
+                  <span className="text-sky-400 text-[9px] uppercase font-bold tracking-wider block flex items-center gap-1">
+                    <Truck size={10} />
+                    In Postal Transit
+                  </span>
+                  <div className="text-lg font-black text-sky-300 font-mono mt-0.5">
+                    {orders.filter(o => o.dispatch_status === 'dispatched' || o.dispatch_status === 'in_transit').length}
+                  </div>
+                  <span className="text-[9px] text-slate-400">Tracking assigned</span>
+                </div>
+
+                <div 
+                  onClick={() => setDispatchFilter('delivered')}
+                  className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
+                    dispatchFilter === 'delivered' 
+                      ? 'bg-emerald-950/30 border-emerald-500 shadow-md' 
+                      : 'bg-slate-950/60 border-slate-850 hover:border-slate-800'
+                  }`}
+                >
+                  <span className="text-emerald-400 text-[9px] uppercase font-bold tracking-wider block flex items-center gap-1">
+                    <CheckCircle2 size={10} />
+                    Delivered
+                  </span>
+                  <div className="text-lg font-black text-emerald-300 font-mono mt-0.5">
+                    {orders.filter(o => o.dispatch_status === 'delivered').length}
+                  </div>
+                  <span className="text-[9px] text-slate-400">Postal delivery complete</span>
+                </div>
+              </div>
+
+              {/* Search & Filter Bar */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-950/80 p-3.5 rounded-xl border border-slate-850">
+                {/* Status Filter Buttons */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+                  {[
+                    { id: 'all', label: 'All Orders', count: orders.length },
+                    { id: 'pending', label: 'Pending Approval', count: orders.filter(o => o.status === 'pending').length },
+                    { id: 'ready_dispatch', label: '📦 Ready to Post', count: orders.filter(o => o.status === 'completed' && (!o.dispatch_status || o.dispatch_status === 'pending')).length },
+                    { id: 'dispatched', label: '🚚 In Postal Transit', count: orders.filter(o => o.dispatch_status === 'dispatched' || o.dispatch_status === 'in_transit').length },
+                    { id: 'delivered', label: '✅ Delivered', count: orders.filter(o => o.dispatch_status === 'delivered').length },
+                    { id: 'cancelled', label: '❌ Cancelled', count: orders.filter(o => o.status === 'cancelled').length }
+                  ].map((f) => (
+                    <button
+                      key={f.id}
+                      onClick={() => setDispatchFilter(f.id as any)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer shrink-0 ${
+                        dispatchFilter === f.id
+                          ? 'bg-amber-500 text-slate-950 shadow-sm'
+                          : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
+                      }`}
+                    >
+                      <span>{f.label}</span>
+                      <span className={`ml-1.5 px-1.5 py-0.2 rounded-full text-[10px] ${
+                        dispatchFilter === f.id ? 'bg-slate-950/20 text-slate-950' : 'bg-slate-950 text-slate-400'
+                      }`}>
+                        {f.count}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Search orders */}
+                <div className="relative w-full md:w-80">
                   <input
                     type="text"
-                    placeholder="Search by order ID, buyer username or status..."
-                    className="w-full bg-slate-950 border border-slate-850 text-slate-100 rounded-full pl-10 pr-4 py-1.5 focus:outline-none focus:border-rose-500 text-xs transition-colors"
+                    placeholder="Search Order #, Tracking ID, Consignee, City..."
+                    className="w-full bg-slate-900 border border-slate-800 text-slate-100 rounded-lg pl-9 pr-4 py-1.5 focus:outline-none focus:border-amber-500 text-xs transition-colors"
                     value={orderSearch}
                     onChange={(e) => setOrderSearch(e.target.value)}
                   />
-                  <Search size={14} className="absolute left-3.5 top-2.5 text-slate-500" />
+                  <Search size={14} className="absolute left-3 top-2 text-slate-500" />
                 </div>
               </div>
+
               {/* Desktop View Table */}
-              <div className="hidden md:block overflow-x-auto rounded-lg border border-slate-850 font-sans">
+              <div className="hidden md:block overflow-x-auto rounded-xl border border-slate-850 font-sans">
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-slate-950 text-slate-400 text-[10px] font-black uppercase tracking-wider border-b border-slate-850 font-mono">
                       <th className="py-3 px-4">Order ID & Date</th>
-                      <th className="py-3 px-4">Buyer Member</th>
-                      <th className="py-3 px-4">Items Summary</th>
-                      <th className="py-3 px-4 text-right">Payment & UTR</th>
-                      <th className="py-3 px-4 text-center">Volume (SW)</th>
-                      <th className="py-3 px-4 text-center">Checkout Status</th>
-                      <th className="py-3 px-4 text-center">Actions</th>
+                      <th className="py-3 px-4">Postal Delivery Address (Consignee)</th>
+                      <th className="py-3 px-4">Items & Amount</th>
+                      <th className="py-3 px-4">Payment & UTR</th>
+                      <th className="py-3 px-4">Postal Dispatch & Tracking</th>
+                      <th className="py-3 px-4 text-center">Fulfillment Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-850 text-xs">
                     {filteredOrders.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="py-8 text-center text-slate-500">
-                          No orders matched.
+                        <td colSpan={6} className="py-12 text-center text-slate-500">
+                          <Package size={32} className="mx-auto text-slate-600 mb-2" />
+                          <div className="font-bold text-slate-300">No orders match your filter criteria</div>
+                          <div className="text-[11px] text-slate-500 mt-0.5">Try clearing search or changing the filter tab above.</div>
                         </td>
                       </tr>
                     ) : (
                       filteredOrders.map((o) => {
                         const buyer = o.user || getUserById(o.user_id);
+                        const isApproved = o.status === 'completed';
+                        const isPending = o.status === 'pending';
+                        const isCancelled = o.status === 'cancelled';
+                        const isDispatched = o.dispatch_status === 'dispatched' || o.dispatch_status === 'in_transit';
+                        const isDelivered = o.dispatch_status === 'delivered';
+                        const isAwaitingDispatch = isApproved && (!o.dispatch_status || o.dispatch_status === 'pending');
+
+                        const recipientName = o.shipping_name || buyer?.full_name || `User #${o.user_id}`;
+                        const recipientPhone = o.shipping_phone || buyer?.phone_number || '';
+                        const fullAddressString = [
+                          o.shipping_address,
+                          o.shipping_city,
+                          o.shipping_state,
+                          o.shipping_zip ? `PIN: ${o.shipping_zip}` : ''
+                        ].filter(Boolean).join(', ');
+
                         return (
                           <tr key={o.id} className="hover:bg-slate-950/40 transition-colors font-normal">
-                            <td className="py-3 px-4">
-                              <div className="font-bold text-slate-200">#Order {o.id}</div>
-                              <div className="text-[10px] text-slate-500 font-sans font-normal">
-                                {new Date(o.created_at).toLocaleString()}
+                            {/* Order ID & Date */}
+                            <td className="py-3.5 px-4 align-top">
+                              <div className="font-bold text-slate-100 font-mono text-sm">#Order 00{o.id}</div>
+                              <div className="text-[10px] text-slate-400 font-sans mt-0.5 flex items-center gap-1">
+                                <Clock size={11} className="text-slate-500" />
+                                {new Date(o.created_at).toLocaleDateString(undefined, {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </div>
+                              <div className="text-[10px] text-amber-400 font-mono font-bold mt-1">
+                                {o.total_sw} SW Volume
                               </div>
                             </td>
-                            <td className="py-3 px-4">
-                              <div className="font-bold text-slate-202">
-                                {buyer ? buyer.full_name : `User ID ${o.user_id}`}
+
+                            {/* Consignee & Shipping Destination */}
+                            <td className="py-3.5 px-4 align-top max-w-[240px]">
+                              <div className="font-bold text-slate-100 text-xs flex items-center gap-1">
+                                <span>{recipientName}</span>
+                                {buyer && <span className="text-[10px] text-slate-400 font-normal">(@{buyer.username})</span>}
                               </div>
-                              <div className="text-[10px] text-slate-450 font-normal">
-                                {buyer ? `@${buyer.username}` : ''}
-                              </div>
+                              
+                              {fullAddressString ? (
+                                <div className="text-[11px] text-slate-300 mt-1 leading-tight flex items-start gap-1">
+                                  <MapPin size={12} className="text-amber-500 shrink-0 mt-0.5" />
+                                  <span>{fullAddressString}</span>
+                                </div>
+                              ) : (
+                                <div className="text-[10px] text-slate-500 italic mt-0.5">
+                                  Address on Member Profile
+                                </div>
+                              )}
+
+                              {recipientPhone && (
+                                <div className="text-[10px] text-emerald-400 font-mono mt-1 flex items-center gap-1">
+                                  <Phone size={10} className="shrink-0" />
+                                  <span>{recipientPhone}</span>
+                                </div>
+                              )}
+
+                              {/* Quick copy address */}
+                              {fullAddressString && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const fullText = `${recipientName}, ${fullAddressString}${recipientPhone ? ', Phone: ' + recipientPhone : ''}`;
+                                    navigator.clipboard.writeText(fullText);
+                                    triggerSuccess('Copied shipping address to clipboard!');
+                                  }}
+                                  className="mt-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 bg-slate-950 hover:bg-slate-850 text-slate-400 hover:text-slate-200 rounded text-[9px] border border-slate-800 transition-colors cursor-pointer"
+                                  title="Copy complete postal label address"
+                                >
+                                  <Copy size={10} />
+                                  <span>Copy Address</span>
+                                </button>
+                              )}
                             </td>
-                            <td className="py-3 px-4 font-normal">
-                              <div className="max-w-[200px] text-[10px] text-slate-350 space-y-1 font-sans">
+
+                            {/* Items & Price */}
+                            <td className="py-3.5 px-4 align-top">
+                              <div className="font-mono font-black text-slate-100 text-sm">
+                                ₹{o.total_amount.toFixed(2)}
+                              </div>
+                              <div className="text-[10px] text-slate-400 space-y-0.5 mt-1 max-w-[180px]">
                                 {o.items.map((item, idx) => (
                                   <div key={idx} className="line-clamp-1">
-                                    {item.quantity}x {item.product ? item.product.name : `Product ${item.product_id}`}
+                                    {item.quantity}x {item.product ? item.product.name : `Product #${item.product_id}`}
                                   </div>
                                 ))}
                               </div>
                             </td>
-                            <td className="py-3 px-4 text-right">
-                              <div className="font-mono font-bold text-slate-200 text-sm">
-                                ₹{o.total_amount.toFixed(2)}
+
+                            {/* Payment & UTR */}
+                            <td className="py-3.5 px-4 align-top">
+                              <div>
+                                <span
+                                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold ${
+                                    isApproved
+                                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                      : isPending
+                                      ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                      : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                                  }`}
+                                >
+                                  {isApproved && <Check size={10} />}
+                                  {isPending && <Clock size={10} />}
+                                  {isApproved ? 'PAYMENT VERIFIED' : isPending ? 'PENDING UTR CHECK' : 'CANCELLED'}
+                                </span>
                               </div>
+
                               {o.upi_trans_id ? (
-                                <div className="flex items-center justify-end gap-1.5 mt-0.5">
+                                <div className="flex items-center gap-1 mt-1.5">
                                   <span className="font-mono text-emerald-400 bg-slate-950 px-1.5 py-0.5 rounded border border-emerald-500/20 text-[10px] font-bold">
                                     UTR: {o.upi_trans_id}
                                   </span>
@@ -1510,63 +1943,207 @@ export const AdminPanel: React.FC = () => {
                                     className="p-1 text-slate-400 hover:text-slate-200 bg-slate-950 rounded border border-slate-800 transition-colors cursor-pointer"
                                     title="Copy UTR to verify in Bank"
                                   >
-                                    <Copy size={11} />
+                                    <Copy size={10} />
                                   </button>
                                 </div>
                               ) : (
-                                <span className="text-[10px] text-slate-500 font-mono">No UTR logged</span>
+                                <div className="text-[10px] text-slate-500 font-mono mt-1">No UTR logged</div>
                               )}
+                              
                               {o.upi_payer_vpa && (
                                 <div className="text-[9px] text-slate-400 font-mono mt-0.5">
                                   VPA: {o.upi_payer_vpa}
                                 </div>
                               )}
                             </td>
-                            <td className="py-3 px-4 text-center font-mono font-bold text-amber-400">
-                              {o.total_sw} SW
-                            </td>
-                            <td className="py-3 px-4 text-center">
-                              <span
-                                className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[9px] font-bold ${
-                                  o.status === 'completed'
-                                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                    : o.status === 'pending'
-                                    ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                                    : 'bg-red-500/10 text-red-400 border border-red-500/20'
-                                }`}
-                              >
-                                {o.status === 'completed' && <Check size={10} />}
-                                {o.status === 'pending' && <Clock size={10} />}
-                                {o.status === 'completed' ? 'APPROVED / CREDITED' : o.status === 'pending' ? 'PENDING APPROVAL' : 'CANCELLED'}
-                              </span>
-                            </td>
-                            <td className="py-3 px-4 text-center">
-                              {o.status === 'pending' && (
-                                <div className="flex items-center justify-center gap-1.5 font-sans">
-                                  <button
-                                    onClick={() => handleUpdateOrderStatus(o.id, 'completed')}
-                                    className="px-2.5 py-1 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold rounded flex items-center gap-1 text-[11px] shadow-sm cursor-pointer transition-colors"
-                                    title="Approve Order & Credit Sales Wallet"
-                                  >
-                                    <Check size={12} />
-                                    <span>Approve</span>
-                                  </button>
-                                  <button
-                                    onClick={() => handleUpdateOrderStatus(o.id, 'cancelled')}
-                                    className="px-2.5 py-1 bg-red-500/10 hover:bg-red-500 hover:text-white text-red-400 font-bold rounded border border-red-500/20 flex items-center gap-1 text-[11px] cursor-pointer transition-colors"
-                                    title="Cancel Order & Restore Stock"
-                                  >
-                                    <X size={12} />
-                                    <span>Cancel</span>
-                                  </button>
+
+                            {/* Postal Dispatch & Tracking Status */}
+                            <td className="py-3.5 px-4 align-top max-w-[260px]">
+                              {isPending ? (
+                                <div className="text-[11px] text-amber-400/80 bg-amber-950/20 border border-amber-500/20 p-2 rounded-lg">
+                                  <span>⚠️ Approve payment first before postal dispatch.</span>
                                 </div>
-                              )}
-                              {o.status === 'completed' && (
-                                <span className="text-[10px] text-emerald-400 font-mono font-bold">SW Credited</span>
-                              )}
-                              {o.status === 'cancelled' && (
-                                <span className="text-[10px] text-red-500/60 font-mono font-normal">Cancelled</span>
-                              )}
+                              ) : isCancelled ? (
+                                <div className="text-[10px] text-slate-500 italic">Order cancelled</div>
+                              ) : isAwaitingDispatch ? (
+                                <div className="space-y-1.5">
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-500/10 border border-blue-500/30 text-blue-400 font-bold rounded-md text-[10px] animate-pulse">
+                                    <Package size={11} />
+                                    <span>Ready for Postal Dispatch</span>
+                                  </span>
+                                  <div className="text-[10px] text-slate-400">
+                                    Book parcel at Post Office and enter Consignment Number.
+                                  </div>
+                                </div>
+                              ) : isDispatched ? (
+                                <div className="space-y-1 bg-slate-950/80 p-2.5 rounded-lg border border-slate-800">
+                                  <div className="flex items-center justify-between gap-1">
+                                    <span className="text-[10px] font-bold text-sky-400 flex items-center gap-1">
+                                      <Truck size={12} />
+                                      {o.courier_name || 'India Post (Speed Post)'}
+                                    </span>
+                                    <span className="px-1.5 py-0.2 bg-sky-500/20 text-sky-300 rounded text-[9px] font-bold uppercase">
+                                      In Transit
+                                    </span>
+                                  </div>
+
+                                  {/* Tracking ID Badge */}
+                                  {o.tracking_number ? (
+                                    <div className="flex items-center gap-1.5 mt-1">
+                                      <span className="font-mono font-bold text-slate-100 bg-slate-900 px-2 py-0.5 rounded border border-slate-750 text-xs tracking-wider select-all">
+                                        {o.tracking_number}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          navigator.clipboard.writeText(o.tracking_number || '');
+                                          triggerSuccess(`Copied Tracking Number: ${o.tracking_number}`);
+                                        }}
+                                        className="p-1 bg-slate-850 hover:bg-slate-750 text-slate-300 rounded border border-slate-700 cursor-pointer transition-colors"
+                                        title="Copy Tracking ID"
+                                      >
+                                        <Copy size={11} />
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <span className="text-[10px] text-slate-500 italic">No Tracking ID entered</span>
+                                  )}
+
+                                  {/* Direct Link to Postal Portal */}
+                                  <div className="pt-1 flex items-center justify-between text-[10px]">
+                                    <a
+                                      href={o.tracking_url || 'https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx'}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-blue-400 hover:text-blue-300 font-bold inline-flex items-center gap-1 hover:underline cursor-pointer"
+                                    >
+                                      <span>Track on Postal Dept Website</span>
+                                      <ExternalLink size={10} />
+                                    </a>
+                                  </div>
+
+                                  {o.dispatched_at && (
+                                    <div className="text-[9px] text-slate-500">
+                                      Dispatched: {new Date(o.dispatched_at).toLocaleDateString()}
+                                    </div>
+                                  )}
+                                </div>
+                              ) : isDelivered ? (
+                                <div className="space-y-1 bg-emerald-950/20 p-2.5 rounded-lg border border-emerald-500/20">
+                                  <div className="flex items-center gap-1 text-emerald-400 font-bold text-[10px]">
+                                    <CheckCircle2 size={12} />
+                                    <span>Delivered to Recipient</span>
+                                  </div>
+                                  {o.tracking_number && (
+                                    <div className="text-[10px] font-mono text-slate-300">
+                                      Consignment: <strong className="text-white">{o.tracking_number}</strong>
+                                    </div>
+                                  )}
+                                  {o.delivered_at && (
+                                    <div className="text-[9px] text-slate-400">
+                                      Delivered on: {new Date(o.delivered_at).toLocaleDateString()}
+                                    </div>
+                                  )}
+                                </div>
+                              ) : null}
+                            </td>
+
+                            {/* Action Buttons */}
+                            <td className="py-3.5 px-4 text-center align-top">
+                              <div className="flex flex-col items-center gap-1.5 font-sans">
+                                {/* If Pending: Approve / Cancel */}
+                                {isPending && (
+                                  <>
+                                    <button
+                                      onClick={() => handleUpdateOrderStatus(o.id, 'completed')}
+                                      className="w-full px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold rounded flex items-center justify-center gap-1 text-[11px] shadow-sm cursor-pointer transition-colors"
+                                      title="Approve Order & Credit Sales Wallet"
+                                    >
+                                      <Check size={12} />
+                                      <span>Approve Payment</span>
+                                    </button>
+                                    <button
+                                      onClick={() => handleUpdateOrderStatus(o.id, 'cancelled')}
+                                      className="w-full px-3 py-1 bg-red-500/10 hover:bg-red-500 hover:text-white text-red-400 font-bold rounded border border-red-500/20 flex items-center justify-center gap-1 text-[10px] cursor-pointer transition-colors"
+                                      title="Cancel Order & Restore Stock"
+                                    >
+                                      <X size={11} />
+                                      <span>Cancel</span>
+                                    </button>
+                                  </>
+                                )}
+
+                                {/* If Approved & Ready for Dispatch: Prominent Dispatch Action */}
+                                {isApproved && isAwaitingDispatch && (
+                                  <>
+                                    <button
+                                      onClick={() => handleOpenDispatchModal(o)}
+                                      className="w-full px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white font-extrabold rounded flex items-center justify-center gap-1.5 text-[11px] shadow-md cursor-pointer transition-all active:scale-95"
+                                      title="Dispatch via Postal Service & Add Tracking ID"
+                                    >
+                                      <Truck size={13} />
+                                      <span>Dispatch Parcel</span>
+                                    </button>
+                                    <button
+                                      onClick={() => handlePrintPostalSlip(o)}
+                                      className="w-full px-2.5 py-1 bg-slate-950 hover:bg-slate-850 text-slate-300 hover:text-white font-semibold rounded border border-slate-800 flex items-center justify-center gap-1 text-[10px] cursor-pointer transition-colors"
+                                      title="Print Postal Dispatch Slip"
+                                    >
+                                      <Printer size={11} />
+                                      <span>Print Slip</span>
+                                    </button>
+                                  </>
+                                )}
+
+                                {/* If Dispatched / In Transit: Update Tracking or Mark Delivered */}
+                                {isApproved && isDispatched && (
+                                  <>
+                                    <button
+                                      onClick={() => handleOpenDispatchModal(o)}
+                                      className="w-full px-2.5 py-1 bg-slate-850 hover:bg-slate-750 text-sky-300 font-bold rounded border border-sky-500/30 flex items-center justify-center gap-1 text-[10px] cursor-pointer transition-colors"
+                                      title="Edit Courier or Tracking ID"
+                                    >
+                                      <Edit2 size={10} />
+                                      <span>Edit Tracking</span>
+                                    </button>
+                                    <button
+                                      onClick={() => handleQuickMarkDelivered(o.id)}
+                                      className="w-full px-2.5 py-1 bg-emerald-500/15 hover:bg-emerald-500 hover:text-slate-950 text-emerald-400 font-bold rounded border border-emerald-500/30 flex items-center justify-center gap-1 text-[10px] cursor-pointer transition-colors"
+                                      title="Mark as Delivered to Customer"
+                                    >
+                                      <Check size={11} />
+                                      <span>Mark Delivered</span>
+                                    </button>
+                                    <button
+                                      onClick={() => handlePrintPostalSlip(o)}
+                                      className="w-full px-2 py-0.5 text-slate-400 hover:text-slate-200 text-[10px] flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                                      title="Print Postal Dispatch Slip"
+                                    >
+                                      <Printer size={10} />
+                                      <span>Print Label</span>
+                                    </button>
+                                  </>
+                                )}
+
+                                {/* If Delivered: Option to edit / print */}
+                                {isApproved && isDelivered && (
+                                  <div className="space-y-1 w-full">
+                                    <button
+                                      onClick={() => handlePrintPostalSlip(o)}
+                                      className="w-full px-2.5 py-1 bg-slate-950 hover:bg-slate-850 text-slate-300 rounded border border-slate-800 flex items-center justify-center gap-1 text-[10px] cursor-pointer transition-colors"
+                                    >
+                                      <Printer size={10} />
+                                      <span>Print Slip</span>
+                                    </button>
+                                    <button
+                                      onClick={() => handleOpenDispatchModal(o)}
+                                      className="w-full px-2 py-0.5 text-slate-500 hover:text-slate-300 text-[9px] cursor-pointer"
+                                    >
+                                      Edit Details
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         );
@@ -1579,77 +2156,152 @@ export const AdminPanel: React.FC = () => {
               {/* Mobile View Cards */}
               <div className="block md:hidden space-y-4 font-sans text-xs">
                 {filteredOrders.length === 0 ? (
-                  <div className="text-center py-6 text-slate-500 bg-slate-950/20 border border-slate-855 rounded-xl font-normal">
-                    No orders matched.
+                  <div className="text-center py-8 text-slate-500 bg-slate-950/20 border border-slate-855 rounded-xl font-normal">
+                    <Package size={28} className="mx-auto text-slate-600 mb-1" />
+                    <div>No orders matched your filters.</div>
                   </div>
                 ) : (
                   filteredOrders.map((o) => {
                     const buyer = o.user || getUserById(o.user_id);
+                    const isApproved = o.status === 'completed';
+                    const isPending = o.status === 'pending';
+                    const isDispatched = o.dispatch_status === 'dispatched' || o.dispatch_status === 'in_transit';
+                    const isDelivered = o.dispatch_status === 'delivered';
+                    const isAwaitingDispatch = isApproved && (!o.dispatch_status || o.dispatch_status === 'pending');
+                    const recipientName = o.shipping_name || buyer?.full_name || `User #${o.user_id}`;
+                    const fullAddressString = [
+                      o.shipping_address,
+                      o.shipping_city,
+                      o.shipping_state,
+                      o.shipping_zip ? `PIN: ${o.shipping_zip}` : ''
+                    ].filter(Boolean).join(', ');
+
                     return (
                       <div key={o.id} className="bg-slate-900 border border-slate-850 p-4 rounded-xl space-y-3 shadow-sm text-[11px]">
-                        <div className="flex items-center justify-between border-b border-slate-850 pb-2">
+                        <div className="flex items-center justify-between border-b border-slate-850 pb-2.5">
                           <div>
-                            <div className="font-bold text-slate-200">Order #{o.id}</div>
-                            <div className="text-[9px] text-slate-500 font-normal">{new Date(o.created_at).toLocaleString()}</div>
-                          </div>
-                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold ${
-                            o.status === 'completed' 
-                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
-                              : o.status === 'pending' 
-                              ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' 
-                              : 'bg-red-500/10 text-red-400 border border-red-500/20'
-                          }`}>
-                            {o.status === 'completed' && <Check size={9} />}
-                            {o.status === 'pending' && <Clock size={9} />}
-                            {o.status === 'completed' ? 'APPROVED' : o.status === 'pending' ? 'PENDING APPROVAL' : 'CANCELLED'}
-                          </span>
-                        </div>
-
-                        <div className="space-y-2 text-xs">
-                          <div>
-                            <span className="text-slate-505 text-[8px] uppercase block font-bold">Buyer Member</span>
-                            <span className="font-bold text-slate-200">{buyer ? buyer.full_name : `User ID ${o.user_id}`}</span>{' '}
-                            <span className="text-slate-450 font-normal">({buyer ? `@${buyer.username}` : ''})</span>
-                          </div>
-                          <div>
-                            <span className="text-slate-500 text-[8px] uppercase block font-bold">Items Purchased</span>
-                            <div className="text-[10px] text-slate-400 space-y-1 font-normal">
-                              {o.items.map((item, idx) => (
-                                <div key={idx} className="line-clamp-1">
-                                  {item.quantity}x {item.product ? item.product.name : `Product ${item.product_id}`} (₹{item.price.toFixed(2)})
-                                </div>
-                              ))}
+                            <div className="font-bold text-slate-100 text-xs">Order #00{o.id}</div>
+                            <div className="text-[9px] text-slate-400 font-normal">
+                              {new Date(o.created_at).toLocaleString()}
                             </div>
+                          </div>
+                          
+                          <div className="text-right">
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold ${
+                              isApproved 
+                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                                : isPending 
+                                ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' 
+                                : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                            }`}>
+                              {isApproved ? 'VERIFIED' : isPending ? 'PENDING' : 'CANCELLED'}
+                            </span>
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between pt-2.5 border-t border-slate-850/60 text-[10px]">
-                          <div className="space-y-0.5">
-                            <div className="font-bold text-slate-350">
-                              Gross Price: <span className="font-mono text-slate-200 font-bold">₹{o.total_amount.toFixed(2)}</span>
-                            </div>
-                            <div className="font-bold text-amber-500 font-mono">{o.total_sw} SW</div>
-                            {o.upi_trans_id && (
-                              <div className="font-mono text-emerald-400 font-bold text-[10px]">
-                                UTR: {o.upi_trans_id}
-                              </div>
-                            )}
+                        {/* Customer Delivery Details */}
+                        <div className="space-y-1 bg-slate-950/60 p-2.5 rounded-lg border border-slate-850/80 text-[10.5px]">
+                          <div className="font-bold text-slate-200 flex items-center justify-between">
+                            <span>📦 TO: {recipientName}</span>
+                            {buyer && <span className="text-[9px] text-slate-400">@{buyer.username}</span>}
                           </div>
-
-                          {o.status === 'pending' && (
-                            <div className="flex gap-1.5 font-sans font-bold">
-                              <button onClick={() => handleUpdateOrderStatus(o.id, 'completed')} className="px-2.5 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 rounded font-bold transition-all flex items-center gap-1 text-[10px] cursor-pointer">
-                                <Check size={11} />
-                                <span>Approve & Credit</span>
-                              </button>
-                              <button onClick={() => handleUpdateOrderStatus(o.id, 'cancelled')} className="px-2.5 py-1.5 bg-red-500/10 hover:bg-red-500 hover:text-white text-red-400 rounded border border-red-500/20 font-bold transition-all flex items-center gap-1 text-[10px] cursor-pointer">
-                                <X size={11} />
-                                <span>Cancel</span>
-                              </button>
+                          {fullAddressString && (
+                            <div className="text-slate-300 leading-tight text-[10px]">
+                              {fullAddressString}
                             </div>
                           )}
-                          {o.status === 'completed' && <span className="text-[9px] text-emerald-400 font-mono font-bold">SW Credited</span>}
-                          {o.status === 'cancelled' && <span className="text-[9px] text-red-500/60 font-mono font-normal">Cancelled</span>}
+                          {o.shipping_phone && (
+                            <div className="text-emerald-400 font-mono text-[9.5px]">
+                              📞 {o.shipping_phone}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Items & Amount */}
+                        <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-850/60">
+                          <div>
+                            <span className="font-mono text-slate-100 font-black text-sm">₹{o.total_amount.toFixed(2)}</span>
+                            <span className="text-amber-400 font-mono font-bold ml-2">({o.total_sw} SW)</span>
+                          </div>
+                          {o.upi_trans_id && (
+                            <span className="font-mono text-emerald-400 text-[10px] font-bold">
+                              UTR: {o.upi_trans_id}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Dispatch Status Card */}
+                        {isDispatched && (
+                          <div className="bg-sky-950/30 border border-sky-500/20 p-2.5 rounded-lg space-y-1">
+                            <div className="flex items-center justify-between text-[10px]">
+                              <span className="font-bold text-sky-400">{o.courier_name || 'India Post'}</span>
+                              <span className="text-sky-300 bg-sky-500/20 px-1.5 py-0.2 rounded text-[8px] font-bold uppercase">In Transit</span>
+                            </div>
+                            <div className="font-mono font-bold text-white text-xs select-all">
+                              Tracking: {o.tracking_number}
+                            </div>
+                            <a 
+                              href={o.tracking_url || 'https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx'}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-400 font-bold text-[10px] inline-flex items-center gap-1 hover:underline pt-0.5"
+                            >
+                              <span>Track on Postal Dept Website</span>
+                              <ExternalLink size={10} />
+                            </a>
+                          </div>
+                        )}
+
+                        {isDelivered && (
+                          <div className="bg-emerald-950/20 border border-emerald-500/20 p-2 rounded-lg text-[10px] text-emerald-400 font-bold flex items-center gap-1.5">
+                            <CheckCircle2 size={13} />
+                            <span>Delivered to recipient</span>
+                          </div>
+                        )}
+
+                        {/* Mobile Actions */}
+                        <div className="pt-2 border-t border-slate-850 flex flex-wrap gap-2">
+                          {isPending && (
+                            <>
+                              <button onClick={() => handleUpdateOrderStatus(o.id, 'completed')} className="flex-1 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold rounded text-xs flex items-center justify-center gap-1">
+                                <Check size={12} /> Approve
+                              </button>
+                              <button onClick={() => handleUpdateOrderStatus(o.id, 'cancelled')} className="px-3 py-1.5 bg-red-500/10 text-red-400 border border-red-500/20 font-bold rounded text-xs">
+                                Cancel
+                              </button>
+                            </>
+                          )}
+
+                          {isApproved && isAwaitingDispatch && (
+                            <>
+                              <button onClick={() => handleOpenDispatchModal(o)} className="flex-1 py-2 bg-blue-500 hover:bg-blue-600 text-white font-extrabold rounded text-xs flex items-center justify-center gap-1.5 shadow-md">
+                                <Truck size={14} /> Dispatch Postal Parcel
+                              </button>
+                              <button onClick={() => handlePrintPostalSlip(o)} className="px-3 py-2 bg-slate-800 text-slate-200 rounded border border-slate-700 text-xs">
+                                <Printer size={13} />
+                              </button>
+                            </>
+                          )}
+
+                          {isApproved && isDispatched && (
+                            <>
+                              <button onClick={() => handleOpenDispatchModal(o)} className="flex-1 py-1.5 bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold rounded border border-sky-500/30 text-xs">
+                                Edit Tracking
+                              </button>
+                              <button onClick={() => handleQuickMarkDelivered(o.id)} className="flex-1 py-1.5 bg-emerald-500 text-slate-950 font-bold rounded text-xs">
+                                Mark Delivered
+                              </button>
+                              <button onClick={() => handlePrintPostalSlip(o)} className="px-2.5 py-1.5 bg-slate-950 text-slate-300 rounded border border-slate-800 text-xs">
+                                <Printer size={12} />
+                              </button>
+                            </>
+                          )}
+
+                          {isApproved && isDelivered && (
+                            <button onClick={() => handlePrintPostalSlip(o)} className="w-full py-1.5 bg-slate-950 text-slate-300 rounded border border-slate-800 text-xs flex items-center justify-center gap-1">
+                              <Printer size={12} /> Print Postal Slip
+                            </button>
+                          )}
                         </div>
                       </div>
                     );
@@ -2276,6 +2928,243 @@ export const AdminPanel: React.FC = () => {
                 >
                   Submit Adjustment
                 </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* POSTAL DISPATCH & TRACKING MANAGEMENT MODAL */}
+      {isDispatchModalOpen && selectedDispatchOrder && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in font-sans">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl animate-scale-up max-h-[92vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-slate-800 px-6 py-4 bg-slate-950/70 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-blue-500/10 text-blue-400 rounded-lg border border-blue-500/20">
+                  <Truck size={18} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-white flex items-center gap-2">
+                    <span>Postal Parcel Dispatch & Tracking</span>
+                    <span className="font-mono text-amber-400 font-bold">#Order 00{selectedDispatchOrder.id}</span>
+                  </h3>
+                  <p className="text-[10px] text-slate-400">
+                    Assign postal consignment tracking number for member package tracking.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsDispatchModalOpen(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Body (Scrollable) */}
+            <form onSubmit={handleDispatchSubmit} className="p-6 space-y-5 overflow-y-auto flex-1 text-xs">
+              {/* Delivery Consignee & Order Summary Card */}
+              <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-4 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider flex items-center gap-1">
+                    <MapPin size={12} />
+                    Consignee (Delivery Address)
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const buyer = selectedDispatchOrder.user || getUserById(selectedDispatchOrder.user_id);
+                      const fullText = `${selectedDispatchOrder.shipping_name || buyer?.full_name || ''}, ${selectedDispatchOrder.shipping_address || ''}, ${selectedDispatchOrder.shipping_city || ''} ${selectedDispatchOrder.shipping_state || ''} PIN: ${selectedDispatchOrder.shipping_zip || ''}, Phone: ${selectedDispatchOrder.shipping_phone || buyer?.phone_number || ''}`;
+                      navigator.clipboard.writeText(fullText);
+                      triggerSuccess('Copied address to clipboard!');
+                    }}
+                    className="inline-flex items-center gap-1 text-[10px] text-slate-400 hover:text-slate-200 bg-slate-900 px-2 py-0.5 rounded border border-slate-800 transition-colors cursor-pointer"
+                  >
+                    <Copy size={11} />
+                    <span>Copy for Parcel Envelope</span>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px] pt-1 border-t border-slate-850">
+                  <div>
+                    <div className="text-slate-400 text-[10px]">Recipient Name:</div>
+                    <div className="font-bold text-slate-100 text-xs">
+                      {selectedDispatchOrder.shipping_name || selectedDispatchOrder.user?.full_name || getUserById(selectedDispatchOrder.user_id)?.full_name || `Customer #${selectedDispatchOrder.user_id}`}
+                    </div>
+                    {selectedDispatchOrder.shipping_phone && (
+                      <div className="text-emerald-400 font-mono text-[10.5px] mt-0.5">
+                        📞 {selectedDispatchOrder.shipping_phone}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <div className="text-slate-400 text-[10px]">Postal Destination:</div>
+                    <div className="text-slate-200 leading-tight">
+                      {[
+                        selectedDispatchOrder.shipping_address,
+                        selectedDispatchOrder.shipping_city,
+                        selectedDispatchOrder.shipping_state,
+                        selectedDispatchOrder.shipping_zip ? `PIN: ${selectedDispatchOrder.shipping_zip}` : ''
+                      ].filter(Boolean).join(', ') || 'Address on user profile'}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Enclosed Items */}
+                <div className="pt-2 border-t border-slate-850 flex items-center justify-between text-[10px] text-slate-400">
+                  <div>
+                    <span>Items to pack: </span>
+                    <strong className="text-slate-200 font-mono">
+                      {selectedDispatchOrder.items.map(i => `${i.quantity}x ${i.product ? i.product.name : 'Item'}`).join(', ')}
+                    </strong>
+                  </div>
+                  <span className="font-bold font-mono text-amber-400">₹{selectedDispatchOrder.total_amount.toFixed(2)}</span>
+                </div>
+              </div>
+
+              {/* Form Input Fields */}
+              <div className="space-y-4">
+                {/* 1. Postal Service / Courier Provider */}
+                <div>
+                  <label className="text-[11px] font-bold text-slate-200 block mb-1.5 flex items-center justify-between">
+                    <span>1. Postal / Courier Carrier Name</span>
+                    <span className="text-[10px] text-slate-500 font-normal">e.g. India Post Speed Post</span>
+                  </label>
+                  <select
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-amber-500 text-xs font-semibold cursor-pointer"
+                    value={dispatchForm.courier_name}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      let defaultUrl = dispatchForm.tracking_url;
+                      if (val.includes('India Post')) {
+                        defaultUrl = 'https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx';
+                      } else if (val.includes('DTDC')) {
+                        defaultUrl = 'https://www.dtdc.in/tracking/shipment-tracking.asp';
+                      } else if (val.includes('Delhivery')) {
+                        defaultUrl = 'https://www.delhivery.com/tracking';
+                      } else if (val.includes('Blue Dart')) {
+                        defaultUrl = 'https://www.bluedart.com/tracking';
+                      }
+                      setDispatchForm({ ...dispatchForm, courier_name: val, tracking_url: defaultUrl });
+                    }}
+                  >
+                    <option value="India Post (Speed Post)">India Post (Speed Post) - Recommended</option>
+                    <option value="India Post (Registered Post)">India Post (Registered Post)</option>
+                    <option value="India Post (Business Parcel)">India Post (Business Parcel)</option>
+                    <option value="DTDC Courier">DTDC Express Courier</option>
+                    <option value="Professional Couriers">The Professional Couriers</option>
+                    <option value="Delhivery Express">Delhivery Express</option>
+                    <option value="Blue Dart Express">Blue Dart Express</option>
+                    <option value="Other Postal Service">Other Postal / Courier Service</option>
+                  </select>
+                </div>
+
+                {/* 2. Postal Consignment / Article Tracking Number */}
+                <div className="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800 space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-100 flex items-center gap-1.5">
+                    <span className="p-1 bg-amber-500/10 text-amber-400 rounded">#</span>
+                    <span>2. Postal Consignment / Tracking Number (Article No)</span>
+                    <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required={dispatchForm.dispatch_status === 'dispatched'}
+                    placeholder="e.g. EK123456789IN or SP987654321IN"
+                    className="w-full bg-slate-900 border border-slate-750 focus:border-amber-500 rounded-lg p-2.5 font-mono text-amber-300 text-sm tracking-wider font-bold uppercase placeholder:text-slate-600 focus:outline-none"
+                    value={dispatchForm.tracking_number}
+                    onChange={(e) => setDispatchForm({ ...dispatchForm, tracking_number: e.target.value.toUpperCase() })}
+                  />
+                  <span className="text-[10px] text-slate-400 block">
+                    💡 Enter the 13-character Speed Post / Postal Consignment number from your postal booking counter receipt. This will be shown on the user's order dashboard.
+                  </span>
+                </div>
+
+                {/* 3. Tracking Website URL */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[11px] font-bold text-slate-200">
+                      3. Postal Tracking Web Portal URL
+                    </label>
+                    <a
+                      href={dispatchForm.tracking_url || 'https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] text-blue-400 hover:text-blue-300 font-bold inline-flex items-center gap-1 hover:underline cursor-pointer"
+                    >
+                      <span>Open Tracking Portal in New Tab</span>
+                      <ExternalLink size={10} />
+                    </a>
+                  </div>
+                  <input
+                    type="url"
+                    placeholder="https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-200 font-mono text-xs focus:outline-none focus:border-amber-500"
+                    value={dispatchForm.tracking_url}
+                    onChange={(e) => setDispatchForm({ ...dispatchForm, tracking_url: e.target.value })}
+                  />
+                </div>
+
+                {/* 4. Dispatch Status Dropdown */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-200 block mb-1">
+                      4. Dispatch State
+                    </label>
+                    <select
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-amber-500 text-xs font-semibold cursor-pointer"
+                      value={dispatchForm.dispatch_status}
+                      onChange={(e) => setDispatchForm({ ...dispatchForm, dispatch_status: e.target.value })}
+                    >
+                      <option value="dispatched">🚚 Dispatched (In Postal Transit)</option>
+                      <option value="delivered">✅ Delivered to Recipient</option>
+                      <option value="pending">⏳ Pending Dispatch (Not yet posted)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-200 block mb-1">
+                      5. Dispatch Notes / Office Remarks (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Dispatched via GPO Counter No. 2"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-200 text-xs focus:outline-none focus:border-amber-500"
+                      value={dispatchForm.dispatch_notes}
+                      onChange={(e) => setDispatchForm({ ...dispatchForm, dispatch_notes: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Form Action Buttons */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-850">
+                <button
+                  type="button"
+                  onClick={() => handlePrintPostalSlip(selectedDispatchOrder)}
+                  className="w-full sm:w-auto px-4 py-2.5 bg-slate-950 hover:bg-slate-850 text-slate-200 border border-slate-750 font-bold rounded-lg transition-colors cursor-pointer inline-flex items-center justify-center gap-1.5 text-xs"
+                >
+                  <Printer size={13} />
+                  <span>Print Postal Shipping Label</span>
+                </button>
+
+                <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setIsDispatchModalOpen(false)}
+                    className="flex-1 sm:flex-none px-4 py-2.5 border border-slate-800 hover:bg-slate-850 text-slate-400 hover:text-slate-200 rounded-lg font-bold transition-colors cursor-pointer text-xs"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 sm:flex-none px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-lg transition-colors cursor-pointer shadow-md text-xs inline-flex items-center justify-center gap-1.5"
+                  >
+                    <Send size={13} />
+                    <span>Save & Update Postal Tracking</span>
+                  </button>
+                </div>
               </div>
             </form>
           </div>

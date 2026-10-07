@@ -124,6 +124,14 @@ def create_order(db: Session, user: User, order_data: OrderCreate) -> Order:
         total_amount=total_amount,
         total_sw=total_sw,
         status="pending",
+        shipping_name=order_data.shipping_name or user.full_name,
+        shipping_address=order_data.shipping_address,
+        shipping_city=order_data.shipping_city,
+        shipping_state=order_data.shipping_state,
+        shipping_zip=order_data.shipping_zip,
+        shipping_phone=order_data.shipping_phone or user.phone_number,
+        dispatch_status="pending",
+        courier_name="India Post",
         items=order_items
     )
     

@@ -159,6 +159,12 @@ class CartItemCreate(BaseModel):
 
 class OrderCreate(BaseModel):
     items: List[CartItemCreate]
+    shipping_name: Optional[str] = None
+    shipping_address: Optional[str] = None
+    shipping_city: Optional[str] = None
+    shipping_state: Optional[str] = None
+    shipping_zip: Optional[str] = None
+    shipping_phone: Optional[str] = None
 
 class OrderItemResponse(BaseModel):
     id: int
@@ -176,6 +182,19 @@ class OrderCheckoutRequest(BaseModel):
     upi_trans_id: Optional[str] = None
     upi_payer_vpa: Optional[str] = None
     payment_proof_url: Optional[str] = None
+    shipping_name: Optional[str] = None
+    shipping_address: Optional[str] = None
+    shipping_city: Optional[str] = None
+    shipping_state: Optional[str] = None
+    shipping_zip: Optional[str] = None
+    shipping_phone: Optional[str] = None
+
+class OrderDispatchUpdate(BaseModel):
+    dispatch_status: str = "dispatched" # 'pending', 'dispatched', 'in_transit', 'delivered', 'cancelled'
+    courier_name: Optional[str] = "India Post"
+    tracking_number: Optional[str] = None
+    tracking_url: Optional[str] = "https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx"
+    dispatch_notes: Optional[str] = None
 
 class OrderResponse(BaseModel):
     id: int
@@ -187,8 +206,29 @@ class OrderResponse(BaseModel):
     upi_trans_id: Optional[str] = None
     upi_payer_vpa: Optional[str] = None
     payment_proof_url: Optional[str] = None
+    
+    # Shipping details
+    shipping_name: Optional[str] = None
+    shipping_address: Optional[str] = None
+    shipping_city: Optional[str] = None
+    shipping_state: Optional[str] = None
+    shipping_zip: Optional[str] = None
+    shipping_phone: Optional[str] = None
+    
+    # Postal dispatch & tracking details
+    dispatch_status: Optional[str] = "pending"
+    courier_name: Optional[str] = "India Post"
+    tracking_number: Optional[str] = None
+    tracking_url: Optional[str] = None
+    dispatched_at: Optional[datetime] = None
+    delivered_at: Optional[datetime] = None
+    dispatch_notes: Optional[str] = None
+    
     created_at: datetime
     items: List[OrderItemResponse]
+    user_username: Optional[str] = None
+    user_full_name: Optional[str] = None
+    user_phone: Optional[str] = None
 
     class Config:
         from_attributes = True

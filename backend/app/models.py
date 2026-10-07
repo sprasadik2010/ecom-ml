@@ -146,10 +146,39 @@ class Order(Base):
     upi_payer_vpa = Column(String, nullable=True)    # Payer's VPA / UPI ID (e.g. user@okaxis)
     payment_proof_url = Column(String, nullable=True) # Optional payment screenshot
     
+    # Shipping & Postal Delivery Address
+    shipping_name = Column(String, nullable=True)
+    shipping_address = Column(String, nullable=True)
+    shipping_city = Column(String, nullable=True)
+    shipping_state = Column(String, nullable=True)
+    shipping_zip = Column(String, nullable=True)
+    shipping_phone = Column(String, nullable=True)
+    
+    # Postal Dispatch & Carrier Tracking
+    dispatch_status = Column(String, default="pending") # 'pending', 'dispatched', 'in_transit', 'delivered', 'cancelled'
+    courier_name = Column(String, default="India Post", nullable=True) # e.g. 'India Post (Speed Post)', 'DTDC', etc.
+    tracking_number = Column(String, nullable=True)     # Consignment Tracking / Postal Article No
+    tracking_url = Column(String, nullable=True)        # Postal Tracking Web Portal URL
+    dispatched_at = Column(DateTime, nullable=True)     # Timestamp when admin dispatched the parcel
+    delivered_at = Column(DateTime, nullable=True)      # Timestamp when parcel was delivered
+    dispatch_notes = Column(Text, nullable=True)        # Optional admin dispatch / dispatch remarks
+    
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     user = relationship("User", back_populates="orders")
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
+
+    @property
+    def user_username(self):
+        return self.user.username if self.user else None
+
+    @property
+    def user_full_name(self):
+        return self.user.full_name if self.user else None
+
+    @property
+    def user_phone(self):
+        return self.user.phone_number if self.user else None
 
 
 class OrderItem(Base):

@@ -98,8 +98,31 @@ def on_startup():
         logger.info("Added payment_proof_url column to orders table.")
     except Exception as e:
         db.rollback()
-    finally:
-        db.close()
+
+    # Migration for orders table shipping & dispatch tracking fields
+    for col, col_type in [
+        ("shipping_name", "VARCHAR"),
+        ("shipping_address", "VARCHAR"),
+        ("shipping_city", "VARCHAR"),
+        ("shipping_state", "VARCHAR"),
+        ("shipping_zip", "VARCHAR"),
+        ("shipping_phone", "VARCHAR"),
+        ("dispatch_status", "VARCHAR DEFAULT 'pending'"),
+        ("courier_name", "VARCHAR DEFAULT 'India Post'"),
+        ("tracking_number", "VARCHAR"),
+        ("tracking_url", "VARCHAR"),
+        ("dispatched_at", "TIMESTAMP"),
+        ("delivered_at", "TIMESTAMP"),
+        ("dispatch_notes", "TEXT"),
+    ]:
+        try:
+            db.execute(text(f"ALTER TABLE orders ADD COLUMN {col} {col_type}"))
+            db.commit()
+            logger.info(f"Added {col} column to orders table.")
+        except Exception:
+            db.rollback()
+    
+    db.close()
 
     # Automatically ensure default admin, root user, and product catalog are seeded
     try:
@@ -396,6 +419,20 @@ def checkout_order(
     if checkout_data.payment_proof_url:
         order.payment_proof_url = checkout_data.payment_proof_url.strip()
 
+    # Record shipping address details if provided
+    if checkout_data.shipping_name:
+        order.shipping_name = checkout_data.shipping_name.strip()
+    if checkout_data.shipping_address:
+        order.shipping_address = checkout_data.shipping_address.strip()
+    if checkout_data.shipping_city:
+        order.shipping_city = checkout_data.shipping_city.strip()
+    if checkout_data.shipping_state:
+        order.shipping_state = checkout_data.shipping_state.strip()
+    if checkout_data.shipping_zip:
+        order.shipping_zip = checkout_data.shipping_zip.strip()
+    if checkout_data.shipping_phone:
+        order.shipping_phone = checkout_data.shipping_phone.strip()
+
     db.commit()
     db.refresh(order)
     return order
@@ -590,6 +627,45 @@ def admin_update_order_status(
         order.status = status_data.status
         db.commit()
         
+    db.refresh(order)
+    return order
+
+@app.put("/admin/orders/{order_id}/dispatch", response_model=schemas.OrderResponse)
+def admin_dispatch_order(
+    order_id: int,
+    dispatch_data: schemas.OrderDispatchUpdate,
+    current_admin: models.User = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Updates the dispatch and postal tracking information for an order.
+    Saves carrier (e.g. India Post / Speed Post), postal consignment tracking number,
+    tracking website URL, dispatch timestamp, and delivery status.
+    """
+    import datetime
+    order = db.query(models.Order).filter(models.Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+        
+    order.dispatch_status = dispatch_data.dispatch_status
+    if dispatch_data.courier_name:
+        order.courier_name = dispatch_data.courier_name.strip()
+    if dispatch_data.tracking_number is not None:
+        order.tracking_number = dispatch_data.tracking_number.strip() if dispatch_data.tracking_number else None
+    if dispatch_data.tracking_url is not None:
+        order.tracking_url = dispatch_data.tracking_url.strip() if dispatch_data.tracking_url else None
+    if dispatch_data.dispatch_notes is not None:
+        order.dispatch_notes = dispatch_data.dispatch_notes.strip() if dispatch_data.dispatch_notes else None
+        
+    if dispatch_data.dispatch_status in ["dispatched", "in_transit"] and not order.dispatched_at:
+        order.dispatched_at = datetime.datetime.utcnow()
+    elif dispatch_data.dispatch_status == "delivered":
+        if not order.dispatched_at:
+            order.dispatched_at = datetime.datetime.utcnow()
+        if not order.delivered_at:
+            order.delivered_at = datetime.datetime.utcnow()
+            
+    db.commit()
     db.refresh(order)
     return order
 
