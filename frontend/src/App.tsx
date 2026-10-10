@@ -14,6 +14,7 @@ import { Orders } from './pages/Orders';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { AdminPanel } from './pages/AdminPanel';
+import bwLogo from './assets/bwLogo.jpeg';
 
 // Protected Route for authenticated members (Admins are redirected to /admin)
 const MemberRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -166,10 +167,14 @@ export const App: React.FC = () => {
             </main>
 
             {/* Footer */}
-            <footer className="bg-slate-950 border-t border-slate-900 py-6 text-center text-xs text-slate-500">
-              <div className="max-w-7xl mx-auto px-4">
-                <p className="font-bold text-slate-400">ApexZone E-Commerce & Business MLM Selling Network</p>
-                <p className="mt-1">© {new Date().getFullYear()} ApexZone. All rights reserved. Simulated Sandboxed MLM Tree.</p>
+            <footer className="bg-slate-950 border-t border-slate-900 py-8 text-center text-xs text-slate-500">
+              <div className="max-w-7xl mx-auto px-4 flex flex-col items-center justify-center gap-2">
+                <div className="flex items-center gap-2">
+                  <img src={bwLogo} alt="BuyWay Logo" className="h-8 w-auto object-contain rounded mix-blend-multiply" />
+                  <span className="font-extrabold text-sm text-slate-800 tracking-wider">BuyWay</span>
+                </div>
+                <p className="font-bold text-slate-600">BuyWay E-Commerce & Direct Selling Platform</p>
+                <p className="mt-0.5 text-slate-400">© {new Date().getFullYear()} BuyWay. All rights reserved.</p>
               </div>
             </footer>
           </div>

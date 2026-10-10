@@ -398,7 +398,7 @@ def check_and_award_commissions(db: Session, buyer: User, order_sw: float):
 
     db.flush()
 
-    # 3. Evaluate rank/level promotions across the network
+    # 3. Evaluate rank/level promotions across the organization
     evaluate_and_award_levels(db)
 
 

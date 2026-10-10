@@ -329,7 +329,7 @@ export const Dashboard: React.FC = () => {
               </span>
             )}
           </div>
-          <p className="text-slate-400 text-xs mt-1">Welcome to your network dashboard. Track 1:1 business matching pairs, 5-level sponsor overrides, and progressive monthly royalties.</p>
+          <p className="text-slate-400 text-xs mt-1">Welcome to your BuyWay dashboard. Track 1:1 business matching pairs, 5-level sponsor overrides, and progressive monthly royalties.</p>
         </div>
 
         {/* Member Status Pill */}
@@ -356,7 +356,7 @@ export const Dashboard: React.FC = () => {
           <div className="flex-1">
             <h4 className="font-extrabold text-sm text-red-200 mb-1">Your Account is Currently Inactive!</h4>
             <p className="text-xs text-slate-400 leading-normal max-w-2xl font-normal">
-              You are currently placed in the business network tree but **cannot earn team matching commissions (₹10/SW)** from child leg transactions. Buy products to accumulate at least <span className="text-amber-400 font-bold">50 SW Points</span> to activate your commissions!
+              You are currently placed in the business tree but **cannot earn team matching commissions (₹10/SW)** from child leg transactions. Buy products to accumulate at least <span className="text-amber-400 font-bold">50 SW Points</span> to activate your commissions!
             </p>
 
             {user.pending_sw && user.pending_sw > 0 ? (
@@ -642,13 +642,13 @@ export const Dashboard: React.FC = () => {
         )}
       </div>
 
-      {/* 2b. Network Earnings & Sponsor Match Bonuses */}
+      {/* 2b. Team Earnings & Sponsor Match Bonuses */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-md mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-slate-800">
           <div>
             <h3 className="font-extrabold text-sm text-slate-100 uppercase tracking-wider flex items-center gap-2">
               <Landmark size={18} className="text-amber-500" />
-              Network Earnings & Commission Streams
+              Team Earnings & Commission Streams
             </h3>
             <p className="text-xs text-slate-400 leading-normal mt-0.5 font-normal">
               1:1 Team Match Bonuses (90% Net), 5-Level Sponsor Overrides (4% Direct, 1% L2-L5), and Monthly Royalties.
@@ -861,7 +861,7 @@ export const Dashboard: React.FC = () => {
           </div>
 
           <p className="text-xs text-slate-400 leading-normal mb-5 font-normal">
-            For every 1 matching point on Left & Right legs you earn <span className="text-emerald-400 font-bold">₹10</span>. In addition, unlock 10 progressive monthly royalty streams starting at <span className="text-amber-400 font-bold">₹1,000/mo</span> up to <span className="text-amber-400 font-bold">₹5,12,000/mo</span> as your binary network nodes achieve 100 SW on both sides!
+            For every 1 matching point on Left & Right legs you earn <span className="text-emerald-400 font-bold">₹10</span>. In addition, unlock 10 progressive monthly royalty streams starting at <span className="text-amber-400 font-bold">₹1,000/mo</span> up to <span className="text-amber-400 font-bold">₹5,12,000/mo</span> as your binary team nodes achieve 100 SW on both sides!
           </p>
 
           {/* Current Level / Next Milestone Status Box */}
@@ -941,7 +941,7 @@ export const Dashboard: React.FC = () => {
                     <CheckCircle2 size={13} className="text-emerald-400" />
                   </div>
                   <div className="text-[11px] text-emerald-400 font-semibold mt-0.5">
-                    🎉 Highest Network Rank Reached (Senior Manager)!
+                    🎉 Highest Team Rank Reached (Senior Manager)!
                   </div>
                 </div>
               </div>

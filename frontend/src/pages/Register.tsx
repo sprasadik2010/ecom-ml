@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth, API_BASE_URL } from '../context/AuthContext';
 import { ShieldAlert, UserPlus, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import bwLogo from '../assets/bwLogo.jpeg';
 
 export const Register: React.FC = () => {
   const [username, setUsername] = useState('');
@@ -67,7 +68,7 @@ export const Register: React.FC = () => {
       };
       verifyLink();
     } else {
-      // Without token, direct registration is disallowed when network has users
+      // Without token, direct registration is disallowed when team has users
       setToken('');
     }
   }, [searchParams]);
@@ -141,7 +142,7 @@ export const Register: React.FC = () => {
           
           <h2 className="text-xl font-black text-white mb-2">Registration Successful!</h2>
           <p className="text-slate-400 text-xs leading-relaxed mb-6">
-            Congratulations! You have been successfully placed in the business network tree under your sponsor leg. Your status starts as <span className="text-red-400 font-bold">Inactive</span>. To activate your account and start earning network commissions, please log in and buy products!
+            Congratulations! You have been successfully placed in the business tree under your sponsor leg. Your status starts as <span className="text-red-400 font-bold">Inactive</span>. To activate your account and start earning team commissions, please log in and buy products!
           </p>
 
           <Link
@@ -168,7 +169,7 @@ export const Register: React.FC = () => {
           
           <h2 className="text-xl font-black text-white mb-2">Referral Link Required</h2>
           <p className="text-slate-400 text-xs leading-relaxed mb-6">
-            Registration in the business network is strictly by referral link. Please use a <span className="text-amber-400 font-bold">Left Leg</span> or <span className="text-amber-400 font-bold">Right Leg</span> referral link provided by your sponsor.
+            Registration in BuyWay is strictly by referral link. Please use a <span className="text-amber-400 font-bold">Left Leg</span> or <span className="text-amber-400 font-bold">Right Leg</span> referral link provided by your sponsor.
           </p>
 
           <div className="flex flex-col gap-2.5">
@@ -225,11 +226,12 @@ export const Register: React.FC = () => {
         <div className="absolute top-0 left-0 right-0 h-1 rounded-t-lg bg-amber-500" />
 
         <div className="text-center mb-6">
+          <img src={bwLogo} alt="BuyWay" className="h-14 w-auto mx-auto mb-3 object-contain rounded mix-blend-multiply" />
           <h2 className="text-2xl font-black text-white tracking-tight flex items-center justify-center gap-1">
             Create Member Account
           </h2>
           <p className="text-slate-400 text-xs mt-1">
-            Join the business selling network and activate commissions
+            Join BuyWay direct selling and activate commissions
           </p>
         </div>
 

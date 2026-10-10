@@ -58,7 +58,7 @@ def run_tests():
         db.commit()
         db.refresh(root)
         
-        # 4. Create Binary Network Structure:
+        # 4. Create Binary Team Structure:
         #             rootuser (Level ?)
         #            /                  \
         #        child_L (c1)         child_R (c2)

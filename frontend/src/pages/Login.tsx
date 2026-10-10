@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ShieldAlert, LogIn, ArrowRight } from 'lucide-react';
+import bwLogo from '../assets/bwLogo.jpeg';
 
 export const Login: React.FC = () => {
   const [username, setUsername] = useState('');
@@ -50,11 +51,12 @@ export const Login: React.FC = () => {
         <div className="absolute top-0 left-0 right-0 h-1 rounded-t-lg bg-amber-500" />
 
         <div className="text-center mb-6">
+          <img src={bwLogo} alt="BuyWay" className="h-14 w-auto mx-auto mb-3 object-contain rounded mix-blend-multiply" />
           <h2 className="text-2xl font-black text-white tracking-tight flex items-center justify-center gap-1">
-            Sign In
+            Sign In to BuyWay
           </h2>
           <p className="text-slate-400 text-xs mt-1">
-            Access your e-commerce panel and MLM downline stats
+            Access your store and team account
           </p>
         </div>
 
@@ -105,7 +107,7 @@ export const Login: React.FC = () => {
 
         <div className="border-t border-slate-850 mt-6 pt-4 text-center text-xs text-slate-500">
           <p className="leading-relaxed">
-            <span className="font-semibold text-slate-400">Joining the Network?</span> Registration is by invitation only. Please use the Left or Right referral link provided by your sponsor.
+            <span className="font-semibold text-slate-400">New to BuyWay?</span> Registration is by invitation only. Please use the Left or Right referral link provided by your sponsor.
           </p>
         </div>
       </div>

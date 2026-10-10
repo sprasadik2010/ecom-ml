@@ -118,7 +118,7 @@ export const TreePage: React.FC = () => {
         <div>
           <h1 className="text-2xl font-black text-white">Business Genealogy</h1>
           <p className="text-slate-400 text-xs mt-0.5">
-            Visualize your business downline network. Click cards to drill down and explore team nodes.
+            Visualize your business downline team. Click cards to drill down and explore team nodes.
           </p>
         </div>
 

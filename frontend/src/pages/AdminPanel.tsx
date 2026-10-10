@@ -958,7 +958,7 @@ export const AdminPanel: React.FC = () => {
             { id: 'dashboard', label: 'Overview', count: null },
             { id: 'products', label: 'Catalog Items', count: products.length },
             { id: 'categories', label: 'Categories', count: categories.length },
-            { id: 'users', label: 'Network Members', count: users.length },
+            { id: 'users', label: 'Members', count: users.length },
             { id: 'orders', label: 'Order Processing', count: orders.length },
             { id: 'commissions', label: 'Payout Auditing', count: commissions.length },
             { id: 'rewards', label: 'Rank Royalties', count: rewards.length }
@@ -1051,7 +1051,7 @@ export const AdminPanel: React.FC = () => {
                     <h3 className="text-2xl font-black text-white font-mono">
                       ₹{stats.total_commissions_amount.toFixed(2)}
                     </h3>
-                    <p className="text-[10px] text-slate-400">Total MLM network referral payouts</p>
+                    <p className="text-[10px] text-slate-400">Total referral payouts</p>
                   </div>
                   <div className="p-3 bg-amber-400/10 text-amber-400 rounded-xl border border-amber-450/10">
                     <IndianRupee size={20} />

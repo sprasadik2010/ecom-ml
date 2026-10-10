@@ -124,7 +124,7 @@ export const Commissions: React.FC = () => {
       <div className="border-b border-slate-800 pb-4 mb-6">
         <h1 className="text-2xl font-black text-white">Commissions Ledger</h1>
         <p className="text-slate-400 text-xs mt-0.5">
-          Review your network earnings. Track your 1:1 matching bonuses (with 10% auto-deduction: 2% TDS + 8% 5-level sponsor distribution: 4% direct sponsor + 1% for 4 uplines), sponsor matching overrides, and progressive level monthly royalties in real-time.
+          Review your earnings. Track your 1:1 matching bonuses (with 10% auto-deduction: 2% TDS + 8% 5-level sponsor distribution: 4% direct sponsor + 1% for 4 uplines), sponsor matching overrides, and progressive level monthly royalties in real-time.
         </p>
       </div>
 
@@ -142,7 +142,7 @@ export const Commissions: React.FC = () => {
             </div>
           </div>
           <div className="mt-3 pt-3 border-t border-slate-850 flex items-center justify-between text-[10px] text-slate-400">
-            <span>All Network Income Streams</span>
+            <span>All Income Streams</span>
             <span className="font-bold text-amber-500">100% Paid</span>
           </div>
         </div>

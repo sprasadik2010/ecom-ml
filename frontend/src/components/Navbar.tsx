@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth, API_BASE_URL } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import { ShoppingCart, LogOut, User as UserIcon, Network, IndianRupee, Search, ShieldCheck, Menu, X, Compass, Home, ShoppingBag } from 'lucide-react';
+import { ShoppingCart, LogOut, User as UserIcon, GitFork, IndianRupee, Search, ShieldCheck, Menu, X, Compass, Home, ShoppingBag } from 'lucide-react';
+import bwLogo from '../assets/bwLogo.jpeg';
 
 export const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -55,17 +56,18 @@ export const Navbar: React.FC = () => {
         {/* Logo */}
         <Link
           to={user?.is_admin ? "/admin" : "/"}
-          className="flex items-center gap-2 hover:opacity-90 transition-opacity shrink-0"
+          className="flex items-center gap-2.5 hover:opacity-90 transition-opacity shrink-0"
         >
-          <span className="text-xl font-extrabold tracking-widest text-amber-500 flex items-center gap-1 uppercase font-sans">
-            <span className="text-slate-100">apex</span>zone
+          <img src={bwLogo} alt="BuyWay Logo" className="h-10 w-auto object-contain rounded mix-blend-multiply" />
+          <span className="text-xl font-extrabold tracking-tight text-slate-900 font-sans hidden sm:inline-block">
+            Buy<span className="text-teal-800">Way</span>
           </span>
           <span className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border font-mono ${
             user?.is_admin
               ? 'bg-rose-500/10 text-rose-500 border-rose-500/30'
-              : 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+              : 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20'
           }`}>
-            {user?.is_admin ? 'Admin' : 'Network'}
+            {user?.is_admin ? 'Admin' : 'Member'}
           </span>
         </Link>
 
@@ -135,7 +137,7 @@ export const Navbar: React.FC = () => {
                   <span>Dashboard</span>
                 </Link>
                 <Link to="/tree" className="flex items-center gap-1.5 text-slate-300 hover:text-amber-500 transition-colors">
-                  <Network size={15} />
+                  <GitFork size={15} />
                   <span>Business Tree</span>
                 </Link>
                 <Link to="/commissions" className="flex items-center gap-1.5 text-slate-300 hover:text-amber-500 transition-colors">
@@ -294,7 +296,7 @@ export const Navbar: React.FC = () => {
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="px-3 py-2 bg-slate-950/20 hover:bg-slate-950/50 rounded-md text-slate-300 hover:text-amber-500 flex items-center gap-2 transition-colors"
                     >
-                      <Network size={14} className="text-amber-500" />
+                      <GitFork size={14} className="text-amber-500" />
                       Business Tree
                     </Link>
                     <Link
@@ -410,8 +412,8 @@ export const Navbar: React.FC = () => {
           </Link>
           {user && (
             <Link to="/tree" className="flex flex-col items-center gap-1 text-slate-400 hover:text-amber-500 transition-colors">
-              <Network size={18} className={window.location.pathname === '/tree' ? 'text-amber-500' : ''} />
-              <span className={`text-[9px] font-bold tracking-wide ${window.location.pathname === '/tree' ? 'text-amber-500' : ''}`}>Network</span>
+              <GitFork size={18} className={window.location.pathname === '/tree' ? 'text-amber-500' : ''} />
+              <span className={`text-[9px] font-bold tracking-wide ${window.location.pathname === '/tree' ? 'text-amber-500' : ''}`}>Tree</span>
             </Link>
           )}
           <Link to={user ? "/dashboard" : "/login"} className="flex flex-col items-center gap-1 text-slate-400 hover:text-amber-500 transition-colors">
