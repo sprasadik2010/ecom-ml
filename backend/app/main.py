@@ -143,6 +143,7 @@ origins = [
     "http://127.0.0.1:8000",
     "https://ecom-ml-frontend.onrender.com",
     "https://ecom-ml-backend.onrender.com",
+    "https://buyway.biz"
 ]
 
 app.add_middleware(
