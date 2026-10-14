@@ -76,7 +76,7 @@ def upload_file_to_imgbb(file_path: str, api_key: str) -> dict:
     # Extract clean name by stripping timestamp prefix (e.g. 1728901234_shirt.jpg -> shirt)
     parts = base_name.split("_", 1)
     clean_title = parts[1] if (len(parts) == 2 and parts[0].isdigit()) else base_name
-    upload_name = f"buyway_{clean_title}".strip("_")
+    upload_name = f"BuyWay_{clean_title}".strip("_")
 
     with open(file_path, "rb") as image_file:
         response = requests.post(
