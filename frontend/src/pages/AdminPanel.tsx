@@ -35,7 +35,13 @@ import {
   Phone,
   Package,
   Send,
-  CheckCircle2
+  CheckCircle2,
+  Layers,
+  Palette,
+  Tag,
+  Eye,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 import { API_BASE_URL } from '../context/AuthContext';
 
@@ -47,6 +53,9 @@ interface Product {
   price: number;
   sw: number;
   image_url: string | null;
+  images?: string[] | null;
+  colors?: string[] | null;
+  sizes?: string[] | null;
   category: string | null;
   stock: number;
 }
@@ -91,6 +100,8 @@ interface OrderItem {
   quantity: number;
   price: number;
   sw: number;
+  selected_color?: string;
+  selected_size?: string;
   product: {
     id: number;
     name: string;
@@ -213,12 +224,18 @@ export const AdminPanel: React.FC = () => {
   // Product Modals / Forms
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [newViewImageUrl, setNewViewImageUrl] = useState('');
+  const [customColorInput, setCustomColorInput] = useState('');
+  const [customSizeInput, setCustomSizeInput] = useState('');
   const [productForm, setProductForm] = useState({
     name: '',
     description: '',
     price: 0,
     sw: 0,
     image_url: '',
+    images: [] as string[],
+    colors: [] as string[],
+    sizes: [] as string[],
     category: 'Electronics',
     stock: 10
   });
@@ -246,11 +263,11 @@ export const AdminPanel: React.FC = () => {
   const handleCategoryImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     setCategoryUploading(true);
     const formData = new FormData();
     formData.append('file', file);
-    
+
     try {
       const res = await fetch(`${API_BASE_URL}/admin/upload`, {
         method: 'POST',
@@ -259,12 +276,12 @@ export const AdminPanel: React.FC = () => {
         },
         body: formData
       });
-      
+
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.detail || 'Image upload failed.');
       }
-      
+
       const data = await res.json();
       setCategoryForm(prev => ({ ...prev, image_url: data.image_url }));
       triggerSuccess('Category image uploaded successfully!');
@@ -281,11 +298,11 @@ export const AdminPanel: React.FC = () => {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     setUploading(true);
     const formData = new FormData();
     formData.append('file', file);
-    
+
     try {
       const res = await fetch(`${API_BASE_URL}/admin/upload`, {
         method: 'POST',
@@ -294,20 +311,168 @@ export const AdminPanel: React.FC = () => {
         },
         body: formData
       });
-      
+
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.detail || 'Image upload failed.');
       }
-      
+
       const data = await res.json();
-      setProductForm(prev => ({ ...prev, image_url: data.image_url }));
-      triggerSuccess('Image uploaded successfully!');
+      setProductForm(prev => {
+        const updatedImages = prev.images.includes(data.image_url)
+          ? prev.images
+          : [...prev.images, data.image_url];
+        return {
+          ...prev,
+          image_url: prev.image_url || data.image_url,
+          images: updatedImages
+        };
+      });
+      triggerSuccess('Image uploaded and added to gallery!');
     } catch (err: any) {
       triggerError(err.message || 'Image upload failed.');
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleMultiImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+      formData.append('files', files[i]);
+    }
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/upload-multiple`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.detail || 'Multi-image upload failed.');
+      }
+
+      const data = await res.json();
+      const newUrls: string[] = data.image_urls || [];
+      setProductForm(prev => {
+        const combined = [...prev.images, ...newUrls];
+        return {
+          ...prev,
+          images: combined,
+          image_url: prev.image_url || combined[0] || ''
+        };
+      });
+      triggerSuccess(`Successfully uploaded ${newUrls.length} product photos!`);
+    } catch (err: any) {
+      triggerError(err.message || 'Multi-image upload failed.');
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleAddImageUrl = () => {
+    const trimmed = newViewImageUrl.trim();
+    if (!trimmed) return;
+    setProductForm(prev => {
+      const updated = [...prev.images, trimmed];
+      return {
+        ...prev,
+        images: updated,
+        image_url: prev.image_url || updated[0] || ''
+      };
+    });
+    setNewViewImageUrl('');
+    triggerSuccess('Photo view added to gallery!');
+  };
+
+  const handleRemoveImage = (idxToRemove: number) => {
+    setProductForm(prev => {
+      const updated = prev.images.filter((_, idx) => idx !== idxToRemove);
+      return {
+        ...prev,
+        images: updated,
+        image_url: updated[0] || ''
+      };
+    });
+  };
+
+  const handleSetCoverImage = (idxToCover: number) => {
+    setProductForm(prev => {
+      const target = prev.images[idxToCover];
+      const others = prev.images.filter((_, idx) => idx !== idxToCover);
+      const updated = [target, ...others];
+      return {
+        ...prev,
+        images: updated,
+        image_url: target
+      };
+    });
+    triggerSuccess('Cover photo updated!');
+  };
+
+  const handleMoveImage = (fromIdx: number, toIdx: number) => {
+    setProductForm(prev => {
+      if (toIdx < 0 || toIdx >= prev.images.length) return prev;
+      const copy = [...prev.images];
+      const [moved] = copy.splice(fromIdx, 1);
+      copy.splice(toIdx, 0, moved);
+      return {
+        ...prev,
+        images: copy,
+        image_url: copy[0] || ''
+      };
+    });
+  };
+
+  const handleAddColor = (cName: string) => {
+    const val = cName.trim();
+    if (!val) return;
+    if (productForm.colors.includes(val)) {
+      triggerError(`Color '${val}' is already added.`);
+      return;
+    }
+    setProductForm(prev => ({
+      ...prev,
+      colors: [...prev.colors, val]
+    }));
+    setCustomColorInput('');
+  };
+
+  const handleRemoveColor = (cName: string) => {
+    setProductForm(prev => ({
+      ...prev,
+      colors: prev.colors.filter(c => c !== cName)
+    }));
+  };
+
+  const handleAddSize = (sName: string) => {
+    const val = sName.trim();
+    if (!val) return;
+    if (productForm.sizes.includes(val)) {
+      triggerError(`Size '${val}' is already added.`);
+      return;
+    }
+    setProductForm(prev => ({
+      ...prev,
+      sizes: [...prev.sizes, val]
+    }));
+    setCustomSizeInput('');
+  };
+
+  const handleRemoveSize = (sName: string) => {
+    setProductForm(prev => ({
+      ...prev,
+      sizes: prev.sizes.filter(s => s !== sName)
+    }));
   };
 
   // Wallet Adjustment Modal
@@ -461,13 +626,19 @@ export const AdminPanel: React.FC = () => {
   const handleOpenAddProduct = () => {
     setEditingProduct(null);
     setIsCustomCategory(false);
+    setNewViewImageUrl('');
+    setCustomColorInput('');
+    setCustomSizeInput('');
     setProductForm({
       name: '',
       description: '',
-      price: 19.99,
-      sw: 10,
-      image_url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500',
-      category: 'Electronics',
+      price: 1999.00,
+      sw: 20,
+      image_url: '',
+      images: [],
+      colors: [],
+      sizes: [],
+      category: categories[0]?.name || 'Electronics',
       stock: 100
     });
     setIsProductModalOpen(true);
@@ -476,12 +647,22 @@ export const AdminPanel: React.FC = () => {
   const handleOpenEditProduct = (prod: Product) => {
     setEditingProduct(prod);
     setIsCustomCategory(false);
+    setNewViewImageUrl('');
+    setCustomColorInput('');
+    setCustomSizeInput('');
+    const prodImages = prod.images && prod.images.length > 0
+      ? prod.images
+      : (prod.image_url ? [prod.image_url] : []);
+
     setProductForm({
       name: prod.name,
       description: prod.description || '',
       price: prod.price,
       sw: prod.sw,
-      image_url: prod.image_url || '',
+      image_url: prod.image_url || (prodImages[0] || ''),
+      images: prodImages,
+      colors: prod.colors || [],
+      sizes: prod.sizes || [],
       category: prod.category || 'Electronics',
       stock: prod.stock
     });
@@ -781,7 +962,15 @@ export const AdminPanel: React.FC = () => {
     const phone = order.shipping_phone || buyer?.phone_number || '';
     const trackingNo = order.tracking_number || 'PENDING DISPATCH';
     const courier = order.courier_name || 'India Post - Speed Post';
-    const itemsList = order.items.map(i => `${i.quantity}x ${i.product ? i.product.name : 'Product'} (₹${i.price.toFixed(2)})`).join(', ');
+    const itemsList = order.items.map(i => {
+      const parts = [`${i.quantity}x ${i.product ? i.product.name : 'Product'}`];
+      const variants = [];
+      if (i.selected_color) variants.push(`Color: ${i.selected_color}`);
+      if (i.selected_size) variants.push(`Size: ${i.selected_size}`);
+      if (variants.length > 0) parts.push(`[${variants.join(', ')}]`);
+      parts.push(`(₹${i.price.toFixed(2)})`);
+      return parts.join(' ');
+    }).join(', ');
 
     const printWindow = window.open('', '_blank', 'width=750,height=600');
     if (!printWindow) return;
@@ -843,9 +1032,9 @@ export const AdminPanel: React.FC = () => {
 
             <div class="box">
               <h4>🏢 SENDER (DISPATCH HUB):</h4>
-              <p class="bold">Business MLM Fulfillment Center</p>
+              <p class="bold">Business Fulfillment Center</p>
               <p>National Logistics & Distribution Central Hub</p>
-              <p>Customer Support: support@business-mlm.com</p>
+              <p>Customer Support: support@business.com</p>
               <p style="margin-top: 8px; font-size: 11px; color: #555;">Payment Status: <strong>PAID (Prepaid UPI)</strong></p>
             </div>
           </div>
@@ -938,7 +1127,7 @@ export const AdminPanel: React.FC = () => {
             Administrator Center
           </h1>
           <p className="text-slate-400 text-xs mt-0.5">
-            Admin tools for products catalog database, MLM genealogy trees, order completion payouts, and ledger balance auditing.
+            Admin tools for products catalog database, genealogy trees, order completion payouts, and ledger balance auditing.
           </p>
         </div>
 
@@ -967,19 +1156,17 @@ export const AdminPanel: React.FC = () => {
           <button
             key={t.id}
             onClick={() => setActiveTab(t.id)}
-            className={`px-5 py-2.5 rounded-t-lg font-bold text-xs cursor-pointer tracking-wide transition-all shrink-0 ${
-              activeTab === t.id
+            className={`px-5 py-2.5 rounded-t-lg font-bold text-xs cursor-pointer tracking-wide transition-all shrink-0 ${activeTab === t.id
                 ? 'bg-slate-900 border border-slate-850 text-rose-500 shadow-sm relative -bottom-px'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/40'
-            }`}
+              }`}
           >
             <div className="flex items-center gap-2">
               <span>{t.label}</span>
               {t.count !== null && t.count > 0 && (
                 <span
-                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono leading-none ${
-                    activeTab === t.id ? 'bg-rose-500/10 text-rose-500 font-bold' : 'bg-slate-950 text-slate-500'
-                  }`}
+                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono leading-none ${activeTab === t.id ? 'bg-rose-500/10 text-rose-500 font-bold' : 'bg-slate-950 text-slate-500'
+                    }`}
                 >
                   {t.count}
                 </span>
@@ -1090,11 +1277,10 @@ export const AdminPanel: React.FC = () => {
                             <div className="text-[10px] text-slate-500">Joined: {new Date(u.created_at).toLocaleDateString()}</div>
                           </div>
                           <span
-                            className={`px-2 py-0.5 rounded text-[9px] font-bold ${
-                              u.status === 'active'
+                            className={`px-2 py-0.5 rounded text-[9px] font-bold ${u.status === 'active'
                                 ? 'bg-emerald-500/10 text-emerald-550 border border-emerald-500/20'
                                 : 'bg-red-500/10 text-red-550 border border-red-500/20'
-                            }`}
+                              }`}
                           >
                             {u.status.toUpperCase()}
                           </span>
@@ -1135,13 +1321,12 @@ export const AdminPanel: React.FC = () => {
                           <div className="text-right">
                             <div className="font-mono text-xs text-slate-200 font-bold">₹{o.total_amount.toFixed(2)}</div>
                             <span
-                              className={`text-[9px] font-bold ${
-                                o.status === 'completed'
+                              className={`text-[9px] font-bold ${o.status === 'completed'
                                   ? 'text-emerald-550'
                                   : o.status === 'pending'
-                                  ? 'text-amber-400'
-                                  : 'text-red-550'
-                              }`}
+                                    ? 'text-amber-400'
+                                    : 'text-red-550'
+                                }`}
                             >
                               {o.status.toUpperCase()}
                             </span>
@@ -1219,6 +1404,23 @@ export const AdminPanel: React.FC = () => {
                               <div className="text-[10px] text-slate-400 line-clamp-1 max-w-[240px] font-normal">
                                 {p.description || 'No description provided.'}
                               </div>
+                              <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                                {p.images && p.images.length > 1 && (
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium bg-sky-500/10 text-sky-400 border border-sky-500/20">
+                                    📸 {p.images.length} views
+                                  </span>
+                                )}
+                                {p.colors && p.colors.length > 0 && (
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                                    🎨 {p.colors.length} {p.colors.length === 1 ? 'color' : 'colors'}
+                                  </span>
+                                )}
+                                {p.sizes && p.sizes.length > 0 && (
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                    📏 {p.sizes.length} {p.sizes.length === 1 ? 'size' : 'sizes'}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </td>
                           <td className="py-3 px-4 text-slate-350">{p.category || 'N/A'}</td>
@@ -1230,13 +1432,12 @@ export const AdminPanel: React.FC = () => {
                           </td>
                           <td className="py-3 px-4 text-center">
                             <span
-                              className={`px-2 py-0.5 rounded font-mono font-bold text-[10px] ${
-                                p.stock <= 5
+                              className={`px-2 py-0.5 rounded font-mono font-bold text-[10px] ${p.stock <= 5
                                   ? 'bg-red-500/10 text-red-555 border border-red-500/25'
                                   : 'bg-slate-950 text-slate-400'
-                              }`}
+                                }`}
                             >
-                                {p.stock} units
+                              {p.stock} units
                             </span>
                           </td>
                           <td className="py-3 px-4 text-center">
@@ -1284,6 +1485,23 @@ export const AdminPanel: React.FC = () => {
                         <div className="flex-1 min-w-0">
                           <h4 className="font-bold text-slate-200 text-sm truncate">{p.name}</h4>
                           <p className="text-[10px] text-slate-400 font-normal truncate">{p.category || 'Uncategorized'}</p>
+                          <div className="flex flex-wrap items-center gap-1 mt-1">
+                            {p.images && p.images.length > 1 && (
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8.5px] font-medium bg-sky-500/10 text-sky-400 border border-sky-500/20">
+                                📸 {p.images.length} views
+                              </span>
+                            )}
+                            {p.colors && p.colors.length > 0 && (
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8.5px] font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                                🎨 {p.colors.length} colors
+                              </span>
+                            )}
+                            {p.sizes && p.sizes.length > 0 && (
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8.5px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                📏 {p.sizes.length} sizes
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
 
@@ -1532,11 +1750,10 @@ export const AdminPanel: React.FC = () => {
                             </td>
                             <td className="py-3 px-4 text-center">
                               <span
-                                className={`px-2 py-0.5 rounded text-[9px] font-bold ${
-                                  u.status === 'active'
+                                className={`px-2 py-0.5 rounded text-[9px] font-bold ${u.status === 'active'
                                     ? 'bg-emerald-500/10 text-emerald-555 border border-emerald-500/20'
                                     : 'bg-red-500/10 text-red-550 border border-red-500/20'
-                                }`}
+                                  }`}
                               >
                                 {u.status.toUpperCase()}
                               </span>
@@ -1668,26 +1885,24 @@ export const AdminPanel: React.FC = () => {
 
               {/* Metric Highlights */}
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                <div 
+                <div
                   onClick={() => setDispatchFilter('all')}
-                  className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
-                    dispatchFilter === 'all' 
-                      ? 'bg-slate-850 border-amber-500/50 shadow-md' 
+                  className={`p-3.5 rounded-xl border transition-all cursor-pointer ${dispatchFilter === 'all'
+                      ? 'bg-slate-850 border-amber-500/50 shadow-md'
                       : 'bg-slate-950/60 border-slate-850 hover:border-slate-800'
-                  }`}
+                    }`}
                 >
                   <span className="text-slate-500 text-[9px] uppercase font-bold tracking-wider block">Total Orders</span>
                   <div className="text-lg font-black text-white font-mono mt-0.5">{orders.length}</div>
                   <span className="text-[9px] text-slate-400">All placed orders</span>
                 </div>
 
-                <div 
+                <div
                   onClick={() => setDispatchFilter('pending')}
-                  className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
-                    dispatchFilter === 'pending' 
-                      ? 'bg-amber-950/30 border-amber-500 shadow-md' 
+                  className={`p-3.5 rounded-xl border transition-all cursor-pointer ${dispatchFilter === 'pending'
+                      ? 'bg-amber-950/30 border-amber-500 shadow-md'
                       : 'bg-slate-950/60 border-slate-850 hover:border-slate-800'
-                  }`}
+                    }`}
                 >
                   <span className="text-amber-400 text-[9px] uppercase font-bold tracking-wider block">Awaiting Verification</span>
                   <div className="text-lg font-black text-amber-300 font-mono mt-0.5">
@@ -1696,13 +1911,12 @@ export const AdminPanel: React.FC = () => {
                   <span className="text-[9px] text-slate-400">Needs admin approval</span>
                 </div>
 
-                <div 
+                <div
                   onClick={() => setDispatchFilter('ready_dispatch')}
-                  className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
-                    dispatchFilter === 'ready_dispatch' 
-                      ? 'bg-blue-950/40 border-blue-500 shadow-md ring-1 ring-blue-500/30' 
+                  className={`p-3.5 rounded-xl border transition-all cursor-pointer ${dispatchFilter === 'ready_dispatch'
+                      ? 'bg-blue-950/40 border-blue-500 shadow-md ring-1 ring-blue-500/30'
                       : 'bg-slate-950/60 border-slate-850 hover:border-slate-800'
-                  }`}
+                    }`}
                 >
                   <span className="text-blue-400 text-[9px] uppercase font-bold tracking-wider block flex items-center gap-1">
                     <Package size={10} />
@@ -1714,13 +1928,12 @@ export const AdminPanel: React.FC = () => {
                   <span className="text-[9px] text-blue-400/80 font-bold">Needs postal booking</span>
                 </div>
 
-                <div 
+                <div
                   onClick={() => setDispatchFilter('dispatched')}
-                  className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
-                    dispatchFilter === 'dispatched' 
-                      ? 'bg-sky-950/40 border-sky-500 shadow-md' 
+                  className={`p-3.5 rounded-xl border transition-all cursor-pointer ${dispatchFilter === 'dispatched'
+                      ? 'bg-sky-950/40 border-sky-500 shadow-md'
                       : 'bg-slate-950/60 border-slate-850 hover:border-slate-800'
-                  }`}
+                    }`}
                 >
                   <span className="text-sky-400 text-[9px] uppercase font-bold tracking-wider block flex items-center gap-1">
                     <Truck size={10} />
@@ -1732,13 +1945,12 @@ export const AdminPanel: React.FC = () => {
                   <span className="text-[9px] text-slate-400">Tracking assigned</span>
                 </div>
 
-                <div 
+                <div
                   onClick={() => setDispatchFilter('delivered')}
-                  className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
-                    dispatchFilter === 'delivered' 
-                      ? 'bg-emerald-950/30 border-emerald-500 shadow-md' 
+                  className={`p-3.5 rounded-xl border transition-all cursor-pointer ${dispatchFilter === 'delivered'
+                      ? 'bg-emerald-950/30 border-emerald-500 shadow-md'
                       : 'bg-slate-950/60 border-slate-850 hover:border-slate-800'
-                  }`}
+                    }`}
                 >
                   <span className="text-emerald-400 text-[9px] uppercase font-bold tracking-wider block flex items-center gap-1">
                     <CheckCircle2 size={10} />
@@ -1766,16 +1978,14 @@ export const AdminPanel: React.FC = () => {
                     <button
                       key={f.id}
                       onClick={() => setDispatchFilter(f.id as any)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer shrink-0 ${
-                        dispatchFilter === f.id
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer shrink-0 ${dispatchFilter === f.id
                           ? 'bg-amber-500 text-slate-950 shadow-sm'
                           : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
-                      }`}
+                        }`}
                     >
                       <span>{f.label}</span>
-                      <span className={`ml-1.5 px-1.5 py-0.2 rounded-full text-[10px] ${
-                        dispatchFilter === f.id ? 'bg-slate-950/20 text-slate-950' : 'bg-slate-950 text-slate-400'
-                      }`}>
+                      <span className={`ml-1.5 px-1.5 py-0.2 rounded-full text-[10px] ${dispatchFilter === f.id ? 'bg-slate-950/20 text-slate-950' : 'bg-slate-950 text-slate-400'
+                        }`}>
                         {f.count}
                       </span>
                     </button>
@@ -1861,7 +2071,7 @@ export const AdminPanel: React.FC = () => {
                                 <span>{recipientName}</span>
                                 {buyer && <span className="text-[10px] text-slate-400 font-normal">(@{buyer.username})</span>}
                               </div>
-                              
+
                               {fullAddressString ? (
                                 <div className="text-[11px] text-slate-300 mt-1 leading-tight flex items-start gap-1">
                                   <MapPin size={12} className="text-amber-500 shrink-0 mt-0.5" />
@@ -1903,10 +2113,26 @@ export const AdminPanel: React.FC = () => {
                               <div className="font-mono font-black text-slate-100 text-sm">
                                 ₹{o.total_amount.toFixed(2)}
                               </div>
-                              <div className="text-[10px] text-slate-400 space-y-0.5 mt-1 max-w-[180px]">
+                              <div className="text-[10px] text-slate-400 space-y-1.5 mt-1 max-w-[220px]">
                                 {o.items.map((item, idx) => (
-                                  <div key={idx} className="line-clamp-1">
-                                    {item.quantity}x {item.product ? item.product.name : `Product #${item.product_id}`}
+                                  <div key={idx} className="space-y-0.5">
+                                    <div className="line-clamp-1 font-medium text-slate-300">
+                                      {item.quantity}x {item.product ? item.product.name : `Product #${item.product_id}`}
+                                    </div>
+                                    {(item.selected_color || item.selected_size) && (
+                                      <div className="flex flex-wrap items-center gap-1">
+                                        {item.selected_color && (
+                                          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 bg-slate-950 text-indigo-300 border border-indigo-500/30 rounded text-[9px] font-mono">
+                                            🎨 {item.selected_color}
+                                          </span>
+                                        )}
+                                        {item.selected_size && (
+                                          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 bg-slate-950 text-amber-300 border border-amber-500/30 rounded text-[9px] font-mono">
+                                            📏 {item.selected_size}
+                                          </span>
+                                        )}
+                                      </div>
+                                    )}
                                   </div>
                                 ))}
                               </div>
@@ -1916,13 +2142,12 @@ export const AdminPanel: React.FC = () => {
                             <td className="py-3.5 px-4 align-top">
                               <div>
                                 <span
-                                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold ${
-                                    isApproved
+                                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold ${isApproved
                                       ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                                       : isPending
-                                      ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                                      : 'bg-red-500/10 text-red-400 border border-red-500/20'
-                                  }`}
+                                        ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                        : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                                    }`}
                                 >
                                   {isApproved && <Check size={10} />}
                                   {isPending && <Clock size={10} />}
@@ -1949,7 +2174,7 @@ export const AdminPanel: React.FC = () => {
                               ) : (
                                 <div className="text-[10px] text-slate-500 font-mono mt-1">No UTR logged</div>
                               )}
-                              
+
                               {o.upi_payer_vpa && (
                                 <div className="text-[9px] text-slate-400 font-mono mt-0.5">
                                   VPA: {o.upi_payer_vpa}
@@ -2185,15 +2410,14 @@ export const AdminPanel: React.FC = () => {
                               {new Date(o.created_at).toLocaleString()}
                             </div>
                           </div>
-                          
+
                           <div className="text-right">
-                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold ${
-                              isApproved 
-                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
-                                : isPending 
-                                ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' 
-                                : 'bg-red-500/10 text-red-400 border border-red-500/20'
-                            }`}>
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold ${isApproved
+                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                : isPending
+                                  ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                  : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                              }`}>
                               {isApproved ? 'VERIFIED' : isPending ? 'PENDING' : 'CANCELLED'}
                             </span>
                           </div>
@@ -2218,16 +2442,45 @@ export const AdminPanel: React.FC = () => {
                         </div>
 
                         {/* Items & Amount */}
-                        <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-850/60">
-                          <div>
-                            <span className="font-mono text-slate-100 font-black text-sm">₹{o.total_amount.toFixed(2)}</span>
-                            <span className="text-amber-400 font-mono font-bold ml-2">({o.total_sw} SW)</span>
+                        <div className="space-y-2 pt-1 border-t border-slate-850/60">
+                          <div className="flex items-center justify-between text-[11px]">
+                            <div>
+                              <span className="font-mono text-slate-100 font-black text-sm">₹{o.total_amount.toFixed(2)}</span>
+                              <span className="text-amber-400 font-mono font-bold ml-2">({o.total_sw} SW)</span>
+                            </div>
+                            {o.upi_trans_id && (
+                              <span className="font-mono text-emerald-400 text-[10px] font-bold">
+                                UTR: {o.upi_trans_id}
+                              </span>
+                            )}
                           </div>
-                          {o.upi_trans_id && (
-                            <span className="font-mono text-emerald-400 text-[10px] font-bold">
-                              UTR: {o.upi_trans_id}
-                            </span>
-                          )}
+
+                          {/* Ordered items breakdown */}
+                          <div className="bg-slate-950/40 p-2 rounded-lg border border-slate-850/60 space-y-1">
+                            <div className="text-[9px] text-slate-500 uppercase font-bold tracking-wider">Ordered Items:</div>
+                            {o.items.map((item, idx) => (
+                              <div key={idx} className="text-[10px] text-slate-300 flex items-start justify-between gap-2">
+                                <div>
+                                  <span className="font-bold text-slate-200">{item.quantity}x</span> {item.product ? item.product.name : `Product #${item.product_id}`}
+                                  {(item.selected_color || item.selected_size) && (
+                                    <div className="flex flex-wrap items-center gap-1 mt-0.5">
+                                      {item.selected_color && (
+                                        <span className="inline-flex items-center gap-0.5 px-1 py-0.2 bg-slate-900 text-indigo-300 border border-indigo-500/30 rounded text-[8.5px] font-mono">
+                                          🎨 {item.selected_color}
+                                        </span>
+                                      )}
+                                      {item.selected_size && (
+                                        <span className="inline-flex items-center gap-0.5 px-1 py-0.2 bg-slate-900 text-amber-300 border border-amber-500/30 rounded text-[8.5px] font-mono">
+                                          📏 {item.selected_size}
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                                <span className="font-mono text-slate-400 shrink-0">₹{(item.price * item.quantity).toFixed(2)}</span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
 
                         {/* Dispatch Status Card */}
@@ -2240,7 +2493,7 @@ export const AdminPanel: React.FC = () => {
                             <div className="font-mono font-bold text-white text-xs select-all">
                               Tracking: {o.tracking_number}
                             </div>
-                            <a 
+                            <a
                               href={o.tracking_url || 'https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx'}
                               target="_blank"
                               rel="noopener noreferrer"
@@ -2360,17 +2613,16 @@ export const AdminPanel: React.FC = () => {
                             </td>
                             <td className="py-3 px-4 font-bold">
                               <span
-                                className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase ${
-                                  c.type === 'binary_matching'
+                                className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase ${c.type === 'binary_matching'
                                     ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                                     : c.type === 'sponsor_matching_bonus'
-                                    ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
-                                    : c.type === 'rank_level_reward'
-                                    ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                                    : c.type === 'direct_referral'
-                                    ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20'
-                                    : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
-                                }`}
+                                      ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+                                      : c.type === 'rank_level_reward'
+                                        ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                        : c.type === 'direct_referral'
+                                          ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20'
+                                          : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
+                                  }`}
                               >
                                 {c.type === 'binary_matching' ? 'Business Match' : c.type === 'sponsor_matching_bonus' ? '5-Level Sponsor' : c.type === 'rank_level_reward' ? 'Rank Royalty' : c.type.replace('_', ' ')}
                               </span>
@@ -2412,17 +2664,16 @@ export const AdminPanel: React.FC = () => {
                         <div className="space-y-1.5 text-[11px] font-normal text-slate-350">
                           <div className="flex items-center gap-1.5">
                             <span className="text-slate-500 text-[8px] uppercase font-bold">Reward Type:</span>
-                            <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${
-                              c.type === 'binary_matching'
+                            <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${c.type === 'binary_matching'
                                 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                                 : c.type === 'sponsor_matching_bonus'
-                                ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
-                                : c.type === 'rank_level_reward'
-                                ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                                : c.type === 'direct_referral'
-                                ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20'
-                                : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
-                            }`}>
+                                  ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+                                  : c.type === 'rank_level_reward'
+                                    ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                    : c.type === 'direct_referral'
+                                      ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20'
+                                      : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
+                              }`}>
                               {c.type === 'binary_matching' ? 'Business Match' : c.type === 'sponsor_matching_bonus' ? '5-Level Sponsor' : c.type === 'rank_level_reward' ? 'Rank Royalty' : c.type.replace('_', ' ')}
                             </span>
                           </div>
@@ -2549,11 +2800,10 @@ export const AdminPanel: React.FC = () => {
                                 )}
                               </td>
                               <td className="py-3 px-3 text-right">
-                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
-                                  r.status === 'active'
+                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${r.status === 'active'
                                     ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                                     : 'bg-slate-800 text-slate-400'
-                                }`}>
+                                  }`}>
                                   {r.status}
                                 </span>
                               </td>
@@ -2576,9 +2826,8 @@ export const AdminPanel: React.FC = () => {
                       <div key={r.id} className="bg-slate-950/40 border border-slate-850 rounded-xl p-4 space-y-2.5">
                         <div className="flex justify-between items-center">
                           <span className="font-bold text-white text-xs">{r.user_username || `User #${r.user_id}`}</span>
-                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
-                            r.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 text-slate-400'
-                          }`}>
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${r.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 text-slate-400'
+                            }`}>
                             {r.status}
                           </span>
                         </div>
@@ -2603,11 +2852,12 @@ export const AdminPanel: React.FC = () => {
 
       {/* PRODUCT CREATION/EDIT MODAL OVERLAY */}
       {isProductModalOpen && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-slate-900 border border-slate-850 rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl animate-scale-up">
-            <div className="flex items-center justify-between border-b border-slate-850 px-6 py-4 bg-slate-950/60">
-              <h3 className="text-sm font-black text-white flex items-center gap-1.5 font-sans">
-                <PlusCircle size={16} className="text-amber-500" />
+        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-50 animate-fade-in">
+          <div className="bg-slate-900 border border-slate-850 rounded-2xl max-w-2xl w-full max-h-[92vh] flex flex-col overflow-hidden shadow-2xl animate-scale-up">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-slate-850 px-6 py-4 bg-slate-950/80 shrink-0">
+              <h3 className="text-sm font-black text-white flex items-center gap-2 font-sans">
+                <PlusCircle size={17} className="text-amber-500" />
                 <span>{editingProduct ? 'Edit Catalog Product' : 'Add Catalog Product'}</span>
               </h3>
               <button
@@ -2618,15 +2868,18 @@ export const AdminPanel: React.FC = () => {
               </button>
             </div>
 
-            <form onSubmit={handleProductSubmit} className="p-6 space-y-4 text-xs font-bold text-slate-200">
-              <div className="grid grid-cols-2 gap-4">
+            {/* Modal Scrollable Form Body */}
+            <form onSubmit={handleProductSubmit} className="p-6 space-y-5 text-xs font-bold text-slate-200 overflow-y-auto flex-1">
+              {/* 1. Core Product Details */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Name */}
-                <div className="col-span-2 space-y-1">
-                  <label className="text-[10px] text-slate-400 uppercase">Product Display Name</label>
+                <div className="sm:col-span-2 space-y-1">
+                  <label className="text-[10px] text-slate-400 uppercase tracking-wider">Product Display Name *</label>
                   <input
                     type="text"
                     required
-                    className="w-full bg-slate-950 border border-slate-850 rounded-lg px-3.5 py-2 text-slate-100 focus:outline-none focus:border-rose-500 font-normal"
+                    placeholder="e.g. Apex Ultra Slim Smart Watch"
+                    className="w-full bg-slate-950 border border-slate-850 rounded-lg px-3.5 py-2 text-slate-100 focus:outline-none focus:border-amber-500 font-normal"
                     value={productForm.name}
                     onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
                   />
@@ -2634,10 +2887,10 @@ export const AdminPanel: React.FC = () => {
 
                 {/* Category Selection from DB List */}
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-400 uppercase">Category</label>
+                  <label className="text-[10px] text-slate-400 uppercase tracking-wider">Category *</label>
                   <select
                     required
-                    className="w-full bg-slate-950 border border-slate-850 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-rose-500 font-normal font-sans"
+                    className="w-full bg-slate-950 border border-slate-850 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500 font-normal font-sans"
                     value={productForm.category || ''}
                     onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
                   >
@@ -2648,14 +2901,14 @@ export const AdminPanel: React.FC = () => {
                   </select>
                 </div>
 
-                {/* Stock */}
+                {/* Stock Inventory */}
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-400 uppercase">Stock Inventory</label>
+                  <label className="text-[10px] text-slate-400 uppercase tracking-wider">Stock Inventory *</label>
                   <input
                     type="number"
                     min={0}
                     required
-                    className="w-full bg-slate-950 border border-slate-850 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-rose-500 font-mono font-normal"
+                    className="w-full bg-slate-950 border border-slate-850 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500 font-mono font-normal"
                     value={productForm.stock}
                     onChange={(e) => setProductForm({ ...productForm, stock: parseInt(e.target.value) || 0 })}
                   />
@@ -2663,13 +2916,13 @@ export const AdminPanel: React.FC = () => {
 
                 {/* Price */}
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-400 uppercase">Price (INR)</label>
+                  <label className="text-[10px] text-slate-400 uppercase tracking-wider">Price (INR) *</label>
                   <input
                     type="number"
                     step="0.01"
                     min="0.01"
                     required
-                    className="w-full bg-slate-950 border border-slate-855 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-rose-500 font-mono font-normal"
+                    className="w-full bg-slate-950 border border-slate-850 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500 font-mono font-normal"
                     value={productForm.price}
                     onChange={(e) => setProductForm({ ...productForm, price: parseFloat(e.target.value) || 0 })}
                   />
@@ -2677,71 +2930,412 @@ export const AdminPanel: React.FC = () => {
 
                 {/* SW points */}
                 <div className="space-y-1">
-                  <label className="text-[10px] text-slate-400 uppercase flex items-center gap-1">
-                    <span>Sales Wallet (SW)</span>
+                  <label className="text-[10px] text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                    <span>Sales Wallet (SW) *</span>
                     <span className="text-[8px] bg-amber-500/10 text-amber-500 px-1 rounded">BV Points</span>
                   </label>
                   <input
                     type="number"
                     min="1"
                     required
-                    className="w-full bg-slate-950 border border-slate-850 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-rose-500 font-mono font-normal"
+                    className="w-full bg-slate-950 border border-slate-850 rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:border-amber-500 font-mono font-normal"
                     value={productForm.sw}
                     onChange={(e) => setProductForm({ ...productForm, sw: parseInt(e.target.value) || 0 })}
                   />
                 </div>
 
                 {/* Description */}
-                <div className="col-span-2 space-y-1">
-                  <label className="text-[10px] text-slate-400 uppercase">Product Description</label>
+                <div className="sm:col-span-2 space-y-1">
+                  <label className="text-[10px] text-slate-400 uppercase tracking-wider">Product Description</label>
                   <textarea
                     rows={2}
-                    className="w-full bg-slate-950 border border-slate-850 rounded-lg px-3.5 py-2 text-slate-100 focus:outline-none focus:border-rose-500 font-normal resize-none"
+                    placeholder="Provide detailed description, specifications, and warranty info..."
+                    className="w-full bg-slate-950 border border-slate-850 rounded-lg px-3.5 py-2 text-slate-100 focus:outline-none focus:border-amber-500 font-normal resize-none"
                     value={productForm.description}
                     onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
                   />
                 </div>
+              </div>
 
-                {/* Image URL & File Upload */}
-                <div className="col-span-2 space-y-1 font-sans">
-                  <label className="text-[10px] text-slate-400 uppercase">Product Image</label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* URL Input */}
-                    <div className="space-y-1">
-                      <span className="text-[9px] text-slate-500 font-normal block">Provide Image URL</span>
+              {/* 2. MULTIPLE PHOTO VIEWS & GALLERY MANAGEMENT */}
+              <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-4 space-y-3.5 font-sans">
+                <div className="flex items-center justify-between border-b border-slate-850/80 pb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 bg-amber-500/10 text-amber-500 rounded-lg">
+                      <Layers size={15} />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black text-white">Multiple Product Views & Photo Gallery</h4>
+                      <p className="text-[10px] text-slate-400 font-normal">
+                        Upload multiple photos (front, side, back, in-hand, detail view) so customers can browse angles.
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-amber-400 font-mono text-[10px] bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                    {productForm.images.length} {productForm.images.length === 1 ? 'View' : 'Views'}
+                  </span>
+                </div>
+
+                {/* Upload & Add Controls */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Multi-File Upload Button */}
+                  <div className="space-y-1">
+                    <span className="text-[9.5px] text-slate-400 font-semibold block">
+                      📁 Upload Photos (Select One or Multiple Files):
+                    </span>
+                    <label className="relative flex items-center justify-center gap-2 px-3 py-2 bg-slate-900 hover:bg-slate-850 border border-dashed border-slate-700 hover:border-amber-500 rounded-lg text-slate-300 hover:text-white cursor-pointer transition-colors text-[11px]">
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        disabled={uploading}
+                        onChange={handleMultiImageUpload}
+                        className="hidden"
+                      />
+                      <span>{uploading ? 'Uploading Photos...' : '+ Select Files from Computer'}</span>
+                    </label>
+                  </div>
+
+                  {/* Add Photo by URL */}
+                  <div className="space-y-1">
+                    <span className="text-[9.5px] text-slate-400 font-semibold block">
+                      🔗 Or Add Photo via Web URL:
+                    </span>
+                    <div className="flex gap-2">
                       <input
                         type="url"
-                        className="w-full bg-slate-950 border border-slate-850 rounded-lg px-3.5 py-2 text-slate-100 focus:outline-none focus:border-rose-500 font-mono font-normal"
-                        value={productForm.image_url || ''}
-                        onChange={(e) => setProductForm({ ...productForm, image_url: e.target.value })}
-                        placeholder="https://example.com/image.jpg"
+                        placeholder="https://images.unsplash.com/..."
+                        className="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-slate-200 text-[11px] focus:outline-none focus:border-amber-500 font-normal"
+                        value={newViewImageUrl}
+                        onChange={(e) => setNewViewImageUrl(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddImageUrl();
+                          }
+                        }}
                       />
-                    </div>
-                    
-                    {/* Local Upload Input */}
-                    <div className="space-y-1">
-                      <span className="text-[9px] text-slate-500 font-normal block">Or Upload Local Image</span>
-                      <div className="relative">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          disabled={uploading}
-                          onChange={handleImageUpload}
-                          className="w-full bg-slate-950 border border-slate-850 rounded-lg px-3 py-1.5 text-slate-400 focus:outline-none focus:border-rose-500 font-normal text-[11px] file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-[10px] file:font-bold file:bg-rose-500/10 file:text-rose-500 file:cursor-pointer hover:file:bg-rose-500/20"
-                        />
-                        {uploading && (
-                          <span className="absolute right-3 top-2 text-[9px] font-bold text-amber-500 font-mono animate-pulse">
-                            Uploading...
-                          </span>
-                        )}
-                      </div>
+                      <button
+                        type="button"
+                        onClick={handleAddImageUrl}
+                        className="px-3 py-1.5 bg-slate-800 hover:bg-amber-500 hover:text-slate-950 text-slate-200 rounded-lg font-bold text-[10px] transition-colors cursor-pointer shrink-0"
+                      >
+                        + Add View
+                      </button>
                     </div>
                   </div>
                 </div>
+
+                {/* Gallery Thumbnails List */}
+                {productForm.images.length > 0 ? (
+                  <div className="space-y-1.5 pt-1">
+                    <span className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider block">
+                      Gallery Views (First image is Cover Photo):
+                    </span>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                      {productForm.images.map((imgUrl, idx) => {
+                        const isCover = idx === 0;
+                        return (
+                          <div
+                            key={idx}
+                            className={`relative bg-slate-900 rounded-xl border p-2 flex flex-col gap-1.5 transition-all ${
+                              isCover ? 'border-amber-500/80 ring-1 ring-amber-500/30' : 'border-slate-800'
+                            }`}
+                          >
+                            {/* Image Thumbnail */}
+                            <div className="aspect-square w-full rounded-lg overflow-hidden bg-slate-950 relative">
+                              <img src={imgUrl} alt={`View ${idx + 1}`} className="w-full h-full object-cover" />
+                              <span
+                                className={`absolute top-1 left-1 px-1.5 py-0.2 rounded text-[8px] font-black uppercase ${
+                                  isCover ? 'bg-amber-500 text-slate-950' : 'bg-slate-900/90 text-slate-300'
+                                }`}
+                              >
+                                {isCover ? 'Cover' : `View #${idx + 1}`}
+                              </span>
+                            </div>
+
+                            {/* View Action Bar */}
+                            <div className="flex items-center justify-between gap-1 pt-0.5">
+                              {!isCover ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleSetCoverImage(idx)}
+                                  className="text-[9px] text-amber-400 hover:text-amber-300 font-bold hover:underline cursor-pointer"
+                                  title="Make this the main cover photo"
+                                >
+                                  Make Cover
+                                </button>
+                              ) : (
+                                <span className="text-[9px] text-amber-500 font-bold flex items-center gap-0.5">
+                                  <Star size={9} fill="currentColor" /> Primary
+                                </span>
+                              )}
+
+                              <div className="flex items-center gap-1">
+                                {idx > 0 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleMoveImage(idx, idx - 1)}
+                                    className="p-1 hover:bg-slate-800 text-slate-400 hover:text-white rounded"
+                                    title="Move view earlier"
+                                  >
+                                    <ArrowUp size={10} />
+                                  </button>
+                                )}
+                                {idx < productForm.images.length - 1 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleMoveImage(idx, idx + 1)}
+                                    className="p-1 hover:bg-slate-800 text-slate-400 hover:text-white rounded"
+                                    title="Move view later"
+                                  >
+                                    <ArrowDown size={10} />
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveImage(idx)}
+                                  className="p-1 hover:bg-red-500/20 text-slate-400 hover:text-red-400 rounded transition-colors"
+                                  title="Delete this view"
+                                >
+                                  <Trash2 size={11} />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-4 text-slate-500 border border-slate-850/60 rounded-lg text-[11px] font-normal">
+                    No photo views added yet. Upload files above or add an image URL to build this product's gallery.
+                  </div>
+                )}
               </div>
 
-              {/* Form buttons */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-850 mt-6 font-sans">
+              {/* 3. COLOR VARIANTS MANAGEMENT */}
+              <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-4 space-y-3 font-sans">
+                <div className="flex items-center justify-between border-b border-slate-850/80 pb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 bg-rose-500/10 text-rose-400 rounded-lg">
+                      <Palette size={15} />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black text-white">Color Options & Swatches</h4>
+                      <p className="text-[10px] text-slate-400 font-normal">
+                        Customers can choose from these colors on the product page.
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-rose-400 font-mono text-[10px] bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">
+                    {productForm.colors.length} {productForm.colors.length === 1 ? 'Color' : 'Colors'}
+                  </span>
+                </div>
+
+                {/* Active Color Chips */}
+                <div className="space-y-1.5">
+                  <span className="text-[9.5px] text-slate-400 font-semibold block">Configured Colors:</span>
+                  <div className="flex flex-wrap gap-1.5 min-h-[30px] p-2 bg-slate-900 rounded-lg border border-slate-800 items-center">
+                    {productForm.colors.length === 0 ? (
+                      <span className="text-slate-500 text-[10px] italic">No color variants added (Product will not require color choice)</span>
+                    ) : (
+                      productForm.colors.map((c) => (
+                        <span
+                          key={c}
+                          className="inline-flex items-center gap-1.5 bg-slate-950 text-slate-200 border border-slate-750 px-2.5 py-1 rounded-full text-[10px] font-bold"
+                        >
+                          <span>{c}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveColor(c)}
+                            className="text-slate-400 hover:text-red-400 cursor-pointer"
+                            title={`Remove ${c}`}
+                          >
+                            <X size={10} />
+                          </button>
+                        </span>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* Quick Add Palette Presets */}
+                <div className="space-y-1 pt-1">
+                  <span className="text-[9px] text-slate-400 font-semibold block">Quick 1-Click Color Presets:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      'Black',
+                      'White',
+                      'Space Gray',
+                      'Silver',
+                      'Gold',
+                      'Rose Gold',
+                      'Royal Blue',
+                      'Navy Blue',
+                      'Red',
+                      'Maroon',
+                      'Emerald Green',
+                      'Olive',
+                      'Pink',
+                      'Khaki'
+                    ].map((colorPreset) => (
+                      <button
+                        key={colorPreset}
+                        type="button"
+                        onClick={() => handleAddColor(colorPreset)}
+                        className={`text-[9.5px] font-bold px-2 py-0.5 rounded-full border transition-all cursor-pointer ${
+                          productForm.colors.includes(colorPreset)
+                            ? 'bg-amber-500/20 border-amber-500 text-amber-300 opacity-60'
+                            : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-600 hover:text-white'
+                        }`}
+                      >
+                        + {colorPreset}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Custom Color Adder */}
+                <div className="flex gap-2 pt-1">
+                  <input
+                    type="text"
+                    placeholder="Enter custom color (e.g. Midnight Cyan)..."
+                    className="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-slate-200 text-[11px] focus:outline-none focus:border-rose-500 font-normal"
+                    value={customColorInput}
+                    onChange={(e) => setCustomColorInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddColor(customColorInput);
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleAddColor(customColorInput)}
+                    className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg font-bold text-[10px] transition-colors cursor-pointer shrink-0"
+                  >
+                    + Add Color
+                  </button>
+                </div>
+              </div>
+
+              {/* 4. SIZE / OPTION VARIANTS MANAGEMENT */}
+              <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-4 space-y-3 font-sans">
+                <div className="flex items-center justify-between border-b border-slate-850/80 pb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 bg-sky-500/10 text-sky-400 rounded-lg">
+                      <Tag size={15} />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black text-white">Size Variants & Options</h4>
+                      <p className="text-[10px] text-slate-400 font-normal">
+                        Customers can choose from these size pills or option bundles.
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-sky-400 font-mono text-[10px] bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20">
+                    {productForm.sizes.length} {productForm.sizes.length === 1 ? 'Size' : 'Sizes'}
+                  </span>
+                </div>
+
+                {/* Active Size Chips */}
+                <div className="space-y-1.5">
+                  <span className="text-[9.5px] text-slate-400 font-semibold block">Configured Sizes:</span>
+                  <div className="flex flex-wrap gap-1.5 min-h-[30px] p-2 bg-slate-900 rounded-lg border border-slate-800 items-center">
+                    {productForm.sizes.length === 0 ? (
+                      <span className="text-slate-500 text-[10px] italic">No size options defined (Product will not require size choice)</span>
+                    ) : (
+                      productForm.sizes.map((s) => (
+                        <span
+                          key={s}
+                          className="inline-flex items-center gap-1.5 bg-slate-950 text-sky-300 border border-slate-750 px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold"
+                        >
+                          <span>{s}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveSize(s)}
+                            className="text-slate-400 hover:text-red-400 cursor-pointer"
+                            title={`Remove ${s}`}
+                          >
+                            <X size={10} />
+                          </button>
+                        </span>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* Quick 1-Click Preset Bundles */}
+                <div className="space-y-1 pt-1">
+                  <span className="text-[9px] text-slate-400 font-semibold block">Quick 1-Click Size Presets:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => ['S', 'M', 'L', 'XL', 'XXL'].forEach(handleAddSize)}
+                      className="text-[9.5px] font-bold px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-sky-300 hover:bg-slate-850 hover:border-sky-500 transition-all cursor-pointer"
+                    >
+                      + Apparel (S, M, L, XL, XXL)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => ['6', '7', '8', '9', '10', '11'].forEach(handleAddSize)}
+                      className="text-[9.5px] font-bold px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-sky-300 hover:bg-slate-850 hover:border-sky-500 transition-all cursor-pointer"
+                    >
+                      + Footwear (6, 7, 8, 9, 10, 11)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => ['64GB', '128GB', '256GB', '512GB'].forEach(handleAddSize)}
+                      className="text-[9.5px] font-bold px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-sky-300 hover:bg-slate-850 hover:border-sky-500 transition-all cursor-pointer"
+                    >
+                      + Tech (64GB, 128GB, 256GB)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => ['40mm', '44mm', '46mm'].forEach(handleAddSize)}
+                      className="text-[9.5px] font-bold px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-sky-300 hover:bg-slate-850 hover:border-sky-500 transition-all cursor-pointer"
+                    >
+                      + Watch (40mm, 44mm, 46mm)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAddSize('Free Size')}
+                      className="text-[9.5px] font-bold px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-sky-300 hover:bg-slate-850 hover:border-sky-500 transition-all cursor-pointer"
+                    >
+                      + Free Size
+                    </button>
+                  </div>
+                </div>
+
+                {/* Custom Size Adder */}
+                <div className="flex gap-2 pt-1">
+                  <input
+                    type="text"
+                    placeholder="Enter custom size (e.g. 1 Litre, 32 Waist, 42 Reg)..."
+                    className="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-slate-200 text-[11px] focus:outline-none focus:border-sky-500 font-normal"
+                    value={customSizeInput}
+                    onChange={(e) => setCustomSizeInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddSize(customSizeInput);
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleAddSize(customSizeInput)}
+                    className="px-3.5 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg font-bold text-[10px] transition-colors cursor-pointer shrink-0"
+                  >
+                    + Add Size
+                  </button>
+                </div>
+              </div>
+
+              {/* Form Action Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-850 font-sans">
                 <button
                   type="button"
                   onClick={() => setIsProductModalOpen(false)}
@@ -2751,10 +3345,10 @@ export const AdminPanel: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex items-center gap-1.5 px-6 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-full font-bold transition-colors cursor-pointer shadow-sm animate-pulse-subtle"
+                  className="flex items-center gap-1.5 px-6 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-full font-bold transition-colors cursor-pointer shadow-md"
                 >
                   <Save size={14} />
-                  <span>{editingProduct ? 'Save Updates' : 'Add Item'}</span>
+                  <span>{editingProduct ? 'Save Product Changes' : 'Publish Product to Catalog'}</span>
                 </button>
               </div>
             </form>
@@ -2809,7 +3403,7 @@ export const AdminPanel: React.FC = () => {
                         placeholder="https://example.com/image.jpg"
                       />
                     </div>
-                    
+
                     {/* Local Upload Input */}
                     <div className="space-y-1">
                       <span className="text-[9px] text-slate-505 font-normal block">Or Upload Local Image</span>
@@ -3017,7 +3611,14 @@ export const AdminPanel: React.FC = () => {
                   <div>
                     <span>Items to pack: </span>
                     <strong className="text-slate-200 font-mono">
-                      {selectedDispatchOrder.items.map(i => `${i.quantity}x ${i.product ? i.product.name : 'Item'}`).join(', ')}
+                      {selectedDispatchOrder.items.map(i => {
+                        const parts = [`${i.quantity}x ${i.product ? i.product.name : 'Item'}`];
+                        const variants = [];
+                        if (i.selected_color) variants.push(`Color: ${i.selected_color}`);
+                        if (i.selected_size) variants.push(`Size: ${i.selected_size}`);
+                        if (variants.length > 0) parts.push(`(${variants.join(', ')})`);
+                        return parts.join(' ');
+                      }).join(', ')}
                     </strong>
                   </div>
                   <span className="font-bold font-mono text-amber-400">₹{selectedDispatchOrder.total_amount.toFixed(2)}</span>

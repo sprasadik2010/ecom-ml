@@ -2,15 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth, API_BASE_URL } from '../context/AuthContext';
-import { 
-  ShieldCheck, 
-  Award, 
-  ArrowLeft, 
-  Loader, 
-  CheckCircle2, 
-  QrCode, 
-  Copy, 
-  Check, 
+import {
+  ShieldCheck,
+  Award,
+  ArrowLeft,
+  Loader,
+  CheckCircle2,
+  QrCode,
+  Copy,
+  Check,
   ExternalLink,
   Smartphone,
   HelpCircle,
@@ -31,7 +31,7 @@ export const Checkout: React.FC = () => {
 
   // Merchant UPI Config from backend
   const [merchantUpiId, setMerchantUpiId] = useState('merchant@okhdfcbank');
-  const [merchantUpiName, setMerchantUpiName] = useState('Business MLM Store');
+  const [merchantUpiName, setMerchantUpiName] = useState('Business Store');
 
   // Form states
   const [fullName, setFullName] = useState(user?.full_name || '');
@@ -95,6 +95,8 @@ export const Checkout: React.FC = () => {
         items: items.map((item) => ({
           product_id: item.product.id,
           quantity: item.quantity,
+          selected_color: item.selectedColor,
+          selected_size: item.selectedSize,
         })),
         shipping_name: fullName.trim() || undefined,
         shipping_address: address.trim() || undefined,
@@ -159,7 +161,7 @@ export const Checkout: React.FC = () => {
       clearCart();
       await refreshUser(); // Update status/wallet balance and pending_sw
       setCheckoutStep('success');
-      
+
       // Fire celebratory confetti!
       confetti({
         particleCount: 150,
@@ -182,7 +184,7 @@ export const Checkout: React.FC = () => {
           <CheckCircle2 size={56} className="text-emerald-400" />
         </div>
         <h1 className="text-2xl font-black text-white mb-2">Order Placed Successfully!</h1>
-        
+
         {lastPlacedOrder && (
           <div className="flex flex-wrap items-center justify-center gap-2 mb-4 font-mono text-xs">
             <span className="bg-slate-900 border border-slate-800 text-slate-300 px-3 py-1.5 rounded-full font-bold">
@@ -256,7 +258,7 @@ export const Checkout: React.FC = () => {
               <ShieldCheck size={18} className="text-amber-500" />
               1. Shipping & Customer Details
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
               <div>
                 <label className="text-slate-400 block mb-1">Full Name</label>
@@ -456,19 +458,30 @@ export const Checkout: React.FC = () => {
         <div className="lg:col-span-4">
           <div className="bg-slate-900 border border-slate-800 rounded-lg p-6 shadow-md space-y-4 sticky top-6">
             <h3 className="font-extrabold text-sm text-slate-100 uppercase tracking-wider">Order Summary</h3>
-            
+
             <div className="divide-y divide-slate-850 max-h-60 overflow-y-auto pr-1">
-              {items.map((item) => (
-                <div key={item.product.id} className="py-2.5 flex justify-between items-start text-xs font-normal">
+              {items.map((item) => {
+                const itemKey = `${item.product.id}-${item.selectedColor || ''}-${item.selectedSize || ''}`;
+                return (
+                <div key={itemKey} className="py-2.5 flex justify-between items-start text-xs font-normal">
                   <div className="flex flex-col pr-4">
                     <span className="text-slate-200 line-clamp-1 font-semibold">{item.product.name}</span>
-                    <span className="text-slate-500 text-[10px]">Qty: {item.quantity}</span>
+                    <div className="flex items-center gap-2 text-slate-500 text-[10px] mt-0.5">
+                      <span>Qty: {item.quantity}</span>
+                      {item.selectedColor && (
+                        <span className="text-amber-400 font-bold">• {item.selectedColor}</span>
+                      )}
+                      {item.selectedSize && (
+                        <span className="text-sky-400 font-bold font-mono">• {item.selectedSize}</span>
+                      )}
+                    </div>
                   </div>
                   <span className="font-mono text-slate-300 font-bold whitespace-nowrap">
                     ₹{(item.product.price * item.quantity).toFixed(2)}
                   </span>
                 </div>
-              ))}
+                );
+              })}
             </div>
 
             <div className="border-t border-slate-850 pt-3 flex justify-between items-center text-xs">
@@ -486,11 +499,10 @@ export const Checkout: React.FC = () => {
             <button
               type="submit"
               disabled={loading || items.length === 0}
-              className={`w-full py-3 px-4 rounded-md font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg ${
-                loading
-                  ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                  : 'bg-amber-500 hover:bg-amber-600 text-slate-950 active:scale-95'
-              }`}
+              className={`w-full py-3.5 px-4 rounded-full font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md ${loading
+                  ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                  : 'bg-[#B8586E] hover:bg-[#A3475D] text-white shadow-[#B8586E]/25 active:scale-95'
+                }`}
             >
               {loading ? (
                 <>
@@ -504,6 +516,16 @@ export const Checkout: React.FC = () => {
                 </>
               )}
             </button>
+
+            <div className="bg-[#FAF7F2] border border-[#EFE2DE] p-3 rounded-xl text-[10.5px] text-[#705960] leading-relaxed space-y-1 text-left">
+              <div className="flex items-center gap-1.5 font-bold text-[#8C2E42]">
+                <ShieldCheck size={13} className="text-[#0D7A5C]" />
+                <span>3-Day Damage Protection Guarantee</span>
+              </div>
+              <p>
+                Products arriving damaged in transit are eligible for free replacement within 3 days of delivery with photographs. <Link to="/return-policy" target="_blank" className="text-[#B8586E] font-bold underline">Policy Details →</Link>
+              </p>
+            </div>
 
             <p className="text-[10px] text-slate-500 text-center leading-normal">
               🛡️ Upon submission, your order is recorded with your UPI Transaction ID and submitted for instant verification.

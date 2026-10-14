@@ -12,11 +12,11 @@ class Settings:
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24 hours
     
-    # MLM Rules
+    #Rules
     MIN_PURCHASE_FOR_ACTIVATION: float = 50.0   # 50 SW to become active member
 
     # UPI Payment Configuration
     UPI_ID: str = os.getenv("UPI_ID", "merchant@okhdfcbank")
-    UPI_NAME: str = os.getenv("UPI_NAME", "Business MLM Store")
+    UPI_NAME: str = os.getenv("UPI_NAME", "Business Store")
 
 settings = Settings()

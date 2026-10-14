@@ -47,15 +47,15 @@ export const Login: React.FC = () => {
 
   return (
     <div className="max-w-md mx-auto px-4 py-20 flex flex-col justify-center">
-      <div className="bg-slate-900 border border-slate-800 rounded-lg p-8 shadow-md relative">
-        <div className="absolute top-0 left-0 right-0 h-1 rounded-t-lg bg-amber-500" />
+      <div className="bg-white border border-[#EFE2DE] rounded-2xl p-8 shadow-md relative">
+        <div className="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl bg-[#B8586E]" />
 
         <div className="text-center mb-6">
-          <img src={bwLogo} alt="BuyWay" className="h-14 w-auto mx-auto mb-3 object-contain rounded mix-blend-multiply" />
-          <h2 className="text-2xl font-black text-white tracking-tight flex items-center justify-center gap-1">
+          <img src={bwLogo} alt="BuyWay" className="h-12 w-auto mx-auto mb-3 object-contain rounded" />
+          <h2 className="font-serif text-2xl text-[#331B21] font-normal tracking-tight flex items-center justify-center gap-1">
             Sign In to BuyWay
           </h2>
-          <p className="text-slate-400 text-xs mt-1">
+          <p className="text-[#7A6369] text-xs mt-1">
             Access your store and team account
           </p>
         </div>
@@ -69,11 +69,11 @@ export const Login: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs font-normal">
           <div>
-            <label className="text-slate-400 block mb-1">Username</label>
+            <label className="text-[#705960] block mb-1 font-medium">Username</label>
             <input
               type="text"
               required
-              className="w-full bg-slate-950 border border-slate-800 rounded p-2 focus:outline-none focus:border-amber-500 text-slate-200"
+              className="w-full bg-[#FAF7F2] border border-[#EFE2DE] rounded-xl p-2.5 focus:outline-none focus:border-[#B8586E] text-[#251117]"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               disabled={submitting}
@@ -82,11 +82,11 @@ export const Login: React.FC = () => {
           </div>
 
           <div>
-            <label className="text-slate-400 block mb-1">Password</label>
+            <label className="text-[#705960] block mb-1 font-medium">Password</label>
             <input
               type="password"
               required
-              className="w-full bg-slate-950 border border-slate-800 rounded p-2 focus:outline-none focus:border-amber-500 text-slate-200"
+              className="w-full bg-[#FAF7F2] border border-[#EFE2DE] rounded-xl p-2.5 focus:outline-none focus:border-[#B8586E] text-[#251117]"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={submitting}
@@ -97,7 +97,7 @@ export const Login: React.FC = () => {
           <button
             type="submit"
             disabled={submitting}
-            className={`w-full py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-md font-extrabold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${submitting ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'
+            className={`w-full py-3 px-4 bg-[#B8586E] hover:bg-[#A3475D] text-white rounded-full font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-[#B8586E]/20 cursor-pointer ${submitting ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'
               }`}
           >
             {submitting ? 'Signing in...' : 'Sign In'}
@@ -105,9 +105,9 @@ export const Login: React.FC = () => {
           </button>
         </form>
 
-        <div className="border-t border-slate-850 mt-6 pt-4 text-center text-xs text-slate-500">
+        <div className="border-t border-[#F2E8E5] mt-6 pt-4 text-center text-xs text-[#8C7077]">
           <p className="leading-relaxed">
-            <span className="font-semibold text-slate-400">New to BuyWay?</span> Registration is by invitation only. Please use the Left or Right referral link provided by your sponsor.
+            <span className="font-semibold text-[#331B21]">New to BuyWay?</span> Registration is by invitation only. Please use the referral link provided by your sponsor.
           </p>
         </div>
       </div>

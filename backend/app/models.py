@@ -15,17 +15,17 @@ class User(Base):
     status = Column(String, default="inactive") # 'active' or 'inactive'
     is_admin = Column(Boolean, default=False, nullable=False)
     
-    # Direct MLM relationship
+    # Direct relationship
     sponsor_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     
-    # Binary MLM tree relationships
+    # Binary tree relationships
     parent_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     position = Column(String, nullable=True) # 'left' or 'right'
     
     left_child_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     right_child_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     
-    # MLM Volumes & Wallet
+    # Volumes & Wallet
     personal_sw = Column(Float, default=0.0)
     left_leg_sw = Column(Float, default=0.0)
     right_leg_sw = Column(Float, default=0.0)
@@ -119,8 +119,48 @@ class Product(Base):
     price = Column(Float, nullable=False)
     sw = Column(Integer, nullable=False) # Sales Wallet value
     image_url = Column(String, nullable=True)
+    images = Column(Text, nullable=True) # JSON list of photo views / gallery URLs
+    colors = Column(Text, nullable=True) # JSON list of available colors
+    sizes = Column(Text, nullable=True)  # JSON list of available sizes
+    options = Column(Text, nullable=True) # JSON dict of additional variant options
     category = Column(String, nullable=True)
     stock = Column(Integer, default=100)
+
+    @property
+    def images_list(self):
+        import json
+        if self.images:
+            try:
+                data = json.loads(self.images)
+                if isinstance(data, list) and len(data) > 0:
+                    return data
+            except Exception:
+                pass
+        return [self.image_url] if self.image_url else []
+
+    @property
+    def colors_list(self):
+        import json
+        if self.colors:
+            try:
+                data = json.loads(self.colors)
+                if isinstance(data, list):
+                    return data
+            except Exception:
+                pass
+        return []
+
+    @property
+    def sizes_list(self):
+        import json
+        if self.sizes:
+            try:
+                data = json.loads(self.sizes)
+                if isinstance(data, list):
+                    return data
+            except Exception:
+                pass
+        return []
 
 
 class Category(Base):
@@ -190,6 +230,8 @@ class OrderItem(Base):
     quantity = Column(Integer, nullable=False)
     price = Column(Float, nullable=False)
     sw = Column(Integer, nullable=False)
+    selected_color = Column(String, nullable=True)
+    selected_size = Column(String, nullable=True)
 
     order = relationship("Order", back_populates="items")
     product = relationship("Product")

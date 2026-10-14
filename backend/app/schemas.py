@@ -130,6 +130,10 @@ class ProductBase(BaseModel):
     price: float
     sw: int
     image_url: Optional[str] = None
+    images: Optional[List[str]] = Field(default_factory=list)
+    colors: Optional[List[str]] = Field(default_factory=list)
+    sizes: Optional[List[str]] = Field(default_factory=list)
+    options: Optional[dict] = Field(default_factory=dict)
     category: Optional[str] = None
     stock: int
 
@@ -142,11 +146,67 @@ class ProductUpdate(BaseModel):
     price: Optional[float] = None
     sw: Optional[int] = None
     image_url: Optional[str] = None
+    images: Optional[List[str]] = None
+    colors: Optional[List[str]] = None
+    sizes: Optional[List[str]] = None
+    options: Optional[dict] = None
     category: Optional[str] = None
     stock: Optional[int] = None
 
 class ProductResponse(ProductBase):
     id: int
+
+    @field_validator('images', mode='before')
+    @classmethod
+    def parse_images(cls, v):
+        if isinstance(v, str):
+            try:
+                import json
+                data = json.loads(v)
+                if isinstance(data, list):
+                    return data
+            except Exception:
+                return [v] if v else []
+        return v or []
+
+    @field_validator('colors', mode='before')
+    @classmethod
+    def parse_colors(cls, v):
+        if isinstance(v, str):
+            try:
+                import json
+                data = json.loads(v)
+                if isinstance(data, list):
+                    return data
+            except Exception:
+                return []
+        return v or []
+
+    @field_validator('sizes', mode='before')
+    @classmethod
+    def parse_sizes(cls, v):
+        if isinstance(v, str):
+            try:
+                import json
+                data = json.loads(v)
+                if isinstance(data, list):
+                    return data
+            except Exception:
+                return []
+        return v or []
+
+    @field_validator('options', mode='before')
+    @classmethod
+    def parse_options(cls, v):
+        if isinstance(v, str):
+            try:
+                import json
+                data = json.loads(v)
+                if isinstance(data, dict):
+                    return data
+            except Exception:
+                return {}
+        return v or {}
 
     class Config:
         from_attributes = True
@@ -156,6 +216,8 @@ class ProductResponse(ProductBase):
 class CartItemCreate(BaseModel):
     product_id: int
     quantity: int
+    selected_color: Optional[str] = None
+    selected_size: Optional[str] = None
 
 class OrderCreate(BaseModel):
     items: List[CartItemCreate]
@@ -172,6 +234,8 @@ class OrderItemResponse(BaseModel):
     quantity: int
     price: float
     sw: int
+    selected_color: Optional[str] = None
+    selected_size: Optional[str] = None
     product: ProductResponse
 
     class Config:

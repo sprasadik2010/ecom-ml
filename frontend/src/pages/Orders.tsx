@@ -24,7 +24,8 @@ import {
   MapPin,
   Phone,
   Send,
-  HelpCircle
+  HelpCircle,
+  RotateCcw
 } from 'lucide-react';
 
 interface ProductInfo {
@@ -43,6 +44,8 @@ interface OrderItem {
   quantity: number;
   price: number;
   sw: number;
+  selected_color?: string;
+  selected_size?: string;
   product: ProductInfo;
 }
 
@@ -765,10 +768,20 @@ export const Orders: React.FC = () => {
                                 <ExternalLink size={11} className="text-slate-500" />
                               </Link>
                               
-                              <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-400">
+                              <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-400 flex-wrap">
                                 {item.product?.category && (
                                   <span className="bg-slate-900 border border-slate-800 px-2 py-0.5 rounded text-[10px] text-slate-400">
                                     {item.product.category}
+                                  </span>
+                                )}
+                                {item.selected_color && (
+                                  <span className="bg-slate-900 border border-slate-800 px-2 py-0.5 rounded text-[10px] text-amber-400 font-bold">
+                                    Color: {item.selected_color}
+                                  </span>
+                                )}
+                                {item.selected_size && (
+                                  <span className="bg-slate-900 border border-slate-800 px-2 py-0.5 rounded text-[10px] text-sky-400 font-bold font-mono">
+                                    Size: {item.selected_size}
                                   </span>
                                 )}
                                 <span>Qty: <strong className="text-slate-200">{item.quantity}</strong></span>
@@ -823,6 +836,35 @@ export const Orders: React.FC = () => {
                         Invoice ID: <span className="text-slate-200 font-bold">APX-ORD-{order.id.toString().padStart(6, '0')}</span>
                       </div>
                     </div>
+
+                    {/* Return & Damage Replacement Assistance Strip */}
+                    {isCompleted && (
+                      <div className="mt-3 bg-[#FAF7F2] border border-[#EFE2DE] p-3 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                        <div className="flex items-start gap-2 text-[#4A343A] text-[11px] leading-relaxed">
+                          <RotateCcw size={14} className="text-[#A8435D] shrink-0 mt-0.5" />
+                          <div>
+                            <span className="font-bold text-[#331B21]">3-Day Transit Damage Return Guarantee: </span>
+                            <span>Products arriving damaged in transit are eligible for free replacement within 3 days of delivery with photo proof.</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Link
+                            to="/return-policy"
+                            className="px-3 py-1 bg-[#A8435D] hover:bg-[#8C2E42] text-white rounded-full font-bold text-[10px] inline-flex items-center gap-1 shadow-xs transition-colors"
+                          >
+                            <RotateCcw size={11} />
+                            <span>Claim Return</span>
+                          </Link>
+                          <Link
+                            to="/return-policy"
+                            className="text-[10px] text-[#A8435D] hover:underline font-bold"
+                          >
+                            Policy Details
+                          </Link>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

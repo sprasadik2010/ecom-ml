@@ -9,7 +9,7 @@ from app.seed import seed_db
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("Initializing MLM E-commerce Database Tables & Seeding Catalog...")
+    print("Initializing E-commerce Database Tables & Seeding Catalog...")
     try:
         seed_db()
         print("Database initialized and seeded successfully!")

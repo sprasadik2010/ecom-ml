@@ -306,7 +306,7 @@ def evaluate_and_award_levels(db: Session):
 
 def check_and_award_commissions(db: Session, buyer: User, order_sw: float):
     """
-    Executes the complete MLM commission and rank progression pipeline on order checkout:
+    Executes the complete commission and rank progression pipeline on order checkout:
     1. Propagates leg volumes (SW) up the binary parent tree.
     2. Performs 1:1 binary leg matching:
        For each active parent, pairs Left Leg SW and Right Leg SW.

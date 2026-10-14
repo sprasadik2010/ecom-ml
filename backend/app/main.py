@@ -19,7 +19,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Initialize FastAPI App
-app = FastAPI(title="Business MLM E-commerce API", version="1.0.0")
+app = FastAPI(title="Business E-commerce API", version="1.0.0")
 
 # Setup static files directory for local image uploads
 static_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "static")
@@ -121,6 +121,32 @@ def on_startup():
             logger.info(f"Added {col} column to orders table.")
         except Exception:
             db.rollback()
+
+    # Migration for products table photo gallery views and variant options
+    for col, col_type in [
+        ("images", "TEXT"),
+        ("colors", "TEXT"),
+        ("sizes", "TEXT"),
+        ("options", "TEXT"),
+    ]:
+        try:
+            db.execute(text(f"ALTER TABLE products ADD COLUMN {col} {col_type}"))
+            db.commit()
+            logger.info(f"Added {col} column to products table.")
+        except Exception:
+            db.rollback()
+
+    # Migration for order_items table selected variant options
+    for col, col_type in [
+        ("selected_color", "VARCHAR"),
+        ("selected_size", "VARCHAR"),
+    ]:
+        try:
+            db.execute(text(f"ALTER TABLE order_items ADD COLUMN {col} {col_type}"))
+            db.commit()
+            logger.info(f"Added {col} column to order_items table.")
+        except Exception:
+            db.rollback()
     
     db.close()
 
@@ -158,7 +184,7 @@ app.add_middleware(
 # Root endpoint
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to the Business MLM E-commerce API!", "version": "1.0.0"}
+    return {"message": "Welcome to the Business E-commerce API!", "version": "1.0.0"}
 
 
 # --- Auth Endpoints ---
@@ -496,13 +522,36 @@ def get_admin_stats(
         "recent_orders": recent_orders
     }
 
+def serialize_product_data(data_dict: dict) -> dict:
+    import json
+    result = dict(data_dict)
+    if "images" in result and result["images"] is not None:
+        imgs = result["images"] if isinstance(result["images"], list) else [result["images"]]
+        result["images"] = json.dumps(imgs)
+        if imgs and (not result.get("image_url") or result.get("image_url") == ""):
+            result["image_url"] = imgs[0]
+    elif "image_url" in result and result.get("image_url") and not result.get("images"):
+        result["images"] = json.dumps([result["image_url"]])
+
+    if "colors" in result and result["colors"] is not None:
+        result["colors"] = json.dumps(result["colors"] if isinstance(result["colors"], list) else [])
+
+    if "sizes" in result and result["sizes"] is not None:
+        result["sizes"] = json.dumps(result["sizes"] if isinstance(result["sizes"], list) else [])
+
+    if "options" in result and result["options"] is not None:
+        result["options"] = json.dumps(result["options"] if isinstance(result["options"], dict) else {})
+
+    return result
+
 @app.post("/admin/products", response_model=schemas.ProductResponse, status_code=status.HTTP_201_CREATED)
 def admin_create_product(
     product_data: schemas.ProductCreate,
     current_admin: models.User = Depends(auth.get_current_admin),
     db: Session = Depends(get_db)
 ):
-    product = models.Product(**product_data.dict())
+    product_dict = serialize_product_data(product_data.dict())
+    product = models.Product(**product_dict)
     db.add(product)
     db.commit()
     db.refresh(product)
@@ -519,8 +568,15 @@ def admin_update_product(
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     
-    for key, value in product_data.dict(exclude_unset=True).items():
+    update_dict = serialize_product_data(product_data.dict(exclude_unset=True))
+    for key, value in update_dict.items():
         setattr(product, key, value)
+    
+    # Ensure primary image_url stays synced if images was updated
+    if product.images and not product.image_url:
+        imgs = product.images_list
+        if imgs:
+            product.image_url = imgs[0]
     
     db.commit()
     db.refresh(product)
@@ -711,28 +767,60 @@ def admin_upload_image(
     Saves an uploaded image locally under the static directory
     and returns its public absolute URL path.
     """
+    import time
     static_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "static")
     os.makedirs(static_path, exist_ok=True)
     
-    # Save with a safe file name
     clean_filename = "".join(c for c in file.filename if c.isalnum() or c in "._-").strip()
     if not clean_filename:
-        clean_filename = "uploaded_product_image"
+        clean_filename = "product_image.jpg"
         
-    file_path = os.path.join(static_path, clean_filename)
+    unique_name = f"{int(time.time() * 1000)}_{clean_filename}"
+    file_path = os.path.join(static_path, unique_name)
     
     try:
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
             
-        logger.info(f"Image uploaded successfully: {clean_filename}")
-        
-        # Build absolute URL dynamically using request.base_url
+        logger.info(f"Image uploaded successfully: {unique_name}")
         base_url = str(request.base_url).rstrip("/")
-        return {"image_url": f"{base_url}/static/{clean_filename}"}
+        return {"image_url": f"{base_url}/static/{unique_name}"}
     except Exception as e:
         logger.error(f"Error copying upload buffer: {e}")
         raise HTTPException(status_code=500, detail="Could not save file buffer locally.")
+
+
+@app.post("/admin/upload-multiple")
+def admin_upload_multiple_images(
+    request: Request,
+    files: List[UploadFile] = File(...),
+    current_admin: models.User = Depends(auth.get_current_admin)
+):
+    """
+    Saves multiple uploaded product photos/views locally under the static directory
+    and returns their public absolute URL paths.
+    """
+    import time
+    static_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "static")
+    os.makedirs(static_path, exist_ok=True)
+    base_url = str(request.base_url).rstrip("/")
+    uploaded_urls = []
+
+    for idx, file in enumerate(files):
+        clean_filename = "".join(c for c in file.filename if c.isalnum() or c in "._-").strip()
+        if not clean_filename:
+            clean_filename = f"view_{idx + 1}.jpg"
+        unique_name = f"{int(time.time() * 1000)}_{idx}_{clean_filename}"
+        file_path = os.path.join(static_path, unique_name)
+        try:
+            with open(file_path, "wb") as buffer:
+                shutil.copyfileobj(file.file, buffer)
+            uploaded_urls.append(f"{base_url}/static/{unique_name}")
+        except Exception as e:
+            logger.error(f"Error saving file {file.filename}: {e}")
+            raise HTTPException(status_code=500, detail=f"Could not save file {file.filename}")
+
+    return {"image_urls": uploaded_urls}
 
 
 # --- Category Management Endpoints ---

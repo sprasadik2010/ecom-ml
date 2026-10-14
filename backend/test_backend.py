@@ -21,7 +21,7 @@ from app import crud
 
 def run_tests():
     print("=" * 60)
-    print("RUNNING MLM BACKEND SYSTEM TESTS (SW EDITION)")
+    print("RUNNING BACKEND SYSTEM TESTS (SW EDITION)")
     print("=" * 60)
     
     # 1. Clean and create database
@@ -187,7 +187,7 @@ def run_tests():
         assert rootuser.wallet_balance == 1900.0, "Rootuser wallet balance should be 1900.0 (900 net matching + 1000 Level 1 reward)"
         
         print("\n" + "=" * 60)
-        print("ALL TESTS PASSED SUCCESSFULLY! BACKEND MLM SW ALGORITHMS ARE CORRECT.")
+        print("ALL TESTS PASSED SUCCESSFULLY! BACKEND SW ALGORITHMS ARE CORRECT.")
         print("=" * 60)
 
         

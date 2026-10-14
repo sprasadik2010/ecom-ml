@@ -1,79 +1,88 @@
 @import "tailwindcss";
 
 @theme {
-  /* Set Outfit as the default sans font */
-  --font-sans: 'Outfit', sans-serif;
+  /* Fonts */
+  --font-sans: 'Plus Jakarta Sans', 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-script: 'Caveat', cursive;
 
-  /* Inverted light theme background & text mapping */
-  --color-slate-50: #1C1917;   /* Very dark charcoal */
-  --color-slate-100: #1C1917;  /* Very dark charcoal */
-  --color-slate-200: #292524;  /* Sub-headings */
-  --color-slate-300: #44403C;  /* Dark stone text */
-  --color-slate-400: #78716C;  /* Muted text */
-  --color-slate-500: #A8A29E;  /* Highly muted text */
-  --color-slate-650: #E7E5E4;  /* Valid color for default gray/beige borders */
-  --color-slate-600: #D6D3D1;  /* Light grey borders */
-  --color-slate-700: #E7E5E4;  /* Very light borders/lines */
-  --color-slate-800: #E7E5E4;  /* Very light borders/lines */
-  --color-slate-850: #F1EDE4;  /* Slightly darker beige background */
-  --color-slate-900: #FFFFFF;  /* Card/Container background (white) */
-  --color-slate-950: #F9F6F0;  /* Page background (warm beige/off-white) */
+  /* BuyWay Warm Boutique Palette mapped to semantic utility colors */
+  --color-slate-50: #251117;   /* Deepest espresso */
+  --color-slate-100: #251117;  /* Deep espresso text */
+  --color-slate-200: #331B21;  /* Rich mocha headings */
+  --color-slate-300: #4A343A;  /* Dark mauve-espresso */
+  --color-slate-400: #705960;  /* Body / muted text */
+  --color-slate-500: #9E868D;  /* Secondary muted captions */
+  --color-slate-600: #D8C6CA;  /* Subtle lines */
+  --color-slate-650: #E6D5D9;  /* Soft borders */
+  --color-slate-700: #E2D1CC;  /* Very light borders/lines */
+  --color-slate-800: #EFE2DE;  /* Card/input borders */
+  --color-slate-850: #F6ECE8;  /* Secondary pill/button backgrounds */
+  --color-slate-900: #FFFFFF;  /* Card / Container pure white */
+  --color-slate-950: #FAF7F2;  /* Page warm linen-cream background */
 
-  /* Map white to real white */
+  /* White mapping */
   --color-white: #FFFFFF;
 
-  /* Map amber-500/600 to crimson/burgundy for primary elements (buttons, badges) */
-  --color-amber-500: #9F1239; /* Premium Crimson Red */
-  --color-amber-600: #881337; /* Darker Crimson Red for hover */
-  
-  /* Map amber-400 to luxury gold for accent texts (BV points, rating stars, wallet balance) */
-  --color-amber-400: #D97706; /* Luxury warm gold */
+  /* Primary Brand Rose / Mauve */
+  --color-amber-500: #B8586E;  /* Boutique Rose primary buttons */
+  --color-amber-600: #A1455B;  /* Boutique Rose hover */
+  --color-amber-400: #D97706;  /* Luxury Gold for SW Points & Stars */
 
-  /* Map other alerts */
-  --color-emerald-400: #047857; /* Dark green for status/success */
-  --color-emerald-500: #047857;
+  /* Dedicated Rose shades */
+  --color-rose-500: #A8435D;
+  --color-rose-600: #8C2E42;
+  --color-rose-700: #732235;
+
+  /* Semantic Alerts */
+  --color-emerald-400: #0D7A5C;
+  --color-emerald-500: #0B6B50;
   --color-emerald-550: #059669;
-  --color-red-400: #B91C1C; /* Dark red for errors */
-  --color-red-500: #B91C1C;
+  --color-red-400: #B91C1C;
+  --color-red-500: #991B1B;
 }
 
 @layer base {
   body {
-    @apply bg-slate-950 text-slate-100 antialiased font-sans;
-    background-color: #F9F6F0;
-    color: #1C1917;
+    background-color: #FAF7F2;
+    color: #251117;
+    font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, .heading-serif {
+    font-family: 'Playfair Display', Georgia, serif;
   }
 }
 
-/* Custom class overrides to keep text dark where headings/buttons have conflicting styles */
-.text-white {
-  color: #1C1917 !important; /* Ensure headings and totals are dark charcoal text */
-}
-.text-slate-950 {
-  color: #FAF6F0 !important; /* White text for contrast on crimson/emerald buttons */
-}
-.text-slate-900 {
-  color: #1C1917 !important;
-}
-.text-slate-800 {
-  color: #292524 !important;
+/* Custom Utilities */
+.font-serif {
+  font-family: 'Playfair Display', Georgia, serif;
 }
 
-/* Custom Scrollbar for premium feel (light mode compatible) */
+.font-script {
+  font-family: 'Caveat', cursive;
+}
+
+.font-sans {
+  font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
+}
+
+/* Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #FAF6F0;
+  background: #FAF7F2;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #E7E5E4;
+  background: #E2D1CC;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #A8A29E;
+  background: #C4B0B5;
 }

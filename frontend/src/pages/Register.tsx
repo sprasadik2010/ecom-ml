@@ -222,15 +222,15 @@ export const Register: React.FC = () => {
 
   return (
     <div className="max-w-md mx-auto px-4 py-12 flex flex-col justify-center">
-      <div className="bg-slate-900 border border-slate-800 rounded-lg p-8 shadow-md relative">
-        <div className="absolute top-0 left-0 right-0 h-1 rounded-t-lg bg-amber-500" />
+      <div className="bg-white border border-[#EFE2DE] rounded-2xl p-8 shadow-md relative">
+        <div className="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl bg-[#B8586E]" />
 
         <div className="text-center mb-6">
-          <img src={bwLogo} alt="BuyWay" className="h-14 w-auto mx-auto mb-3 object-contain rounded mix-blend-multiply" />
-          <h2 className="text-2xl font-black text-white tracking-tight flex items-center justify-center gap-1">
+          <img src={bwLogo} alt="BuyWay" className="h-12 w-auto mx-auto mb-3 object-contain rounded" />
+          <h2 className="font-serif text-2xl text-[#331B21] font-normal tracking-tight flex items-center justify-center gap-1">
             Create Member Account
           </h2>
-          <p className="text-slate-400 text-xs mt-1">
+          <p className="text-[#7A6369] text-xs mt-1">
             Join BuyWay direct selling and activate commissions
           </p>
         </div>
@@ -341,7 +341,7 @@ export const Register: React.FC = () => {
           <button
             type="submit"
             disabled={submitting || isLinkInvalid}
-            className={`w-full py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-md font-extrabold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+            className={`w-full py-3 px-4 bg-[#B8586E] hover:bg-[#A3475D] text-white rounded-full font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-[#B8586E]/20 cursor-pointer ${
               submitting || isLinkInvalid ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'
             }`}
           >
@@ -350,11 +350,11 @@ export const Register: React.FC = () => {
           </button>
         </form>
 
-        <div className="border-t border-slate-850 mt-6 pt-4 text-center text-xs text-slate-500">
+        <div className="border-t border-[#F2E8E5] mt-6 pt-4 text-center text-xs text-[#8C7077]">
           <span>Already have an account? </span>
           <Link
             to="/login"
-            className="text-amber-500 hover:text-amber-400 font-bold transition-colors inline-flex items-center gap-0.5"
+            className="text-[#B8586E] hover:text-[#A1455B] font-bold transition-colors inline-flex items-center gap-0.5"
           >
             <ArrowLeft size={12} /> Sign In
           </Link>

@@ -7,6 +7,10 @@ export interface Product {
   price: number;
   sw: number;
   image_url: string;
+  images?: string[];
+  colors?: string[];
+  sizes?: string[];
+  options?: Record<string, any>;
   category: string;
   stock: number;
 }
@@ -14,13 +18,15 @@ export interface Product {
 export interface CartItem {
   product: Product;
   quantity: number;
+  selectedColor?: string;
+  selectedSize?: string;
 }
 
 interface CartContextType {
   items: CartItem[];
-  addToCart: (product: Product, quantity?: number) => void;
-  removeFromCart: (productId: number) => void;
-  updateQuantity: (productId: number, quantity: number) => void;
+  addToCart: (product: Product, quantity?: number, selectedColor?: string, selectedSize?: string) => void;
+  removeFromCart: (productId: number, selectedColor?: string, selectedSize?: string) => void;
+  updateQuantity: (productId: number, quantity: number, selectedColor?: string, selectedSize?: string) => void;
   clearCart: () => void;
   totalAmount: number;
   totalSw: number;
@@ -38,32 +44,73 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('mlm_cart', JSON.stringify(items));
   }, [items]);
 
-  const addToCart = (product: Product, quantity = 1) => {
+  const matchesItem = (
+    item: CartItem,
+    productId: number,
+    color?: string,
+    size?: string
+  ) => {
+    if (item.product.id !== productId) return false;
+    if (color !== undefined && (item.selectedColor || '') !== (color || '')) return false;
+    if (size !== undefined && (item.selectedSize || '') !== (size || '')) return false;
+    return true;
+  };
+
+  const addToCart = (
+    product: Product,
+    quantity = 1,
+    selectedColor?: string,
+    selectedSize?: string
+  ) => {
     setItems((prevItems) => {
-      const existing = prevItems.find((item) => item.product.id === product.id);
+      const existing = prevItems.find((item) =>
+        matchesItem(item, product.id, selectedColor, selectedSize)
+      );
       if (existing) {
-        // Limit quantity to available stock
         const newQty = Math.min(existing.quantity + quantity, product.stock);
         return prevItems.map((item) =>
-          item.product.id === product.id ? { ...item, quantity: newQty } : item
+          matchesItem(item, product.id, selectedColor, selectedSize)
+            ? { ...item, quantity: newQty }
+            : item
         );
       }
-      return [...prevItems, { product, quantity: Math.min(quantity, product.stock) }];
+      return [
+        ...prevItems,
+        {
+          product,
+          quantity: Math.min(quantity, product.stock),
+          selectedColor,
+          selectedSize,
+        },
+      ];
     });
   };
 
-  const removeFromCart = (productId: number) => {
-    setItems((prevItems) => prevItems.filter((item) => item.product.id !== productId));
+  const removeFromCart = (
+    productId: number,
+    selectedColor?: string,
+    selectedSize?: string
+  ) => {
+    setItems((prevItems) =>
+      prevItems.filter(
+        (item) => !matchesItem(item, productId, selectedColor, selectedSize)
+      )
+    );
   };
 
-  const updateQuantity = (productId: number, quantity: number) => {
+  const updateQuantity = (
+    productId: number,
+    quantity: number,
+    selectedColor?: string,
+    selectedSize?: string
+  ) => {
     if (quantity <= 0) {
-      removeFromCart(productId);
+      removeFromCart(productId, selectedColor, selectedSize);
       return;
     }
     setItems((prevItems) =>
       prevItems.map((item) =>
-        item.product.id === productId
+        matchesItem(item, productId, selectedColor, selectedSize)
           ? { ...item, quantity: Math.min(quantity, item.product.stock) }
           : item
       )

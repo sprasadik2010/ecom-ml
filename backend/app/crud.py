@@ -114,7 +114,9 @@ def create_order(db: Session, user: User, order_data: OrderCreate) -> Order:
             product_id=product.id,
             quantity=item.quantity,
             price=product.price,
-            sw=product.sw
+            sw=product.sw,
+            selected_color=item.selected_color,
+            selected_size=item.selected_size
         )
         order_items.append(order_item)
         
@@ -144,7 +146,7 @@ def create_order(db: Session, user: User, order_data: OrderCreate) -> Order:
 def complete_checkout(db: Session, order: Order) -> Order:
     """
     Simulates payment success, marks the order as complete, updates member status (active),
-    and initiates MLM commission calculations.
+    and initiates commission calculations.
     """
     if order.status == "completed":
         return order
@@ -164,7 +166,7 @@ def complete_checkout(db: Session, order: Order) -> Order:
     db.add(buyer)
     db.flush()
     
-    # Run the MLM commission matching and propagation pipeline
+    # Run the commission matching and propagation pipeline
     check_and_award_commissions(db, buyer, order.total_sw)
     
     db.commit()
@@ -177,7 +179,7 @@ def get_user_commissions(db: Session, user_id: int) -> List[Commission]:
     return db.query(Commission).filter(Commission.user_id == user_id).order_by(Commission.created_at.desc()).all()
 
 
-# --- MLM Tree Genealogy ---
+# --- Tree Genealogy ---
 def get_genealogy_tree(db: Session, root_user_id: int, current_depth: int = 0, max_depth: int = 4) -> Optional[dict]:
     """
     Recursively pulls downline tree info starting from a specific node up to max_depth levels.

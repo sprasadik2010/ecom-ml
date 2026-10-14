@@ -22,7 +22,7 @@ from app.mlm import process_pending_monthly_rewards
 
 def run_tests():
     print("=" * 70)
-    print("RUNNING MLM BINARY MATCHING & LEVEL REWARDS VERIFICATION SUITE")
+    print("RUNNING BINARY MATCHING & LEVEL REWARDS VERIFICATION SUITE")
     print("=" * 70)
     
     # 1. Clean and create database

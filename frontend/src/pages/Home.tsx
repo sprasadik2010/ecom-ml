@@ -1,198 +1,344 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ProductCard } from '../components/ProductCard';
 import { Product } from '../context/CartContext';
 import { API_BASE_URL } from '../context/AuthContext';
-import { ShoppingBag, Tag, Compass } from 'lucide-react';
+import {
+  Truck,
+  ShieldCheck,
+  Heart,
+  Headphones,
+  ArrowRight,
+  Sparkles,
+  Award,
+  CheckCircle2,
+  ChevronRight
+} from 'lucide-react';
+
+// Exact extracted assets from attached design
+import heroExactRight from '../assets/hero_exact_right.jpg';
+import bwLogo from '../assets/bwLogo.jpeg';
+import catFashion from '../assets/cat_fashion.jpg';
+import catBeauty from '../assets/cat_beauty.jpg';
+import catHome from '../assets/cat_home.jpg';
+import catAccessories from '../assets/cat_accessories.jpg';
+import catElectronics from '../assets/cat_electronics.jpg';
+import catKids from '../assets/cat_kids.jpg';
+import catMore from '../assets/cat_more.jpg';
 
 export const Home: React.FC = () => {
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [searchParams] = useSearchParams();
-
-  // Search query & category from URL params
-  const searchQuery = searchParams.get('search') || '';
-  const categoryQuery = searchParams.get('category') || '';
-
-  const [activeCategory, setActiveCategory] = useState(categoryQuery);
 
   useEffect(() => {
-    setActiveCategory(categoryQuery);
-  }, [categoryQuery]);
-
-  useEffect(() => {
-    const fetchAllProducts = async () => {
-      setLoading(true);
+    const fetchCatalog = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/products`);
-        if (!response.ok) {
-          throw new Error('Failed to load products');
+        if (response.ok) {
+          const data = await response.json();
+          setFeaturedProducts(data.slice(0, 8)); // Top 8 featured
         }
-        const data = await response.json();
-        setAllProducts(data);
-        setError('');
-      } catch (err: any) {
-        console.error('Error fetching products:', err);
-        setError(err.message || 'Error connecting to API server.');
+      } catch (err) {
+        console.error('Failed to load featured products:', err);
       } finally {
         setLoading(false);
       }
     };
-
-    fetchAllProducts();
+    fetchCatalog();
   }, []);
 
-  useEffect(() => {
-    let filtered = allProducts;
-
-    if (activeCategory) {
-      filtered = filtered.filter((p) => p.category === activeCategory);
-    }
-
-    if (searchQuery.trim()) {
-      filtered = filtered.filter((p) =>
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (p.description && p.description.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
-    }
-
-    setProducts(filtered);
-  }, [allProducts, activeCategory, searchQuery]);
-  const [categories, setCategories] = useState<any[]>([]);
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/categories`);
-        if (response.ok) {
-          const data = await response.json();
-          setCategories(data);
-        }
-      } catch (err) {
-        console.error('Error loading categories:', err);
-      }
-    };
-    fetchCategories();
-  }, []);
-
+  // 7 Categories exactly matching the attached image design
   const categoriesList = [
-    { name: '', label: 'All Items', img: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=120&h=120&q=80' },
-    ...categories.map((c) => ({
-      name: c.name,
-      label: c.name,
-      img: c.image_url || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=120&h=120&q=80'
-    }))
+    {
+      label: 'Fashion',
+      query: 'Fashion',
+      image: catFashion,
+      bgHex: '#FDE4E8',
+      link: '/shop?category=Fashion'
+    },
+    {
+      label: 'Beauty & Personal Care',
+      query: 'Beauty',
+      image: catBeauty,
+      bgHex: '#FCE4D6',
+      link: '/shop?category=Beauty'
+    },
+    {
+      label: 'Home & Living',
+      query: 'Home',
+      image: catHome,
+      bgHex: '#E2EFE4',
+      link: '/shop?category=Home'
+    },
+    {
+      label: 'Accessories',
+      query: 'Accessories',
+      image: catAccessories,
+      bgHex: '#EFE2F5',
+      link: '/shop?category=Accessories'
+    },
+    {
+      label: 'Electronics',
+      query: 'Electronics',
+      image: catElectronics,
+      bgHex: '#DEF0FB',
+      link: '/shop?category=Electronics'
+    },
+    {
+      label: 'Kids & Baby',
+      query: 'Kids',
+      image: catKids,
+      bgHex: '#FEF2D8',
+      link: '/shop?category=Kids'
+    },
+    {
+      label: 'More',
+      query: '',
+      image: catMore,
+      bgHex: '#FCE4EC',
+      link: '/categories'
+    }
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 pb-20 sm:pb-8">
-      {/* Hero Promotional Banner */}
-      <div className="mb-8 rounded-2xl overflow-hidden bg-gradient-to-r from-[#FCEAE7] to-[#F3DFDB] border border-slate-800 p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 relative shadow-[0_4px_20px_rgba(0,0,0,0.02)] min-h-[200px]">
-        {/* Banner Details */}
-        <div className="flex-1 space-y-3 z-10 text-center sm:text-left">
-          <span className="text-[9px] uppercase font-extrabold tracking-widest text-[#9F1239] bg-white px-3 py-1 rounded-full border border-[#9F1239]/10">
-            New Collection
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-100 leading-tight">
-            Elegance In Every Thread
-          </h1>
-          <p className="text-xs text-slate-450 max-w-sm font-normal">
-            Discover premium quality Indian ethnic suits, dupattas, and curated accessories for every occasion.
-          </p>
-          <button 
-            onClick={() => setActiveCategory('Apparel')}
-            className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-full text-xs font-bold transition-all shadow-md shadow-[#9F1239]/20 hover:scale-[1.02] cursor-pointer"
-          >
-            Shop Apparel Now
-          </button>
-        </div>
+    <div className="bg-[#FAF7F2] min-h-screen py-4 sm:py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-10 sm:space-y-12">
 
-        {/* Right decoration */}
-        <div className="flex-1 w-full max-w-[280px] h-[160px] relative z-10 hidden md:block">
-          <div className="absolute inset-0 bg-contain bg-right bg-no-repeat opacity-95 transition-transform duration-500 hover:scale-105" style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80")' }} />
-        </div>
-      </div>
+        {/* 1. HERO BANNER - EXACT MATCH TO ATTACHED IMAGE */}
+        <section className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-[#F7EFEA] via-[#F4E6E0] to-[#EBD7CE] border border-[#ECD9D2] shadow-[0_8px_30px_rgba(168,67,93,0.05)]">
+          <div className="grid grid-cols-1 lg:grid-cols-12 items-center">
 
-      {/* Categories Selector */}
-      <div className="mb-8">
-        <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-1.5">
-          <Compass size={14} className="text-amber-500" />
-          Top Categories
-        </h3>
-        <div className="flex gap-6 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
-          {categoriesList.map((cat) => (
-            <button
-              key={cat.name}
-              onClick={() => setActiveCategory(cat.name)}
-              className="flex flex-col items-center gap-2 shrink-0 group focus:outline-none cursor-pointer"
-            >
-              <div className={`w-14 h-14 rounded-full overflow-hidden border-2 flex items-center justify-center p-0.5 transition-all ${
-                activeCategory === cat.name
-                  ? 'border-[#9F1239] shadow-md shadow-[#9F1239]/10'
-                  : 'border-slate-800 group-hover:border-slate-650'
-              }`}>
-                <img 
-                  src={cat.img} 
-                  alt={cat.label} 
-                  className="w-full h-full object-cover rounded-full"
-                  loading="lazy"
+            {/* Left Column: Hero Text */}
+            <div className="lg:col-span-6 p-8 sm:p-12 lg:p-16 space-y-4 z-10 text-left">
+              <span className="text-[11px] sm:text-xs uppercase font-bold tracking-[0.25em] text-[#8C3A4D] block">
+                YOUR ONE STOP
+              </span>
+
+              <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl text-[#331B21] font-normal leading-[1.12] tracking-tight">
+                Shop More<br />
+                Live Better <span className="font-sans font-light text-[#A8435D]">♡</span>
+              </h1>
+
+              <p className="text-[#6D555B] text-xs sm:text-sm max-w-md leading-relaxed font-normal">
+                Discover trendy products, trusted quality and a seamless shopping experience - only at Buyway.
+              </p>
+
+              <div className="pt-3">
+                <Link
+                  to="/shop"
+                  className="inline-flex items-center gap-2 px-8 py-3.5 bg-[#C45A6D] hover:bg-[#B2485C] text-white rounded-full font-semibold text-xs sm:text-sm tracking-wide transition-all shadow-md shadow-[#C45A6D]/30 hover:gap-3 cursor-pointer"
+                >
+                  <span>Shop Now</span>
+                  <ArrowRight size={15} />
+                </Link>
+              </div>
+            </div>
+
+            {/* Right Column: Exactly Attached Image Arch, Woman Picture & Script */}
+            <div className="lg:col-span-6 relative flex items-center justify-center lg:justify-end overflow-hidden">
+              <div className="w-full max-w-[580px] h-full flex items-center justify-center">
+                <img
+                  src={heroExactRight}
+                  alt="Happy woman with Buyway bags - Better Choices Brighter You"
+                  className="w-full h-auto object-contain object-right"
                 />
               </div>
-              <span className={`text-[10px] font-bold tracking-wide transition-colors ${
-                activeCategory === cat.name ? 'text-amber-500 font-extrabold' : 'text-slate-400 group-hover:text-slate-200'
-              }`}>
-                {cat.label}
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
+            </div>
 
-      {/* Product Grid */}
-      {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <div className="h-10 w-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-slate-400 text-sm font-semibold">Loading product catalog...</p>
-        </div>
-      ) : error ? (
-        <div className="bg-red-950/20 border border-red-900 rounded-lg p-6 text-center max-w-xl mx-auto my-12">
-          <p className="text-red-400 font-semibold mb-2">Failed to load product list</p>
-          <p className="text-slate-400 text-xs mb-4">{error}</p>
-          <button 
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-red-900 hover:bg-red-800 text-red-100 rounded-md text-xs font-bold transition-colors"
-          >
-            Retry Connection
-          </button>
-        </div>
-      ) : products.length === 0 ? (
-        <div className="text-center py-20 border border-dashed border-slate-800 rounded-lg">
-          <ShoppingBag size={48} className="text-slate-600 mx-auto mb-3" />
-          <h3 className="text-slate-300 font-bold text-lg mb-1">No products found</h3>
-          <p className="text-slate-500 text-sm">
-            {searchQuery ? `We couldn't find matches for "${searchQuery}"` : 'There are no products in this category.'}
-          </p>
-        </div>
-      ) : (
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-sm font-extrabold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-              <Tag size={14} className="text-amber-500" />
-              {activeCategory || 'Best Selling'} ({products.length})
-            </h2>
-            <span className="text-[10px] text-amber-500 hover:underline cursor-pointer font-bold uppercase tracking-wider">
-              View All
-            </span>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-            {products.map((prod) => (
-              <ProductCard key={prod.id} product={prod} />
+        </section>
+
+        {/* 2. TRUST / FEATURE HIGHLIGHTS BAR - EXACT MATCH TO ATTACHED IMAGE */}
+        <section className="bg-white border border-[#EFE2DE] rounded-2xl py-6 px-6 sm:px-10 shadow-[0_2px_15px_rgba(0,0,0,0.02)]">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 divide-y md:divide-y-0 md:divide-x divide-[#F0E4E7]">
+            {/* Badge 1 */}
+            <div className="flex items-center gap-3.5 pt-3 md:pt-0 md:px-4 first:pt-0 first:px-0">
+              <div className="p-2 text-[#A8435D] rounded-full shrink-0">
+                <Truck size={24} strokeWidth={1.75} />
+              </div>
+              <div>
+                <div className="font-bold text-xs sm:text-sm text-[#331B21]">Fast & Reliable</div>
+                <div className="text-[11px] text-[#7A6369]">Delivery</div>
+              </div>
+            </div>
+
+            {/* Badge 2 */}
+            <div className="flex items-center gap-3.5 pt-3 md:pt-0 md:px-4">
+              <div className="p-2 text-[#A8435D] rounded-full shrink-0">
+                <ShieldCheck size={24} strokeWidth={1.75} />
+              </div>
+              <div>
+                <div className="font-bold text-xs sm:text-sm text-[#331B21]">Secure</div>
+                <div className="text-[11px] text-[#7A6369]">Payments</div>
+              </div>
+            </div>
+
+            {/* Badge 3 */}
+            <div className="flex items-center gap-3.5 pt-3 md:pt-0 md:px-4">
+              <div className="p-2 text-[#A8435D] rounded-full shrink-0">
+                <Heart size={24} strokeWidth={1.75} />
+              </div>
+              <div>
+                <div className="font-bold text-xs sm:text-sm text-[#331B21]">Trendy &</div>
+                <div className="text-[11px] text-[#7A6369]">Quality Products</div>
+              </div>
+            </div>
+
+            {/* Badge 4 */}
+            <div className="flex items-center gap-3.5 pt-3 md:pt-0 md:px-4">
+              <div className="p-2 text-[#A8435D] rounded-full shrink-0">
+                <Headphones size={24} strokeWidth={1.75} />
+              </div>
+              <div>
+                <div className="font-bold text-xs sm:text-sm text-[#331B21]">Dedicated</div>
+                <div className="text-[11px] text-[#7A6369]">Customer Support</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 3. SHOP BY CATEGORY - EXACT MATCH TO ATTACHED IMAGE */}
+        <section className="space-y-6">
+          {/* Decorative Divider Header: — Shop by Category — */}
+          <div className="flex items-center justify-center gap-4">
+            <div className="h-[1px] w-12 sm:w-28 bg-[#E4D1D6]"></div>
+            <h2 className="font-serif text-2xl sm:text-3xl text-[#331B21] font-normal tracking-wide text-center">
+              Shop by Category
+            </h2>
+            <div className="h-[1px] w-12 sm:w-28 bg-[#E4D1D6]"></div>
+          </div>
+
+          {/* 7 Circular Category Pills Extracted Exactly from Mockup */}
+          <div className="flex items-center justify-start sm:justify-center gap-4 sm:gap-7 overflow-x-auto pb-4 pt-2 scrollbar-thin">
+            {categoriesList.map((cat, idx) => (
+              <Link
+                key={idx}
+                to={cat.link}
+                className="flex flex-col items-center gap-2.5 shrink-0 group focus:outline-none cursor-pointer"
+              >
+                {/* Circular Image Container with Exact Mockup Crop */}
+                <div
+                  className="w-18 h-18 sm:w-22 sm:h-22 rounded-full p-1.5 transition-all duration-300 flex items-center justify-center group-hover:scale-105 group-hover:shadow-md shadow-xs"
+                  style={{ backgroundColor: cat.bgHex }}
+                >
+                  <img
+                    src={cat.image}
+                    alt={cat.label}
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                </div>
+
+                {/* Label Underneath */}
+                <span className="text-xs font-semibold text-center transition-colors max-w-[85px] leading-tight text-[#4A343A] group-hover:text-[#B8586E]">
+                  {cat.label}
+                </span>
+              </Link>
             ))}
           </div>
-        </div>
-      )}
+        </section>
+
+        {/* 4. PROMOTIONAL STRIP - EXACT MATCH TO ATTACHED IMAGE */}
+        <section className="bg-gradient-to-r from-[#9E4758] via-[#8B3A4A] to-[#7A303F] text-white rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-lg shadow-[#8B3A4A]/20 relative overflow-hidden">
+          {/* Script text on left */}
+          <div className="z-10 text-center md:text-left space-y-1">
+            <div className="font-script text-2xl sm:text-3xl lg:text-4xl text-[#FFE8EE] font-normal leading-snug">
+              Your Favourite Store is Just a Click Away ♡
+            </div>
+          </div>
+
+          {/* Action button & Logo on right */}
+          <div className="z-10 flex flex-wrap items-center justify-center gap-6">
+            <Link
+              to="/shop"
+              className="px-7 py-2.5 bg-white hover:bg-[#FFF4F6] text-[#7A303F] font-bold rounded-full text-xs sm:text-sm shadow-md transition-all hover:scale-105 cursor-pointer inline-flex items-center gap-1.5"
+            >
+              <span>Explore Now</span>
+              <ArrowRight size={14} />
+            </Link>
+
+            <div className="hidden sm:flex items-center gap-2">
+              <img
+                src={bwLogo}
+                alt="Buyway - Shop, Earn, Grow"
+                className="h-10 w-auto object-contain brightness-0 invert opacity-95"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* 5. FEATURED PRODUCTS PREVIEW */}
+        <section className="space-y-6 pt-2">
+          <div className="flex items-center justify-between border-b border-[#F0E4E7] pb-3">
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#A8435D]">
+                Top Picks
+              </span>
+              <h3 className="font-serif text-2xl text-[#331B21] font-normal">
+                Featured Collection
+              </h3>
+            </div>
+            <Link
+              to="/shop"
+              className="text-xs font-bold text-[#A8435D] hover:text-[#8C2E42] flex items-center gap-1 transition-colors"
+            >
+              <span>View All Products</span>
+              <ChevronRight size={14} />
+            </Link>
+          </div>
+
+          {loading ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="bg-white rounded-2xl p-4 border border-[#EFE2DE] animate-pulse space-y-3">
+                  <div className="aspect-[3/4] bg-[#FAF7F2] rounded-xl" />
+                  <div className="h-4 bg-[#F2E8E4] rounded w-3/4" />
+                  <div className="h-3 bg-[#F2E8E4] rounded w-1/2" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+              {featuredProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* 6. DIRECT SELLING MEMBER REWARDS TEASER */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+          <div className="bg-white p-6 rounded-2xl border border-[#EFE2DE] space-y-2.5 shadow-xs">
+            <div className="w-10 h-10 rounded-xl bg-[#FAF2E8] text-[#C07718] flex items-center justify-center font-bold">
+              <Award size={20} />
+            </div>
+            <h4 className="font-serif text-lg text-[#331B21]">Earn SW Volume Points</h4>
+            <p className="text-xs text-[#7A6369] leading-relaxed">
+              Every purchase earns Sales Wallet (SW) volume points, qualifying you for 1:1 binary network matching bonuses.
+            </p>
+          </div>
+
+          <div className="bg-white p-6 rounded-2xl border border-[#EFE2DE] space-y-2.5 shadow-xs">
+            <div className="w-10 h-10 rounded-xl bg-[#FDF4F6] text-[#A8435D] flex items-center justify-center font-bold">
+              <Sparkles size={20} />
+            </div>
+            <h4 className="font-serif text-lg text-[#331B21]">Curated Quality Guarantee</h4>
+            <p className="text-xs text-[#7A6369] leading-relaxed">
+              Bespoke fashion, wellness products, and smart living essentials verified for durability, comfort, and premium style.
+            </p>
+          </div>
+
+          <div className="bg-white p-6 rounded-2xl border border-[#EFE2DE] space-y-2.5 shadow-xs">
+            <div className="w-10 h-10 rounded-xl bg-[#E8F5EF] text-[#0D7A5C] flex items-center justify-center font-bold">
+              <CheckCircle2 size={20} />
+            </div>
+            <h4 className="font-serif text-lg text-[#331B21]">India Post Tracked Logistics</h4>
+            <p className="text-xs text-[#7A6369] leading-relaxed">
+              Every order is dispatched via official India Post tracked parcel logistics with direct postal tracking references.
+            </p>
+          </div>
+        </section>
+
+      </div>
     </div>
   );
 };

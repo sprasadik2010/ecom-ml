@@ -7,6 +7,8 @@ from .auth import get_password_hash
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+import json
+
 # List of premium products to seed (E-commerce / Amazon look)
 PRODUCTS = [
     {
@@ -15,7 +17,15 @@ PRODUCTS = [
         "price": 12999.0,
         "sw": 100,
         "category": "Electronics",
-        "image_url": "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=500&auto=format&fit=crop&q=60",
+        "image_url": "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=800&auto=format&fit=crop&q=80",
+        "images": json.dumps([
+            "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=800&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=800&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=800&auto=format&fit=crop&q=80"
+        ]),
+        "colors": json.dumps(["Space Gray", "Silver Stainless", "Midnight Blue", "Rose Gold"]),
+        "sizes": json.dumps(["40mm", "44mm", "46mm"]),
         "stock": 150
     },
     {
@@ -24,7 +34,14 @@ PRODUCTS = [
         "price": 7999.0,
         "sw": 70,
         "category": "Electronics",
-        "image_url": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&auto=format&fit=crop&q=60",
+        "image_url": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80",
+        "images": json.dumps([
+            "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=800&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800&auto=format&fit=crop&q=80"
+        ]),
+        "colors": json.dumps(["Matte Black", "Moonlight White", "Navy Blue"]),
+        "sizes": json.dumps(["Standard Fit"]),
         "stock": 200
     },
     {
@@ -33,7 +50,14 @@ PRODUCTS = [
         "price": 2499.0,
         "sw": 25,
         "category": "Smart Home",
-        "image_url": "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=500&auto=format&fit=crop&q=60",
+        "image_url": "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=800&auto=format&fit=crop&q=80",
+        "images": json.dumps([
+            "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=800&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=800&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1540932239986-30128078f3c5?w=800&auto=format&fit=crop&q=80"
+        ]),
+        "colors": json.dumps(["Warm Amber", "Cool White", "RGB Multi-color"]),
+        "sizes": json.dumps(["Compact (8 inch)", "Standard (12 inch)"]),
         "stock": 180
     },
     {
@@ -42,7 +66,14 @@ PRODUCTS = [
         "price": 3499.0,
         "sw": 50,
         "category": "Apparel",
-        "image_url": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500&auto=format&fit=crop&q=60",
+        "image_url": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800&auto=format&fit=crop&q=80",
+        "images": json.dumps([
+            "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?w=800&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1546938576-6e6a64f317cc?w=800&auto=format&fit=crop&q=80"
+        ]),
+        "colors": json.dumps(["Vintage Khaki", "Forest Green", "Charcoal Gray", "Deep Navy"]),
+        "sizes": json.dumps(["20 Litre", "28 Litre", "35 Litre"]),
         "stock": 100
     },
     {
@@ -51,7 +82,13 @@ PRODUCTS = [
         "price": 3999.0,
         "sw": 40,
         "category": "Wellness",
-        "image_url": "https://images.unsplash.com/photo-1579758629938-03607ccdbaba?w=500&auto=format&fit=crop&q=60",
+        "image_url": "https://images.unsplash.com/photo-1579758629938-03607ccdbaba?w=800&auto=format&fit=crop&q=80",
+        "images": json.dumps([
+            "https://images.unsplash.com/photo-1579758629938-03607ccdbaba?w=800&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=800&auto=format&fit=crop&q=80"
+        ]),
+        "colors": json.dumps(["Chocolate Fudge", "French Vanilla", "Café Mocha", "Strawberry Bliss"]),
+        "sizes": json.dumps(["1 kg (2.2 lbs)", "2 kg (4.4 lbs)", "3 kg (6.6 lbs)"]),
         "stock": 250
     },
     {
@@ -60,7 +97,13 @@ PRODUCTS = [
         "price": 1499.0,
         "sw": 20,
         "category": "Wellness",
-        "image_url": "https://images.unsplash.com/photo-1592432678016-e910b452f9a2?w=500&auto=format&fit=crop&q=60",
+        "image_url": "https://images.unsplash.com/photo-1592432678016-e910b452f9a2?w=800&auto=format&fit=crop&q=80",
+        "images": json.dumps([
+            "https://images.unsplash.com/photo-1592432678016-e910b452f9a2?w=800&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?w=800&auto=format&fit=crop&q=80"
+        ]),
+        "colors": json.dumps(["Pastel Purple", "Teal Ocean", "Charcoal Black", "Blush Pink"]),
+        "sizes": json.dumps(["Standard (6mm)", "Pro Comfort (8mm)"]),
         "stock": 120
     },
     {
@@ -69,7 +112,13 @@ PRODUCTS = [
         "price": 999.0,
         "sw": 10,
         "category": "Wellness",
-        "image_url": "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=500&auto=format&fit=crop&q=60",
+        "image_url": "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=800&auto=format&fit=crop&q=80",
+        "images": json.dumps([
+            "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=800&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1559839914-ba2a6d708365?w=800&auto=format&fit=crop&q=80"
+        ]),
+        "colors": json.dumps(["Matte Black", "Ocean Blue", "Stainless Silver", "Sunset Coral"]),
+        "sizes": json.dumps(["500 ml", "750 ml", "1000 ml"]),
         "stock": 300
     },
     {
@@ -78,7 +127,13 @@ PRODUCTS = [
         "price": 15999.0,
         "sw": 150,
         "category": "Smart Home",
-        "image_url": "https://images.unsplash.com/photo-1580481072645-022f9a6dbf27?w=500&auto=format&fit=crop&q=60",
+        "image_url": "https://images.unsplash.com/photo-1580481072645-022f9a6dbf27?w=800&auto=format&fit=crop&q=80",
+        "images": json.dumps([
+            "https://images.unsplash.com/photo-1580481072645-022f9a6dbf27?w=800&auto=format&fit=crop&q=80",
+            "https://images.unsplash.com/photo-1505843490538-5133c6c7d0e1?w=800&auto=format&fit=crop&q=80"
+        ]),
+        "colors": json.dumps(["Onyx Black", "Storm Gray", "Midnight Blue"]),
+        "sizes": json.dumps(["Standard", "High Back + Headrest"]),
         "stock": 50
     }
 ]
@@ -122,6 +177,32 @@ def seed_db():
         logger.info("Added is_admin column to users table during seeding.")
     except Exception as e:
         db.rollback()
+
+    # Migration for products table photo gallery views and variant options
+    for col, col_type in [
+        ("images", "TEXT"),
+        ("colors", "TEXT"),
+        ("sizes", "TEXT"),
+        ("options", "TEXT"),
+    ]:
+        try:
+            db.execute(text(f"ALTER TABLE products ADD COLUMN {col} {col_type}"))
+            db.commit()
+            logger.info(f"Added {col} column to products table during seeding.")
+        except Exception:
+            db.rollback()
+
+    # Migration for order_items table selected variant options
+    for col, col_type in [
+        ("selected_color", "VARCHAR"),
+        ("selected_size", "VARCHAR"),
+    ]:
+        try:
+            db.execute(text(f"ALTER TABLE order_items ADD COLUMN {col} {col_type}"))
+            db.commit()
+            logger.info(f"Added {col} column to order_items table during seeding.")
+        except Exception:
+            db.rollback()
 
     try:
         # 1. Seed Root Administrator Member

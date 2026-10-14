@@ -54,8 +54,10 @@ export const Cart: React.FC = () => {
 
             {/* Item rows */}
             <div className="divide-y divide-slate-850">
-              {items.map((item) => (
-                <React.Fragment key={item.product.id}>
+              {items.map((item) => {
+                const itemKey = `${item.product.id}-${item.selectedColor || ''}-${item.selectedSize || ''}`;
+                return (
+                <React.Fragment key={itemKey}>
                   {/* Desktop Item Row */}
                   <div className="hidden md:grid p-4 grid-cols-12 gap-2 items-center text-xs">
                     {/* Name & Image */}
@@ -63,14 +65,27 @@ export const Cart: React.FC = () => {
                       <img
                         src={item.product.image_url}
                         alt={item.product.name}
-                        className="w-12 h-12 object-cover rounded bg-slate-950 border border-slate-800"
+                        className="w-12 h-12 object-cover rounded bg-slate-950 border border-slate-800 shrink-0"
                       />
                       <div className="flex flex-col">
                         <Link to={`/products/${item.product.id}`} className="font-extrabold text-slate-200 hover:text-amber-500 transition-colors line-clamp-1">
                           {item.product.name}
                         </Link>
-                        <span className="text-[10px] text-slate-500 mt-0.5">{item.product.category}</span>
                         
+                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                          <span className="text-[10px] text-slate-500">{item.product.category}</span>
+                          {item.selectedColor && (
+                            <span className="bg-slate-950 border border-slate-800 text-amber-400 font-bold px-1.5 py-0.2 rounded text-[9px]">
+                              {item.selectedColor}
+                            </span>
+                          )}
+                          {item.selectedSize && (
+                            <span className="bg-slate-950 border border-slate-800 text-sky-400 font-bold px-1.5 py-0.2 rounded text-[9px] font-mono">
+                              {item.selectedSize}
+                            </span>
+                          )}
+                        </div>
+
                         {/* SW Indicator */}
                         <span className="inline-flex items-center gap-1 text-[10px] text-amber-400 font-bold font-mono mt-1">
                           <Award size={10} /> {item.product.sw} SW / unit
@@ -88,7 +103,7 @@ export const Cart: React.FC = () => {
                       <select
                         className="bg-slate-950 border border-slate-800 rounded p-1 text-[11px] font-bold text-slate-200 focus:outline-none"
                         value={item.quantity}
-                        onChange={(e) => updateQuantity(item.product.id, Number(e.target.value))}
+                        onChange={(e) => updateQuantity(item.product.id, Number(e.target.value), item.selectedColor, item.selectedSize)}
                       >
                         {Array.from({ length: Math.min(item.product.stock, 10) }).map((_, i) => (
                           <option key={i + 1} value={i + 1}>
@@ -98,7 +113,7 @@ export const Cart: React.FC = () => {
                       </select>
 
                       <button
-                        onClick={() => removeFromCart(item.product.id)}
+                        onClick={() => removeFromCart(item.product.id, item.selectedColor, item.selectedSize)}
                         className="p-1 hover:text-red-400 text-slate-500 transition-colors cursor-pointer"
                         title="Remove item"
                       >
@@ -126,8 +141,21 @@ export const Cart: React.FC = () => {
                         <Link to={`/products/${item.product.id}`} className="font-extrabold text-slate-200 hover:text-amber-500 transition-colors line-clamp-2 leading-tight">
                           {item.product.name}
                         </Link>
-                        <span className="text-[10px] text-slate-500 mt-1">{item.product.category}</span>
                         
+                        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                          <span className="text-[10px] text-slate-500">{item.product.category}</span>
+                          {item.selectedColor && (
+                            <span className="bg-slate-950 border border-slate-800 text-amber-400 font-bold px-1.5 py-0.2 rounded text-[9px]">
+                              {item.selectedColor}
+                            </span>
+                          )}
+                          {item.selectedSize && (
+                            <span className="bg-slate-950 border border-slate-800 text-sky-400 font-bold px-1.5 py-0.2 rounded text-[9px] font-mono">
+                              {item.selectedSize}
+                            </span>
+                          )}
+                        </div>
+
                         {/* SW Indicator */}
                         <span className="inline-flex items-center gap-1 text-[10px] text-amber-400 font-bold font-mono mt-1">
                           <Award size={10} /> {item.product.sw} SW / unit
@@ -137,7 +165,7 @@ export const Cart: React.FC = () => {
 
                     {/* Delete button absolutely positioned at top right */}
                     <button
-                      onClick={() => removeFromCart(item.product.id)}
+                      onClick={() => removeFromCart(item.product.id, item.selectedColor, item.selectedSize)}
                       className="absolute top-4 right-4 p-1.5 hover:bg-slate-950 text-slate-400 hover:text-red-400 rounded border border-slate-800 transition-all active:scale-95 cursor-pointer"
                       title="Remove item"
                     >
@@ -161,7 +189,7 @@ export const Cart: React.FC = () => {
                         <select
                           className="bg-slate-950 border border-slate-800 rounded px-2 py-1 text-[11px] font-bold text-slate-200 focus:outline-none"
                           value={item.quantity}
-                          onChange={(e) => updateQuantity(item.product.id, Number(e.target.value))}
+                          onChange={(e) => updateQuantity(item.product.id, Number(e.target.value), item.selectedColor, item.selectedSize)}
                         >
                           {Array.from({ length: Math.min(item.product.stock, 10) }).map((_, i) => (
                             <option key={i + 1} value={i + 1}>
@@ -180,7 +208,8 @@ export const Cart: React.FC = () => {
                     </div>
                   </div>
                 </React.Fragment>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -193,7 +222,7 @@ export const Cart: React.FC = () => {
         <div className="lg:col-span-4">
           <div className="bg-slate-900 border border-slate-800 rounded-lg p-6 shadow-md space-y-4">
             <h3 className="font-extrabold text-sm text-slate-100 uppercase tracking-wider">Order Summary</h3>
-            
+
             <div className="border-t border-slate-850 pt-3 flex justify-between text-xs">
               <span className="text-slate-400">Total Items:</span>
               <span className="font-bold text-slate-200">
@@ -213,12 +242,12 @@ export const Cart: React.FC = () => {
               <span className="text-2xl font-black text-white font-mono">₹{totalAmount.toFixed(2)}</span>
             </div>
 
-            {/* MLM Info Blurb */}
+            {/*  Info Blurb */}
             {user && user.status === 'inactive' && (
               <div className="bg-blue-950/20 border border-blue-900 rounded p-3 text-[10px] text-slate-400 leading-normal">
                 {totalSw >= 50 ? (
                   <p className="text-emerald-400 font-bold">
-                    🎉 This purchase of {totalSw} SW will ACTIVATE your MLM member status!
+                    🎉 This purchase of {totalSw} SW will ACTIVATE your member status!
                   </p>
                 ) : (
                   <p>
@@ -230,9 +259,9 @@ export const Cart: React.FC = () => {
 
             <button
               onClick={handleCheckoutClick}
-              className="w-full py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-md font-bold text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+              className="w-full py-3 px-4 bg-[#B8586E] hover:bg-[#A3475D] text-white rounded-full font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-[#B8586E]/20 active:scale-95 cursor-pointer"
             >
-              Proceed to Checkout
+              <span>Proceed to Checkout</span>
               <ArrowRight size={14} />
             </button>
           </div>
