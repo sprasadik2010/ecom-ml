@@ -861,7 +861,7 @@ export const Dashboard: React.FC = () => {
           </div>
 
           <p className="text-xs text-slate-400 leading-normal mb-5 font-normal">
-            For every 1 matching point on Left & Right legs you earn <span className="text-emerald-400 font-bold">₹10</span>. In addition, unlock 10 progressive monthly royalty streams starting at <span className="text-amber-400 font-bold">₹1,000/mo</span> up to <span className="text-amber-400 font-bold">₹5,12,000/mo</span> as your binary team nodes achieve 100 SW on both sides!
+            For every 1 matching point on Left & Right legs you earn <span className="text-emerald-400 font-bold">₹10</span>. In addition, unlock 10 progressive monthly royalty streams starting at <span className="text-amber-400 font-bold">₹1,000/mo</span> up to <span className="text-amber-400 font-bold">₹5,12,000/mo</span> as your team nodes achieve 100 SW on both sides!
           </p>
 
           {/* Current Level / Next Milestone Status Box */}

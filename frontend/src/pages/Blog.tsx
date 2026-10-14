@@ -13,19 +13,19 @@ import {
 export const Blog: React.FC = () => {
   const [selectedTag, setSelectedTag] = useState<string>('All');
 
-  const tags = ['All', 'MLM Strategy', 'Lifestyle & Fashion', 'SW Points', 'Guides'];
+  const tags = ['All', 'Growth Strategy', 'Lifestyle & Fashion', 'SW Points', 'Guides'];
 
   const articles = [
     {
       id: 1,
       title: 'How to Maximize Your Earnings with Sales Wallet (SW) Points',
-      excerpt: 'Learn the exact math behind binary leg volume matching, personal activation requirements, and how to balance your Left and Right teams effectively.',
-      category: 'MLM Strategy',
+      excerpt: 'Learn the exact math behind team leg volume matching, personal activation requirements, and how to balance your Left and Right teams effectively.',
+      category: 'Growth Strategy',
       author: 'Buyway Business Desk',
       date: 'October 12, 2026',
       readTime: '5 min read',
       image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80',
-      tag: 'MLM Strategy'
+      tag: 'Growth Strategy'
     },
     {
       id: 2,
@@ -47,7 +47,7 @@ export const Blog: React.FC = () => {
       date: 'September 28, 2026',
       readTime: '6 min read',
       image: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=600&auto=format&fit=crop&q=80',
-      tag: 'MLM Strategy'
+      tag: 'Growth Strategy'
     },
     {
       id: 4,

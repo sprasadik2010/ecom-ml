@@ -405,7 +405,7 @@ export const Orders: React.FC = () => {
           </h3>
           <p className="text-slate-500 text-xs max-w-sm mb-6 leading-relaxed">
             {orders.length === 0
-              ? 'Explore our product catalog, order premium items, and activate your personal sales volume in the binary tree!'
+              ? 'Explore our product catalog, order premium items, and activate your personal sales volume in your team tree!'
               : 'Try clearing your search query or switching to the "All Orders" tab to view all orders.'}
           </p>
           <Link

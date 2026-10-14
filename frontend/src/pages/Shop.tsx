@@ -148,7 +148,7 @@ export const Shop: React.FC = () => {
               {categoryQuery ? `${categoryQuery} Collection` : 'All Products'}
             </h1>
             <p className="text-xs sm:text-sm text-[#7A6369] mt-1.5 max-w-xl">
-              Explore curated premium products. Every order generates direct Sales Wallet (SW) volume points for your direct-selling network.
+              Explore curated premium products. Every order generates direct Sales Wallet (SW) volume points for your direct-selling team.
             </p>
           </div>
 

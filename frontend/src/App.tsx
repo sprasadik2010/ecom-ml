@@ -202,7 +202,7 @@ export const App: React.FC = () => {
                     <h5 className="font-serif text-sm text-[#331B21] font-semibold mb-3">Direct Selling System</h5>
                     <ul className="space-y-2">
                       <li><span className="text-[#8C7077]">50 SW Personal Activation</span></li>
-                      <li><span className="text-[#8C7077]">1:1 Binary Network Bonus</span></li>
+                      <li><span className="text-[#8C7077]">1:1 Team Volume Bonus</span></li>
                       <li><span className="text-[#8C7077]">20% Sponsor Matching Cut</span></li>
                       <li><Link to="/login" className="hover:text-[#A8435D] transition-colors text-[#A8435D] font-bold">Member Portal Login</Link></li>
                     </ul>

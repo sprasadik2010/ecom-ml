@@ -2878,7 +2878,7 @@ export const AdminPanel: React.FC = () => {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Apex Ultra Slim Smart Watch"
+                    placeholder="e.g. Vogue Ultra Slim Smart Watch"
                     className="w-full bg-slate-950 border border-slate-850 rounded-lg px-3.5 py-2 text-slate-100 focus:outline-none focus:border-amber-500 font-normal"
                     value={productForm.name}
                     onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}

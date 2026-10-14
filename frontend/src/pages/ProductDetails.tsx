@@ -432,7 +432,7 @@ export const ProductDetails: React.FC = () => {
             <div>
               <h4 className="font-bold text-sm text-[#331B21] mb-0.5">Earn Sales Wallet Points</h4>
               <p className="text-xs text-[#7A6369] leading-normal">
-                Purchasing credits <strong className="text-[#C07718] font-mono font-bold">{product.sw} SW</strong> to your account and propagates business bonus volume up your binary tree!
+                Purchasing credits <strong className="text-[#C07718] font-mono font-bold">{product.sw} SW</strong> to your account and propagates business bonus volume up your team tree!
               </p>
             </div>
           </div>

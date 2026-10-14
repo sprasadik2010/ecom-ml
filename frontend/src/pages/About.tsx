@@ -38,7 +38,7 @@ export const About: React.FC = () => {
             Earn & Grow Together <span className="text-[#A8435D]">♡</span>
           </h1>
           <p className="text-xs sm:text-sm text-[#6D555B] max-w-2xl mx-auto leading-relaxed">
-            Buyway was born from a vision to blend seamless, premium e-commerce shopping with an empowering, transparent direct-selling binary rewards system.
+            Buyway was born from a vision to blend seamless, premium e-commerce shopping with an empowering, transparent direct-selling team rewards system.
           </p>
         </div>
 
@@ -70,7 +70,7 @@ export const About: React.FC = () => {
             </div>
             <h3 className="font-serif text-lg sm:text-xl text-[#331B21] font-semibold">Integrity & Speed</h3>
             <p className="text-xs sm:text-sm text-[#7A6369] leading-relaxed">
-              Transparent binary trees, automated commission calculations, and official India Post tracked logistics for dependable delivery.
+              Transparent team trees, automated commission calculations, and official India Post tracked logistics for dependable delivery.
             </p>
           </div>
         </div>
@@ -78,7 +78,7 @@ export const About: React.FC = () => {
         {/* How The Buyway Direct Selling Model Works */}
         <div className="bg-white rounded-3xl p-5 sm:p-12 border border-[#EFE2DE] shadow-xs space-y-6 sm:space-y-8">
           <div className="text-center max-w-xl mx-auto space-y-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#A8435D]">Transparent MLM Architecture</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-[#A8435D]">Transparent Rewards Architecture</span>
             <h2 className="font-serif text-2xl sm:text-3xl text-[#331B21]">How Buyway Works</h2>
             <p className="text-xs text-[#7A6369]">Simple, fair, and mathematically balanced direct selling.</p>
           </div>
@@ -96,13 +96,13 @@ export const About: React.FC = () => {
               <div className="text-sm font-bold text-[#A8435D]">Step 2</div>
               <h4 className="font-semibold text-sm text-[#331B21]">50 SW Activation</h4>
               <p className="text-xs text-[#7A6369] leading-relaxed">
-                Make your first purchase accumulating at least 50 SW volume points to activate your member ID and binary node.
+                Make your first purchase accumulating at least 50 SW volume points to activate your member ID and team node.
               </p>
             </div>
 
             <div className="p-5 bg-[#FAF7F2] rounded-2xl border border-[#E8D7DC] space-y-2">
               <div className="text-sm font-bold text-[#A8435D]">Step 3</div>
-              <h4 className="font-semibold text-sm text-[#331B21]">Binary Network Growth</h4>
+              <h4 className="font-semibold text-sm text-[#331B21]">Team Growth & Pairing</h4>
               <p className="text-xs text-[#7A6369] leading-relaxed">
                 Refer friends and build Left and Right team branches. Every product order downline contributes volume to both legs.
               </p>

@@ -35,7 +35,7 @@ export const Contact: React.FC = () => {
     },
     {
       q: 'When do my Sales Wallet (SW) points get credited?',
-      a: 'SW points are credited to your personal account immediately after the administrator verifies payment and approves the order. If you have an active sponsor and downline binary branches, volume matching and sponsor matching bonuses trigger concurrently.'
+      a: 'SW points are credited to your personal account immediately after the administrator verifies payment and approves the order. If you have an active sponsor and downline team branches, volume matching and sponsor matching bonuses trigger concurrently.'
     },
     {
       q: 'What is the return policy for damaged items?',
@@ -43,7 +43,7 @@ export const Contact: React.FC = () => {
     },
     {
       q: 'How does personal member activation work?',
-      a: 'To activate your member ID and begin qualifying for 1:1 binary matching pairs, you need a minimum personal cumulative purchase of 50 SW volume points.'
+      a: 'To activate your member ID and begin qualifying for 1:1 team matching pairs, you need a minimum personal cumulative purchase of 50 SW volume points.'
     }
   ];
 
@@ -200,7 +200,7 @@ export const Contact: React.FC = () => {
                       <option value="General Inquiry">General Inquiry</option>
                       <option value="Order & Tracking">Order & Postal Tracking</option>
                       <option value="Returns & Defect">3-Day Return Claim</option>
-                      <option value="MLM & SW Volume">Member SW Points & Tree</option>
+                      <option value="Team & SW Volume">Member SW Points & Tree</option>
                     </select>
                   </div>
                 </div>

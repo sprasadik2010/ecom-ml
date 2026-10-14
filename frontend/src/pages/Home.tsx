@@ -313,7 +313,7 @@ export const Home: React.FC = () => {
             </div>
             <h4 className="font-serif text-lg text-[#331B21]">Earn SW Volume Points</h4>
             <p className="text-xs text-[#7A6369] leading-relaxed">
-              Every purchase earns Sales Wallet (SW) volume points, qualifying you for 1:1 binary network matching bonuses.
+              Every purchase earns Sales Wallet (SW) volume points, qualifying you for 1:1 team matching bonuses.
             </p>
           </div>
 

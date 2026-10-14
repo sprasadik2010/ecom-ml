@@ -345,7 +345,7 @@ export const Navbar: React.FC = () => {
                             className="flex items-center gap-2.5 px-4 py-2 text-xs text-[#331B21] hover:bg-[#FDF4F6] hover:text-[#A8435D] font-medium"
                           >
                             <GitFork size={14} />
-                            <span>Binary Network Tree</span>
+                            <span>My Team Tree</span>
                           </Link>
                           <Link
                             to="/commissions"
@@ -527,7 +527,7 @@ export const Navbar: React.FC = () => {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="py-2 px-3 bg-[#FAF7F2] rounded-lg text-center font-medium hover:bg-[#FDF4F6] hover:text-[#A8435D]"
                   >
-                    Binary Tree
+                    Team Tree
                   </Link>
                   <Link
                     to="/commissions"
