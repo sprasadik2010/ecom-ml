@@ -112,18 +112,18 @@ export const TreePage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
       {/* Title block */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4 mb-6">
         <div>
-          <h1 className="text-2xl font-black text-white">Business Genealogy</h1>
+          <h1 className="text-xl sm:text-2xl font-black text-white">Business Genealogy</h1>
           <p className="text-slate-400 text-xs mt-0.5">
             Visualize your business downline team. Click cards to drill down and explore team nodes.
           </p>
         </div>
 
         {/* Tree controls */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {history.length > 0 && (
             <button
               onClick={handleGoUp}

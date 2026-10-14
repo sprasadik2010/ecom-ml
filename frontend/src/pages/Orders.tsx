@@ -197,7 +197,7 @@ export const Orders: React.FC = () => {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-5 mb-8">
         <div>
@@ -206,7 +206,7 @@ export const Orders: React.FC = () => {
               <ShoppingBag size={22} />
             </div>
             <div>
-              <h1 className="text-2xl font-black text-white">My Orders & Postal Tracking</h1>
+              <h1 className="text-xl sm:text-2xl font-black text-white">My Orders & Postal Tracking</h1>
               <p className="text-slate-400 text-xs mt-0.5">
                 Track your package shipments, postal tracking numbers (India Post), delivery progress, and personal SW volume credits.
               </p>
@@ -659,8 +659,8 @@ export const Orders: React.FC = () => {
                               <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">
                                 Postal Consignment / Article Tracking Number:
                               </span>
-                              <div className="flex items-center gap-2 mt-1">
-                                <span className="font-mono font-black text-amber-300 text-base sm:text-lg bg-slate-900 px-3 py-1 rounded-md border border-slate-750 tracking-wider select-all">
+                              <div className="flex flex-wrap items-center gap-2 mt-1">
+                                <span className="font-mono font-black text-amber-300 text-base sm:text-lg bg-slate-900 px-3 py-1 rounded-md border border-slate-750 tracking-wider select-all break-all">
                                   {order.tracking_number}
                                 </span>
                                 <button

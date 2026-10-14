@@ -179,9 +179,9 @@ export const App: React.FC = () => {
             </main>
 
             {/* Footer */}
-            <footer className="bg-white border-t border-[#EFE2DE] py-12 text-xs text-[#705960]">
+            <footer className="bg-white border-t border-[#EFE2DE] py-8 sm:py-12 text-xs text-[#705960]">
               <div className="max-w-7xl mx-auto px-4 sm:px-6">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-10 border-b border-[#F2E8E5]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 pb-8 sm:pb-10 border-b border-[#F2E8E5]">
                   <div className="space-y-3">
                     <img src={bwLogo} alt="Buyway - Shop, Earn, Grow" className="h-10 w-auto object-contain rounded" />
                     <p className="text-xs text-[#7A6369] leading-relaxed">

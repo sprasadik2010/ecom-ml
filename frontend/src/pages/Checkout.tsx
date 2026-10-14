@@ -236,12 +236,12 @@ export const Checkout: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
       <Link to="/cart" className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-200 font-semibold text-xs mb-6 transition-colors">
         <ArrowLeft size={14} /> Return to Cart
       </Link>
 
-      <h1 className="text-2xl font-black text-white mb-6">UPI Secured Checkout</h1>
+      <h1 className="text-xl sm:text-2xl font-black text-white mb-6">UPI Secured Checkout</h1>
 
       {error && (
         <div className="bg-red-950/30 border border-red-900 text-red-400 text-xs p-4 rounded-md mb-6 font-semibold flex items-center gap-2">
@@ -253,7 +253,7 @@ export const Checkout: React.FC = () => {
         {/* Left Column: Shipping & Dynamic UPI Payment */}
         <div className="lg:col-span-8 space-y-6">
           {/* Shipping Address Box */}
-          <div className="bg-slate-900 border border-slate-800 rounded-lg p-6 shadow-md">
+          <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 sm:p-6 shadow-md">
             <h3 className="font-extrabold text-sm text-slate-100 uppercase tracking-wider mb-4 flex items-center gap-2">
               <ShieldCheck size={18} className="text-amber-500" />
               1. Shipping & Customer Details
@@ -330,13 +330,13 @@ export const Checkout: React.FC = () => {
           </div>
 
           {/* Dynamic UPI Payment Box */}
-          <div className="bg-slate-900 border border-slate-800 rounded-lg p-6 shadow-md space-y-5">
+          <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 sm:p-6 shadow-md space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
               <h3 className="font-extrabold text-sm text-slate-100 uppercase tracking-wider flex items-center gap-2">
                 <QrCode size={18} className="text-emerald-400" />
                 2. Scan & Pay via UPI (GPay / PhonePe / Paytm)
               </h3>
-              <div className="flex items-center gap-1.5">
+              <div className="flex flex-wrap items-center gap-1.5">
                 <span className="text-[10px] font-bold bg-slate-950 text-slate-400 px-2 py-0.5 rounded border border-slate-800">
                   Google Pay
                 </span>
@@ -350,7 +350,7 @@ export const Checkout: React.FC = () => {
             </div>
 
             {/* QR Code & Direct Pay Layout */}
-            <div className="flex flex-col md:flex-row items-center gap-6 bg-slate-950/60 p-5 rounded-xl border border-slate-800">
+            <div className="flex flex-col md:flex-row items-center gap-5 sm:gap-6 bg-slate-950/60 p-3.5 sm:p-5 rounded-xl border border-slate-800">
               {/* QR Code Graphic with Amount Badge */}
               <div className="text-center shrink-0">
                 <div className="p-3 bg-white rounded-xl shadow-lg inline-block border-2 border-slate-200">
@@ -374,8 +374,8 @@ export const Checkout: React.FC = () => {
               <div className="flex-1 space-y-3.5 text-xs">
                 <div>
                   <span className="text-slate-400 text-[11px] block">Payee / Merchant UPI ID:</span>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="font-mono font-bold text-amber-400 bg-slate-900 px-3 py-1.5 rounded border border-slate-800 text-xs sm:text-sm select-all">
+                  <div className="flex flex-wrap items-center gap-2 mt-1">
+                    <span className="font-mono font-bold text-amber-400 bg-slate-900 px-3 py-1.5 rounded border border-slate-800 text-xs sm:text-sm select-all break-all">
                       {merchantUpiId}
                     </span>
                     <button

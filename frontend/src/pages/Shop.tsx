@@ -122,8 +122,8 @@ export const Shop: React.FC = () => {
   };
 
   return (
-    <div className="bg-[#FAF7F2] min-h-screen py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
+    <div className="bg-[#FAF7F2] min-h-screen py-4 sm:py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-6 sm:space-y-8">
 
         {/* Breadcrumb Navigation */}
         <nav className="flex items-center gap-2 text-xs text-[#7A6369]">
@@ -144,7 +144,7 @@ export const Shop: React.FC = () => {
             <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#A8435D] block mb-1">
               Buyway Catalog
             </span>
-            <h1 className="font-serif text-3xl sm:text-4xl text-[#331B21] font-normal">
+            <h1 className="font-serif text-2xl sm:text-4xl text-[#331B21] font-normal">
               {categoryQuery ? `${categoryQuery} Collection` : 'All Products'}
             </h1>
             <p className="text-xs sm:text-sm text-[#7A6369] mt-1.5 max-w-xl">
@@ -205,7 +205,7 @@ export const Shop: React.FC = () => {
         </div>
 
         {/* Category Pills Filter */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin">
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin -mx-4 px-4 sm:mx-0 sm:px-0">
           {categories.map((cat) => {
             const isSelected = (!cat.name && !categoryQuery) || (cat.name === categoryQuery);
             return (

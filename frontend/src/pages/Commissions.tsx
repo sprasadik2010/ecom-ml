@@ -119,17 +119,17 @@ export const Commissions: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
       {/* Header */}
       <div className="border-b border-slate-800 pb-4 mb-6">
-        <h1 className="text-2xl font-black text-white">Commissions Ledger</h1>
+        <h1 className="text-xl sm:text-2xl font-black text-white">Commissions Ledger</h1>
         <p className="text-slate-400 text-xs mt-0.5">
           Review your earnings. Track your 1:1 matching bonuses (with 10% auto-deduction: 2% TDS + 8% 5-level sponsor distribution: 4% direct sponsor + 1% for 4 uplines), sponsor matching overrides, and progressive level monthly royalties in real-time.
         </p>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
         {/* Total Earned */}
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm">
           <div className="flex justify-between items-start">
@@ -200,7 +200,7 @@ export const Commissions: React.FC = () => {
       </div>
 
       {/* Main Ledger Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-md">
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 sm:p-6 shadow-md">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 pb-4 border-b border-slate-800">
           <h3 className="font-extrabold text-sm text-slate-100 uppercase tracking-wider flex items-center gap-2">
             <Compass size={18} className="text-amber-500" />

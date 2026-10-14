@@ -316,9 +316,9 @@ export const Dashboard: React.FC = () => {
     .reduce((sum, c) => sum + c.amount, 0);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
       {/* Top Banner: Welcome, Rank & Status */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-6 bg-slate-900 border border-slate-800 rounded-xl mb-8 shadow-md">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 sm:p-6 bg-slate-900 border border-slate-800 rounded-xl mb-8 shadow-md">
         <div>
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-xl md:text-2xl font-black text-white">Hello, {user.full_name}!</h1>
@@ -492,7 +492,7 @@ export const Dashboard: React.FC = () => {
               <input
                 type="text"
                 readOnly
-                className="bg-slate-900 border border-slate-800 rounded text-xs font-mono text-slate-300 px-3 py-2 flex-1 focus:outline-none select-all"
+                className="bg-slate-900 border border-slate-800 rounded text-xs font-mono text-slate-300 px-3 py-2 flex-1 min-w-0 focus:outline-none select-all"
                 value={leftReferralLink}
               />
               <button
@@ -517,7 +517,7 @@ export const Dashboard: React.FC = () => {
               <input
                 type="text"
                 readOnly
-                className="bg-slate-900 border border-slate-800 rounded text-xs font-mono text-slate-300 px-3 py-2 flex-1 focus:outline-none select-all"
+                className="bg-slate-900 border border-slate-800 rounded text-xs font-mono text-slate-300 px-3 py-2 flex-1 min-w-0 focus:outline-none select-all"
                 value={rightReferralLink}
               />
               <button

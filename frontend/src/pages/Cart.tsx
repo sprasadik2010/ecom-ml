@@ -37,8 +37,8 @@ export const Cart: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-black text-white mb-6">Shopping Cart</h1>
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
+      <h1 className="text-xl sm:text-2xl font-black text-white mb-6">Shopping Cart</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Column: Cart items */}
@@ -129,7 +129,7 @@ export const Cart: React.FC = () => {
                   </div>
 
                   {/* Mobile Item Card Layout */}
-                  <div className="block md:hidden p-4 relative text-xs">
+                  <div className="block md:hidden p-3.5 sm:p-4 relative text-xs">
                     {/* Top Section: Image, Name, and Delete Button */}
                     <div className="flex gap-3 items-start pr-8">
                       <img
@@ -176,7 +176,7 @@ export const Cart: React.FC = () => {
                     <div className="border-t border-slate-850/50 my-3" />
 
                     {/* Details Row: Price, Qty Selector, and Total */}
-                    <div className="flex flex-wrap items-center justify-between gap-4 font-mono">
+                    <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-4 font-mono">
                       {/* Price per Unit */}
                       <div className="flex flex-col">
                         <span className="text-[9px] text-slate-500 uppercase font-sans">Price</span>

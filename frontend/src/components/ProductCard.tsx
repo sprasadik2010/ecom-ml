@@ -63,7 +63,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       </Link>
 
       {/* Product Info */}
-      <div className="p-4 flex flex-col flex-1 justify-between gap-3">
+      <div className="p-3 sm:p-4 flex flex-col flex-1 justify-between gap-2.5 sm:gap-3">
         <div>
           {/* Title */}
           <Link to={`/products/${product.id}`} className="hover:text-[#B8586E] transition-colors">
@@ -74,7 +74,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           
           {/* Variants hint */}
           {(product.colors && product.colors.length > 0 || product.sizes && product.sizes.length > 0) && (
-            <div className="flex items-center gap-2 mt-1.5 text-[10px] text-[#8C7077]">
+            <div className="flex items-center gap-1.5 sm:gap-2 mt-1.5 text-[10px] text-[#8C7077] flex-wrap">
               {product.colors && product.colors.length > 0 && (
                 <span>{product.colors.length} colors</span>
               )}
@@ -90,12 +90,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
         <div>
           {/* Price & SW Section */}
-          <div className="pt-2 border-t border-[#F5EDE9] flex items-center justify-between gap-2">
+          <div className="pt-2 border-t border-[#F5EDE9] flex flex-wrap items-center justify-between gap-1.5">
             <div>
               <div className="text-sm font-black text-[#9C384F] font-mono leading-none">
                 ₹{product.price.toFixed(2)}
               </div>
-              <div className="flex items-center gap-1.5 mt-1">
+              <div className="flex items-center gap-1 mt-1">
                 <span className="text-[10px] text-[#A89297] line-through font-mono leading-none">
                   ₹{originalPrice.toFixed(2)}
                 </span>
@@ -108,7 +108,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             {/* SW Badge */}
             <div className="bg-[#FAF2E8] border border-[#F4E1CA] px-2 py-0.5 rounded-lg text-right shrink-0">
               <span className="text-[8px] uppercase tracking-wider text-[#9C6D34] font-bold block leading-none">Points</span>
-              <span className="text-[11px] text-[#C07718] font-black font-mono mt-0.5 block leading-none flex items-center gap-0.5">
+              <span className="text-[10.5px] sm:text-[11px] text-[#C07718] font-black font-mono mt-0.5 block leading-none flex items-center gap-0.5">
                 <Award size={10} /> {product.sw} SW
               </span>
             </div>
@@ -119,7 +119,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             type="button"
             onClick={handleAddToCart}
             disabled={product.stock <= 0}
-            className={`w-full mt-3.5 flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-full font-bold text-xs transition-all cursor-pointer shadow-xs ${
+            className={`w-full mt-2.5 sm:mt-3.5 flex items-center justify-center gap-1.5 py-2 sm:py-2.5 px-3 sm:px-4 rounded-full font-bold text-[11px] sm:text-xs transition-all cursor-pointer shadow-xs ${
               product.stock > 0
                 ? 'bg-[#B8586E] hover:bg-[#A3475D] text-white shadow-[#B8586E]/20 active:scale-[0.98]'
                 : 'bg-[#F2EAE7] text-[#A89498] cursor-not-allowed border border-[#E8DDDA]'

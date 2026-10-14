@@ -1098,7 +1098,7 @@ export const AdminPanel: React.FC = () => {
     return true;
   });
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
       {/* Upper Status Notifications */}
       {success && (
         <div className="fixed top-20 right-4 bg-emerald-500 text-slate-950 px-4 py-3 rounded-lg flex items-center gap-2 shadow-xl border border-emerald-400 z-50 animate-bounce font-bold text-xs">
@@ -1115,7 +1115,7 @@ export const AdminPanel: React.FC = () => {
       )}
 
       {/* Header and Controls */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-md">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 bg-slate-900 border border-slate-800 p-4 sm:p-6 rounded-2xl shadow-md">
         <div>
           <div className="flex items-center gap-2">
             <span className="p-1.5 bg-rose-500/10 text-rose-550 rounded border border-rose-500/20 font-bold uppercase text-[9px] tracking-wider font-sans">
@@ -1141,7 +1141,7 @@ export const AdminPanel: React.FC = () => {
       </div>
 
       {/* Navigation Tab Bar */}
-      <div className="flex border-b border-slate-850 gap-1.5 overflow-x-auto pb-px mb-8 scrollbar-none">
+      <div className="flex border-b border-slate-850 gap-1.5 overflow-x-auto pb-px mb-8 scrollbar-none -mx-3 px-3 sm:mx-0 sm:px-0">
         {(
           [
             { id: 'dashboard', label: 'Overview', count: null },

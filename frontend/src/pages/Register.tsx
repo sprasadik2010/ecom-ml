@@ -221,8 +221,8 @@ export const Register: React.FC = () => {
   }
 
   return (
-    <div className="max-w-md mx-auto px-4 py-12 flex flex-col justify-center">
-      <div className="bg-white border border-[#EFE2DE] rounded-2xl p-8 shadow-md relative">
+    <div className="max-w-md mx-auto px-4 py-6 sm:py-12 flex flex-col justify-center">
+      <div className="bg-white border border-[#EFE2DE] rounded-2xl p-5 sm:p-8 shadow-md relative">
         <div className="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl bg-[#B8586E]" />
 
         <div className="text-center mb-6">

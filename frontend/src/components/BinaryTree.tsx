@@ -418,7 +418,7 @@ export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, curr
             onMouseLeave={handleMouseLeave}
             onMouseUp={handleMouseUp}
             onMouseMove={handleMouseMove}
-            className={`w-full overflow-x-auto flex justify-start p-4 ${
+            className={`w-full overflow-x-auto flex justify-start p-3 sm:p-4 touch-pan-x scrollbar-thin ${
               isDragging ? 'cursor-grabbing select-none' : 'cursor-grab'
             }`}
           >

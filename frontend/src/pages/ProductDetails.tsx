@@ -239,7 +239,7 @@ export const ProductDetails: React.FC = () => {
   const reviewsCount = 42 + (product.id * 17) % 150;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
       {/* Back button link */}
       <Link to="/shop" className="inline-flex items-center gap-2 text-[#7A6369] hover:text-[#A8435D] font-semibold text-xs mb-6 transition-colors">
         <ArrowLeft size={14} /> Back to Catalog
@@ -283,9 +283,9 @@ export const ProductDetails: React.FC = () => {
 
             {/* Photo Counter & Swipe Navigation Badge */}
             {galleryImages.length > 1 && (
-              <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md border border-[#EFE2DE] text-[#4A343A] text-[10px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-xs pointer-events-none z-10">
+              <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md border border-[#EFE2DE] text-[#4A343A] text-[10px] font-bold px-2.5 sm:px-3 py-1 rounded-full flex items-center gap-1.5 shadow-xs pointer-events-none z-10">
                 <Layers size={11} className="text-[#B8586E]" />
-                <span>{activeImageIdx + 1} of {galleryImages.length} • Swipe ↔ to view</span>
+                <span>{activeImageIdx + 1} of {galleryImages.length} <span className="hidden sm:inline">• Swipe ↔ to view</span></span>
               </div>
             )}
 
@@ -551,7 +551,7 @@ export const ProductDetails: React.FC = () => {
 
         {/* Right Column: Checkout/Actions Box */}
         <div className="lg:col-span-3">
-          <div className="bg-white border border-[#EFE2DE] rounded-2xl p-6 shadow-md sticky top-24 space-y-4">
+          <div className="bg-white border border-[#EFE2DE] rounded-2xl p-4 sm:p-6 shadow-md lg:sticky lg:top-24 space-y-4">
             <div>
               <span className="text-[#705960] text-xs font-semibold">Total Price:</span>
               <div className="text-2xl font-black text-[#331B21] mt-1 font-mono">

@@ -18,7 +18,7 @@ import bwLogo from '../assets/bwLogo.jpeg';
 
 export const ReturnPolicy: React.FC = () => {
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 space-y-10">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 sm:space-y-10">
       {/* Back button */}
       <Link
         to="/"
@@ -28,12 +28,12 @@ export const ReturnPolicy: React.FC = () => {
       </Link>
 
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-[#F6ECE7] via-[#F3E3DD] to-[#ECD5CD] border border-[#EEDCD6] rounded-3xl p-8 sm:p-10 shadow-sm text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-6">
+      <div className="bg-gradient-to-r from-[#F6ECE7] via-[#F3E3DD] to-[#ECD5CD] border border-[#EEDCD6] rounded-3xl p-5 sm:p-10 shadow-sm text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-6">
         <div className="space-y-2 max-w-xl">
-          <span className="text-[11px] uppercase font-bold tracking-[0.25em] text-[#8C3A4D] block">
+          <span className="text-[10px] sm:text-[11px] uppercase font-bold tracking-[0.25em] text-[#8C3A4D] block">
             BUYWAY CUSTOMER CARE
           </span>
-          <h1 className="font-serif text-3xl sm:text-4xl text-[#331B21] font-normal leading-tight">
+          <h1 className="font-serif text-2xl sm:text-4xl text-[#331B21] font-normal leading-tight">
             Return & Replacement Policy
           </h1>
           <p className="text-xs sm:text-sm text-[#6D555B] leading-relaxed">
