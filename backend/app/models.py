@@ -267,3 +267,27 @@ class UserRankReward(Base):
 
     user = relationship("User", back_populates="rank_rewards")
 
+
+class SystemSetting(Base):
+    __tablename__ = "system_settings"
+
+    key = Column(String, primary_key=True, index=True)
+    value = Column(Text, nullable=True)
+    description = Column(String, nullable=True)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+
+class ImageUpload(Base):
+    __tablename__ = "image_uploads"
+
+    id = Column(Integer, primary_key=True, index=True)
+    local_filename = Column(String, index=True, nullable=False)
+    local_url = Column(String, nullable=False)
+    imgbb_url = Column(String, nullable=True)
+    imgbb_delete_url = Column(String, nullable=True)
+    file_size = Column(Integer, nullable=True)
+    status = Column(String, default="pending")  # 'pending', 'uploading', 'completed', 'failed'
+    error_message = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+

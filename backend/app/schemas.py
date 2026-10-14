@@ -381,3 +381,37 @@ class RewardProcessResponse(BaseModel):
     total_disbursed: float
     message: str
 
+
+# --- ImgBB Cloud Storage Schemas ---
+class ImgBBSettingsResponse(BaseModel):
+    api_key_configured: bool
+    masked_key: str
+    total_images: int
+    completed_images: int
+    pending_images: int
+    failed_images: int
+
+class ImgBBKeyUpdate(BaseModel):
+    api_key: str
+
+class ImgBBTestRequest(BaseModel):
+    api_key: Optional[str] = None
+
+class ImgBBTestResponse(BaseModel):
+    success: bool
+    message: str
+
+class ImageUploadResponse(BaseModel):
+    id: int
+    local_filename: str
+    local_url: str
+    imgbb_url: Optional[str] = None
+    file_size: Optional[int] = None
+    status: str
+    error_message: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+

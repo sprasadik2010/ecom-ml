@@ -19,4 +19,7 @@ class Settings:
     UPI_ID: str = os.getenv("UPI_ID", "merchant@okhdfcbank")
     UPI_NAME: str = os.getenv("UPI_NAME", "Business Store")
 
+    # ImgBB Cloud Image Hosting
+    IMGBB_API_KEY: str = os.getenv("IMGBB_API_KEY", "")
+
 settings = Settings()

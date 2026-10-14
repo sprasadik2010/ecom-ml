@@ -41,7 +41,11 @@ import {
   Tag,
   Eye,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  Cloud,
+  UploadCloud,
+  Key,
+  Image as ImageIcon
 } from 'lucide-react';
 import { API_BASE_URL } from '../context/AuthContext';
 
@@ -184,7 +188,28 @@ interface DashboardStats {
   recent_orders: OrderListItem[];
 }
 
-type TabType = 'dashboard' | 'products' | 'categories' | 'users' | 'orders' | 'commissions' | 'rewards';
+interface ImgBBSettings {
+  api_key_configured: boolean;
+  masked_key: string;
+  total_images: number;
+  completed_images: number;
+  pending_images: number;
+  failed_images: number;
+}
+
+interface ImageUploadItem {
+  id: number;
+  local_filename: string;
+  local_url: string;
+  imgbb_url: string | null;
+  file_size?: number | null;
+  status: 'pending' | 'uploading' | 'completed' | 'failed';
+  error_message: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+type TabType = 'dashboard' | 'products' | 'categories' | 'users' | 'orders' | 'commissions' | 'rewards' | 'media';
 
 export const AdminPanel: React.FC = () => {
   const { token } = useAuth();
@@ -208,6 +233,15 @@ export const AdminPanel: React.FC = () => {
   const [commissions, setCommissions] = useState<CommissionListItem[]>([]);
   const [rewards, setRewards] = useState<RankRewardItem[]>([]);
   const [processingRewards, setProcessingRewards] = useState(false);
+
+  // ImgBB Cloud Storage State
+  const [imgbbSettings, setImgbbSettings] = useState<ImgBBSettings | null>(null);
+  const [imgbbImages, setImgbbImages] = useState<ImageUploadItem[]>([]);
+  const [imgbbApiKeyInput, setImgbbApiKeyInput] = useState('');
+  const [isEditingKey, setIsEditingKey] = useState(false);
+  const [testingImgbb, setTestingImgbb] = useState(false);
+  const [syncingAllImages, setSyncingAllImages] = useState(false);
+  const [savingImgbbKey, setSavingImgbbKey] = useState(false);
 
   // Dispatch Management State
   const [isDispatchModalOpen, setIsDispatchModalOpen] = useState(false);
@@ -328,7 +362,8 @@ export const AdminPanel: React.FC = () => {
           images: updatedImages
         };
       });
-      triggerSuccess('Image uploaded and added to gallery!');
+      triggerSuccess('Image uploaded locally! Background cloud sync to ImgBB started.');
+      fetchImgbbSettings();
     } catch (err: any) {
       triggerError(err.message || 'Image upload failed.');
     } finally {
@@ -370,12 +405,118 @@ export const AdminPanel: React.FC = () => {
           image_url: prev.image_url || combined[0] || ''
         };
       });
-      triggerSuccess(`Successfully uploaded ${newUrls.length} product photos!`);
+      triggerSuccess(`Uploaded ${newUrls.length} photos! Background cloud sync to ImgBB started.`);
+      fetchImgbbSettings();
     } catch (err: any) {
       triggerError(err.message || 'Multi-image upload failed.');
     } finally {
       setUploading(false);
       e.target.value = '';
+    }
+  };
+
+  // ImgBB API Key & Sync Handlers
+  const fetchImgbbSettings = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/settings/imgbb`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setImgbbSettings(data);
+      }
+    } catch (err) {
+      console.error('Error fetching ImgBB settings:', err);
+    }
+  };
+
+  const fetchImgbbImages = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/imgbb/images`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setImgbbImages(data);
+      }
+    } catch (err) {
+      console.error('Error fetching ImgBB images:', err);
+    }
+  };
+
+  const handleSaveImgbbKey = async () => {
+    if (!imgbbApiKeyInput.trim()) {
+      triggerError('Please enter a valid ImgBB API Key.');
+      return;
+    }
+    setSavingImgbbKey(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/settings/imgbb`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ api_key: imgbbApiKeyInput.trim() })
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.detail || 'Failed to update ImgBB API key.');
+      }
+      triggerSuccess('ImgBB API Key updated successfully! Cloud uploads active.');
+      setImgbbApiKeyInput('');
+      setIsEditingKey(false);
+      fetchImgbbSettings();
+    } catch (err: any) {
+      triggerError(err.message || 'Error updating API key.');
+    } finally {
+      setSavingImgbbKey(false);
+    }
+  };
+
+  const handleTestImgbbKey = async () => {
+    setTestingImgbb(true);
+    try {
+      const payload = imgbbApiKeyInput.trim() ? { api_key: imgbbApiKeyInput.trim() } : {};
+      const res = await fetch(`${API_BASE_URL}/admin/imgbb/test`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || data.detail || 'ImgBB test failed.');
+      }
+      triggerSuccess(data.message || 'ImgBB connection active and verified!');
+    } catch (err: any) {
+      triggerError(err.message || 'ImgBB verification failed.');
+    } finally {
+      setTestingImgbb(false);
+    }
+  };
+
+  const handleSyncAllImages = async () => {
+    setSyncingAllImages(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/imgbb/sync-all`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.detail || 'Failed to trigger batch image sync.');
+      }
+      const data = await res.json();
+      triggerSuccess(data.message || 'Queued images for background ImgBB upload.');
+      fetchImgbbSettings();
+      fetchImgbbImages();
+    } catch (err: any) {
+      triggerError(err.message || 'Error syncing images.');
+    } finally {
+      setSyncingAllImages(false);
     }
   };
 
@@ -607,6 +748,8 @@ export const AdminPanel: React.FC = () => {
       await Promise.all([fetchCommissions(), fetchUsers()]);
     } else if (tab === 'rewards') {
       await Promise.all([fetchRewards(), fetchUsers()]);
+    } else if (tab === 'media') {
+      await Promise.all([fetchImgbbSettings(), fetchImgbbImages()]);
     }
     setLoading(false);
   };
@@ -615,6 +758,7 @@ export const AdminPanel: React.FC = () => {
   useEffect(() => {
     if (token) {
       loadTabData(activeTab);
+      fetchImgbbSettings();
     }
   }, [activeTab, token]);
 
@@ -1150,7 +1294,8 @@ export const AdminPanel: React.FC = () => {
             { id: 'users', label: 'Members', count: users.length },
             { id: 'orders', label: 'Order Processing', count: orders.length },
             { id: 'commissions', label: 'Payout Auditing', count: commissions.length },
-            { id: 'rewards', label: 'Rank Royalties', count: rewards.length }
+            { id: 'rewards', label: 'Rank Royalties', count: rewards.length },
+            { id: 'media', label: 'Cloud Storage (ImgBB)', count: imgbbSettings?.pending_images ?? null }
           ] as { id: TabType; label: string; count: number | null }[]
         ).map((t) => (
           <button
@@ -2843,6 +2988,282 @@ export const AdminPanel: React.FC = () => {
                     ))
                   )}
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* CLOUD MEDIA & IMGBB MANAGEMENT TAB */}
+          {activeTab === 'media' && (
+            <div className="space-y-6 animate-fade-in">
+              {/* Cloud Sync Status Header Card */}
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-md relative overflow-hidden">
+                <div className="absolute -right-10 -bottom-10 opacity-5 pointer-events-none">
+                  <Cloud size={240} className="text-rose-500" />
+                </div>
+
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-gradient-to-br from-rose-500/20 to-amber-500/20 border border-rose-500/30 text-rose-400 rounded-xl shrink-0">
+                      <Cloud size={28} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2.5 flex-wrap">
+                        <h2 className="text-lg font-black text-white">ImgBB Cloud Image Storage</h2>
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                          imgbbSettings?.api_key_configured
+                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                            : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                        }`}>
+                          {imgbbSettings?.api_key_configured ? '● Cloud Auto-Sync Active' : '○ API Key Required'}
+                        </span>
+                      </div>
+                      <p className="text-slate-400 text-xs mt-1 max-w-2xl leading-relaxed">
+                        When uploading product and category images, they are instantly stored locally for zero-latency editing, while an asynchronous background worker uploads them to your <strong>ImgBB</strong> cloud account and seamlessly updates your database links.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Quick Batch Actions */}
+                  <div className="flex items-center gap-2.5 flex-wrap shrink-0">
+                    <button
+                      onClick={handleSyncAllImages}
+                      disabled={syncingAllImages || !imgbbSettings?.api_key_configured}
+                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 disabled:opacity-50 text-slate-950 font-black rounded-xl text-xs transition-all shadow-md cursor-pointer"
+                    >
+                      <UploadCloud size={15} className={syncingAllImages ? 'animate-bounce' : ''} />
+                      <span>{syncingAllImages ? 'Syncing Images...' : 'Sync All Pending to Cloud'}</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        fetchImgbbSettings();
+                        fetchImgbbImages();
+                      }}
+                      className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                    >
+                      <RefreshCw size={13} />
+                      <span>Refresh</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Metrics Row */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-slate-850">
+                  <div className="bg-slate-950/60 border border-slate-850 rounded-xl p-3.5">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Total Media Files</span>
+                    <span className="text-lg font-black font-mono text-white mt-0.5 block">{imgbbSettings?.total_images ?? 0}</span>
+                  </div>
+                  <div className="bg-slate-950/60 border border-slate-850 rounded-xl p-3.5">
+                    <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider block">ImgBB CDN Hosted</span>
+                    <span className="text-lg font-black font-mono text-emerald-400 mt-0.5 block">{imgbbSettings?.completed_images ?? 0}</span>
+                  </div>
+                  <div className="bg-slate-950/60 border border-slate-850 rounded-xl p-3.5">
+                    <span className="text-[10px] text-amber-400 font-bold uppercase tracking-wider block">Pending Background Sync</span>
+                    <span className="text-lg font-black font-mono text-amber-400 mt-0.5 block">{imgbbSettings?.pending_images ?? 0}</span>
+                  </div>
+                  <div className="bg-slate-950/60 border border-slate-850 rounded-xl p-3.5">
+                    <span className="text-[10px] text-red-400 font-bold uppercase tracking-wider block">Failed / Retry Needed</span>
+                    <span className="text-lg font-black font-mono text-red-400 mt-0.5 block">{imgbbSettings?.failed_images ?? 0}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* ImgBB API Key Configuration Card */}
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-md">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-850">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-slate-950 border border-slate-800 text-amber-500 rounded-lg">
+                      <Key size={18} />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white">ImgBB Cloud API Key</h3>
+                      <p className="text-[11px] text-slate-400">
+                        Your secret API key from <a href="https://api.imgbb.com/" target="_blank" rel="noopener noreferrer" className="text-rose-400 underline hover:text-rose-300 font-semibold">api.imgbb.com</a>. Stored securely in database & .env.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {imgbbSettings?.api_key_configured && !isEditingKey && (
+                      <div className="flex items-center gap-2 bg-slate-950 border border-slate-850 px-3 py-1.5 rounded-lg text-xs font-mono text-slate-300">
+                        <span className="text-slate-500 text-[10px] uppercase font-sans font-bold">Active Key:</span>
+                        <span>{imgbbSettings.masked_key}</span>
+                      </div>
+                    )}
+
+                    <button
+                      onClick={() => setIsEditingKey(!isEditingKey)}
+                      className="px-3 py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                    >
+                      {isEditingKey ? 'Cancel' : (imgbbSettings?.api_key_configured ? 'Change Key' : 'Configure Key')}
+                    </button>
+                  </div>
+                </div>
+
+                {isEditingKey && (
+                  <div className="mt-4 p-4 bg-slate-950 border border-slate-850 rounded-xl space-y-3 animate-fade-in">
+                    <label className="text-xs font-bold text-slate-300 block">Enter ImgBB API Key</label>
+                    <div className="flex flex-col sm:flex-row items-center gap-2">
+                      <input
+                        type="text"
+                        placeholder="e.g. 3a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p"
+                        value={imgbbApiKeyInput}
+                        onChange={(e) => setImgbbApiKeyInput(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-800 text-slate-100 rounded-lg px-3.5 py-2 text-xs font-mono focus:outline-none focus:border-rose-500"
+                      />
+                      <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                        <button
+                          onClick={handleTestImgbbKey}
+                          disabled={testingImgbb || !imgbbApiKeyInput.trim()}
+                          className="w-full sm:w-auto px-4 py-2 bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 disabled:opacity-50 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                        >
+                          {testingImgbb ? 'Testing...' : 'Test Connection'}
+                        </button>
+                        <button
+                          onClick={handleSaveImgbbKey}
+                          disabled={savingImgbbKey || !imgbbApiKeyInput.trim()}
+                          className="w-full sm:w-auto px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white disabled:opacity-50 rounded-lg text-xs font-bold transition-colors cursor-pointer shadow-sm"
+                        >
+                          {savingImgbbKey ? 'Saving...' : 'Save & Activate'}
+                        </button>
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-slate-500">
+                      💡 Don't have a key? Go to <a href="https://api.imgbb.com/" target="_blank" rel="noopener noreferrer" className="text-amber-400 underline font-semibold">api.imgbb.com</a>, log in or sign up (100% free), and click <strong>Get API Key</strong>.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Image Uploads Ledger / Table */}
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-md">
+                <div className="p-4 sm:p-5 border-b border-slate-850 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-950/40">
+                  <div>
+                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                      <ImageIcon size={16} className="text-rose-400" />
+                      Uploaded Images & Background Sync Status
+                    </h3>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      Real-time status of local files and their mirrored cloud hosting links on ImgBB CDN.
+                    </p>
+                  </div>
+
+                  <span className="text-xs font-mono text-slate-400 bg-slate-950 px-3 py-1 rounded-lg border border-slate-850 self-start sm:self-auto">
+                    Showing {imgbbImages.length} images
+                  </span>
+                </div>
+
+                {imgbbImages.length === 0 ? (
+                  <div className="py-16 text-center text-slate-500 text-xs">
+                    <UploadCloud size={32} className="mx-auto mb-2 text-slate-700" />
+                    <p className="font-semibold text-slate-400">No images uploaded yet</p>
+                    <p className="text-slate-600 text-[11px] mt-0.5">
+                      Images uploaded when adding products or categories will appear here and sync to ImgBB automatically.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-950/60 border-b border-slate-850 text-slate-400 uppercase text-[9px] font-mono tracking-wider">
+                        <tr>
+                          <th className="py-3 px-4">Preview</th>
+                          <th className="py-3 px-4">Local Filename</th>
+                          <th className="py-3 px-4">Cloud Status</th>
+                          <th className="py-3 px-4">ImgBB Cloud Link</th>
+                          <th className="py-3 px-4 text-right">Uploaded At</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-850 text-slate-300">
+                        {imgbbImages.map((img) => (
+                          <tr key={img.id} className="hover:bg-slate-850/40 transition-colors">
+                            <td className="py-3 px-4">
+                              <img
+                                src={img.imgbb_url || img.local_url}
+                                alt="Thumbnail"
+                                className="w-12 h-12 object-cover rounded-lg border border-slate-800 bg-slate-950 shrink-0"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = img.local_url;
+                                }}
+                              />
+                            </td>
+                            <td className="py-3 px-4 font-mono text-[11px]">
+                              <div className="truncate max-w-[200px] text-slate-200" title={img.local_filename}>
+                                {img.local_filename}
+                              </div>
+                              {img.file_size && (
+                                <span className="text-[10px] text-slate-500">{(img.file_size / 1024).toFixed(1)} KB</span>
+                              )}
+                            </td>
+                            <td className="py-3 px-4">
+                              {img.status === 'completed' && (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                                  <Check size={11} />
+                                  ImgBB CDN Hosted
+                                </span>
+                              )}
+                              {img.status === 'uploading' && (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/30">
+                                  <RefreshCw size={11} className="animate-spin" />
+                                  Uploading to ImgBB...
+                                </span>
+                              )}
+                              {img.status === 'pending' && (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                                  <Clock size={11} />
+                                  Pending Cloud Sync
+                                </span>
+                              )}
+                              {img.status === 'failed' && (
+                                <div>
+                                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/30">
+                                    <AlertCircle size={11} />
+                                    Sync Failed
+                                  </span>
+                                  {img.error_message && (
+                                    <p className="text-[10px] text-red-400/80 mt-0.5 truncate max-w-[200px]" title={img.error_message}>
+                                      {img.error_message}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+                            </td>
+                            <td className="py-3 px-4 font-mono text-[11px]">
+                              {img.imgbb_url ? (
+                                <div className="flex items-center gap-2">
+                                  <a
+                                    href={img.imgbb_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-rose-400 hover:text-rose-300 underline truncate max-w-[240px] flex items-center gap-1"
+                                  >
+                                    <span className="truncate">{img.imgbb_url}</span>
+                                    <ExternalLink size={11} className="shrink-0" />
+                                  </a>
+                                  <button
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(img.imgbb_url || '');
+                                      triggerSuccess('Copied ImgBB URL to clipboard!');
+                                    }}
+                                    className="p-1 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded cursor-pointer"
+                                    title="Copy Link"
+                                  >
+                                    <Copy size={12} />
+                                  </button>
+                                </div>
+                              ) : (
+                                <span className="text-slate-500 italic text-[11px]">Local Server: /static/...</span>
+                              )}
+                            </td>
+                            <td className="py-3 px-4 text-right text-[11px] text-slate-400 font-mono">
+                              {new Date(img.created_at).toLocaleDateString()}{' '}
+                              <span className="text-slate-500 text-[10px]">{new Date(img.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             </div>
           )}

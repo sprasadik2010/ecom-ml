@@ -2,7 +2,7 @@ import logging
 import os
 import re
 import shutil
-from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Request
+from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Request, BackgroundTasks
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
@@ -11,7 +11,7 @@ from typing import List, Optional
 from datetime import timedelta
 
 from .database import get_db, engine, Base
-from . import models, schemas, crud, auth
+from . import models, schemas, crud, auth, imgbb
 from .config import settings
 
 # Configure logging
@@ -522,16 +522,23 @@ def get_admin_stats(
         "recent_orders": recent_orders
     }
 
-def serialize_product_data(data_dict: dict) -> dict:
+def serialize_product_data(data_dict: dict, db: Optional[Session] = None) -> dict:
     import json
     result = dict(data_dict)
     if "images" in result and result["images"] is not None:
         imgs = result["images"] if isinstance(result["images"], list) else [result["images"]]
+        if db:
+            imgs = [imgbb.resolve_image_url(db, u) for u in imgs if u]
         result["images"] = json.dumps(imgs)
         if imgs and (not result.get("image_url") or result.get("image_url") == ""):
             result["image_url"] = imgs[0]
     elif "image_url" in result and result.get("image_url") and not result.get("images"):
-        result["images"] = json.dumps([result["image_url"]])
+        resolved_img = imgbb.resolve_image_url(db, result["image_url"]) if db else result["image_url"]
+        result["image_url"] = resolved_img
+        result["images"] = json.dumps([resolved_img])
+
+    if db and "image_url" in result and result.get("image_url"):
+        result["image_url"] = imgbb.resolve_image_url(db, result["image_url"])
 
     if "colors" in result and result["colors"] is not None:
         result["colors"] = json.dumps(result["colors"] if isinstance(result["colors"], list) else [])
@@ -550,7 +557,7 @@ def admin_create_product(
     current_admin: models.User = Depends(auth.get_current_admin),
     db: Session = Depends(get_db)
 ):
-    product_dict = serialize_product_data(product_data.dict())
+    product_dict = serialize_product_data(product_data.dict(), db=db)
     product = models.Product(**product_dict)
     db.add(product)
     db.commit()
@@ -568,7 +575,7 @@ def admin_update_product(
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     
-    update_dict = serialize_product_data(product_data.dict(exclude_unset=True))
+    update_dict = serialize_product_data(product_data.dict(exclude_unset=True), db=db)
     for key, value in update_dict.items():
         setattr(product, key, value)
     
@@ -760,12 +767,15 @@ def admin_process_monthly_rewards(
 @app.post("/admin/upload")
 def admin_upload_image(
     request: Request,
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
-    current_admin: models.User = Depends(auth.get_current_admin)
+    current_admin: models.User = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
 ):
     """
-    Saves an uploaded image locally under the static directory
-    and returns its public absolute URL path.
+    Saves an uploaded image locally under the static directory for immediate preview,
+    records it in image_uploads, queues an asynchronous background task to upload to ImgBB,
+    and returns its public URL path.
     """
     import time
     static_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "static")
@@ -782,9 +792,30 @@ def admin_upload_image(
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
             
-        logger.info(f"Image uploaded successfully: {unique_name}")
+        file_size = os.path.getsize(file_path)
+        logger.info(f"Image uploaded successfully: {unique_name} ({file_size} bytes)")
         base_url = str(request.base_url).rstrip("/")
-        return {"image_url": f"{base_url}/static/{unique_name}"}
+        local_url = f"{base_url}/static/{unique_name}"
+
+        # Record upload in image_uploads table
+        upload_record = models.ImageUpload(
+            local_filename=unique_name,
+            local_url=local_url,
+            file_size=file_size,
+            status="pending"
+        )
+        db.add(upload_record)
+        db.commit()
+        db.refresh(upload_record)
+
+        # Queue background worker to upload to ImgBB and sync references
+        background_tasks.add_task(imgbb.background_upload_to_imgbb, upload_record.id)
+
+        return {
+            "image_url": local_url,
+            "upload_id": upload_record.id,
+            "status": "pending_background_cloud_sync"
+        }
     except Exception as e:
         logger.error(f"Error copying upload buffer: {e}")
         raise HTTPException(status_code=500, detail="Could not save file buffer locally.")
@@ -793,11 +824,14 @@ def admin_upload_image(
 @app.post("/admin/upload-multiple")
 def admin_upload_multiple_images(
     request: Request,
+    background_tasks: BackgroundTasks,
     files: List[UploadFile] = File(...),
-    current_admin: models.User = Depends(auth.get_current_admin)
+    current_admin: models.User = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
 ):
     """
-    Saves multiple uploaded product photos/views locally under the static directory
+    Saves multiple uploaded product photos/views locally under the static directory,
+    records each in image_uploads, queues background tasks to upload to ImgBB,
     and returns their public absolute URL paths.
     """
     import time
@@ -815,12 +849,131 @@ def admin_upload_multiple_images(
         try:
             with open(file_path, "wb") as buffer:
                 shutil.copyfileobj(file.file, buffer)
-            uploaded_urls.append(f"{base_url}/static/{unique_name}")
+            file_size = os.path.getsize(file_path)
+            local_url = f"{base_url}/static/{unique_name}"
+            uploaded_urls.append(local_url)
+
+            # Record upload
+            upload_record = models.ImageUpload(
+                local_filename=unique_name,
+                local_url=local_url,
+                file_size=file_size,
+                status="pending"
+            )
+            db.add(upload_record)
+            db.commit()
+            db.refresh(upload_record)
+
+            # Queue background task for ImgBB
+            background_tasks.add_task(imgbb.background_upload_to_imgbb, upload_record.id)
+
         except Exception as e:
             logger.error(f"Error saving file {file.filename}: {e}")
             raise HTTPException(status_code=500, detail=f"Could not save file {file.filename}")
 
     return {"image_urls": uploaded_urls}
+
+
+# --- ImgBB Cloud Settings & Background Sync Endpoints ---
+
+@app.get("/admin/settings/imgbb", response_model=schemas.ImgBBSettingsResponse)
+def admin_get_imgbb_settings(
+    current_admin: models.User = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+):
+    key = imgbb.get_effective_imgbb_key(db)
+    total = db.query(models.ImageUpload).count()
+    completed = db.query(models.ImageUpload).filter(models.ImageUpload.status == "completed").count()
+    pending = db.query(models.ImageUpload).filter(models.ImageUpload.status.in_(["pending", "uploading"])).count()
+    failed = db.query(models.ImageUpload).filter(models.ImageUpload.status == "failed").count()
+
+    return schemas.ImgBBSettingsResponse(
+        api_key_configured=bool(key),
+        masked_key=imgbb.mask_api_key(key),
+        total_images=total,
+        completed_images=completed,
+        pending_images=pending,
+        failed_images=failed
+    )
+
+
+@app.post("/admin/settings/imgbb")
+def admin_update_imgbb_key(
+    data: schemas.ImgBBKeyUpdate,
+    current_admin: models.User = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+):
+    clean_key = data.api_key.strip() if data.api_key else ""
+    setting = db.query(models.SystemSetting).filter(models.SystemSetting.key == "imgbb_api_key").first()
+    if not setting:
+        setting = models.SystemSetting(
+            key="imgbb_api_key",
+            value=clean_key,
+            description="ImgBB Cloud API Key"
+        )
+        db.add(setting)
+    else:
+        setting.value = clean_key
+    db.commit()
+
+    return {
+        "message": "ImgBB API Key updated successfully.",
+        "api_key_configured": bool(clean_key),
+        "masked_key": imgbb.mask_api_key(clean_key)
+    }
+
+
+@app.post("/admin/imgbb/test", response_model=schemas.ImgBBTestResponse)
+def admin_test_imgbb_key(
+    data: schemas.ImgBBTestRequest,
+    current_admin: models.User = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+):
+    test_key = data.api_key.strip() if (data.api_key and data.api_key.strip()) else imgbb.get_effective_imgbb_key(db)
+    if not test_key:
+        raise HTTPException(status_code=400, detail="No ImgBB API Key provided or configured.")
+
+    valid, msg = imgbb.test_imgbb_key(test_key)
+    return schemas.ImgBBTestResponse(success=valid, message=msg)
+
+
+@app.post("/admin/imgbb/sync-all")
+def admin_sync_all_images(
+    background_tasks: BackgroundTasks,
+    current_admin: models.User = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+):
+    key = imgbb.get_effective_imgbb_key(db)
+    if not key:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot sync to ImgBB: Please configure your ImgBB API Key in Settings first."
+        )
+
+    # Queue all pending and failed images
+    targets = db.query(models.ImageUpload).filter(
+        models.ImageUpload.status.in_(["pending", "failed"])
+    ).all()
+
+    for item in targets:
+        item.status = "pending"
+        item.error_message = None
+        background_tasks.add_task(imgbb.background_upload_to_imgbb, item.id)
+
+    db.commit()
+    return {
+        "message": f"Queued {len(targets)} images for background ImgBB upload.",
+        "queued_count": len(targets)
+    }
+
+
+@app.get("/admin/imgbb/images", response_model=List[schemas.ImageUploadResponse])
+def admin_get_image_uploads(
+    limit: int = 50,
+    current_admin: models.User = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+):
+    return db.query(models.ImageUpload).order_by(models.ImageUpload.id.desc()).limit(limit).all()
 
 
 # --- Category Management Endpoints ---
@@ -846,7 +999,7 @@ def admin_create_category(
     
     category = models.Category(
         name=category_data.name,
-        image_url=category_data.image_url
+        image_url=imgbb.resolve_image_url(db, category_data.image_url)
     )
     db.add(category)
     db.commit()
@@ -879,7 +1032,7 @@ def admin_update_category(
         category.name = category_data.name
         
     if category_data.image_url is not None:
-        category.image_url = category_data.image_url
+        category.image_url = imgbb.resolve_image_url(db, category_data.image_url)
         
     db.commit()
     db.refresh(category)
