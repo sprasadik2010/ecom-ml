@@ -72,11 +72,18 @@ def upload_file_to_imgbb(file_path: str, api_key: str) -> dict:
         raise FileNotFoundError(f"Image file does not exist on disk: {file_path}")
 
     url = "https://api.imgbb.com/1/upload"
+    base_name = os.path.splitext(os.path.basename(file_path))[0]
+    # Extract clean name by stripping timestamp prefix (e.g. 1728901234_shirt.jpg -> shirt)
+    parts = base_name.split("_", 1)
+    clean_title = parts[1] if (len(parts) == 2 and parts[0].isdigit()) else base_name
+    upload_name = f"buyway_{clean_title}".strip("_")
+
     with open(file_path, "rb") as image_file:
         response = requests.post(
             url,
             params={"key": api_key},
             files={"image": image_file},
+            data={"name": upload_name},
             timeout=45
         )
 
