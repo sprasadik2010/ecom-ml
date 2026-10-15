@@ -181,7 +181,7 @@ export const App: React.FC = () => {
             {/* Footer */}
             <footer className="bg-white border-t border-[#EFE2DE] py-8 sm:py-12 text-xs text-[#705960]">
               <div className="max-w-7xl mx-auto px-4 sm:px-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 pb-8 sm:pb-10 border-b border-[#F2E8E5]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 pb-8 sm:pb-10 border-b border-[#F2E8E5]">
                   <div className="space-y-3">
                     <img src={bwLogo} alt="Buyway - Shop, Earn, Grow" className="h-10 w-auto object-contain rounded" />
                     <p className="text-xs text-[#7A6369] leading-relaxed">
@@ -196,15 +196,6 @@ export const App: React.FC = () => {
                       <li><Link to="/about" className="hover:text-[#A8435D] transition-colors">About Buyway</Link></li>
                       <li><Link to="/blog" className="hover:text-[#A8435D] transition-colors">Blog & Insights</Link></li>
                       <li><Link to="/contact" className="hover:text-[#A8435D] transition-colors">Contact Support</Link></li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h5 className="font-serif text-sm text-[#331B21] font-semibold mb-3">Direct Selling System</h5>
-                    <ul className="space-y-2">
-                      <li><span className="text-[#8C7077]">50 SW Personal Activation</span></li>
-                      <li><span className="text-[#8C7077]">1:1 Team Volume Bonus</span></li>
-                      <li><span className="text-[#8C7077]">20% Sponsor Matching Cut</span></li>
-                      <li><Link to="/login" className="hover:text-[#A8435D] transition-colors text-[#A8435D] font-bold">Member Portal Login</Link></li>
                     </ul>
                   </div>
                   <div>
