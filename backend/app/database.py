@@ -24,7 +24,9 @@ def clean_database_url(url: str) -> str:
         return ""
     clean = url.strip().strip("'\"")
     if clean.startswith("postgres://"):
-        clean = "postgresql://" + clean[len("postgres://"):]
+        clean = "postgresql+psycopg2://" + clean[len("postgres://"):]
+    elif clean.startswith("postgresql://"):
+        clean = "postgresql+psycopg2://" + clean[len("postgresql://"):]
 
     try:
         parsed = urlparse(clean)
