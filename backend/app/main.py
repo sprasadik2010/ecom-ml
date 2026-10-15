@@ -186,6 +186,44 @@ app.add_middleware(
 def read_root():
     return {"message": "Welcome to the Business E-commerce API!", "version": "1.0.0"}
 
+@app.get("/health/db")
+def health_db(db: Session = Depends(get_db)):
+    """
+    Diagnostic endpoint to confirm database connectivity, database dialect,
+    host, and table row counts in PostgreSQL.
+    """
+    from sqlalchemy import text
+    try:
+        db_type = engine.name  # 'postgresql'
+        url_host = engine.url.host or "local"
+        url_database = engine.url.database or "unknown"
+        
+        res = db.execute(text("SELECT current_database(), current_user, version();")).fetchone()
+        current_db = res[0] if res else url_database
+        current_user = res[1] if res else "unknown"
+        pg_version = res[2].split(",")[0] if res else "unknown"
+        
+        product_count = db.query(models.Product).count()
+        user_count = db.query(models.User).count()
+        category_count = db.query(models.Category).count()
+        
+        return {
+            "status": "connected",
+            "database_type": db_type,
+            "host": url_host,
+            "database_name": current_db,
+            "user": current_user,
+            "server_version": pg_version,
+            "counts": {
+                "products": product_count,
+                "users": user_count,
+                "categories": category_count
+            }
+        }
+    except Exception as e:
+        logger.error(f"Database health check failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Database connection error: {str(e)}")
+
 
 # --- Auth Endpoints ---
 
