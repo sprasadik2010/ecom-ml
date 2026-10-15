@@ -424,6 +424,14 @@ export const ProductDetails: React.FC = () => {
             </div>
           </div>
 
+          {/* Product Description */}
+          <div className="pt-1">
+            <h4 className="font-bold text-xs uppercase tracking-wider text-[#705960] mb-2">Product Description</h4>
+            <p className="text-sm text-[#4A343A] leading-relaxed whitespace-pre-line font-normal">
+              {product.description || 'No detailed description available for this item.'}
+            </p>
+          </div>
+
           {/* SW Box (Sales Wallet Points) */}
           <div className="bg-[#FAF2E8] border border-[#F4E1CA] rounded-xl p-4 flex items-start gap-3 shadow-xs">
             <div className="p-2 bg-[#F4E1CA] text-[#C07718] rounded-full shrink-0">
@@ -516,13 +524,6 @@ export const ProductDetails: React.FC = () => {
             </div>
           )}
 
-          {/* Description */}
-          <div>
-            <h4 className="font-bold text-sm text-[#331B21] mb-2">Product Description</h4>
-            <p className="text-xs text-[#7A6369] leading-relaxed font-normal">
-              {product.description || 'No detailed description available for this item.'}
-            </p>
-          </div>
 
           {/* 3-Day Transit Damage Return Policy Card */}
           <div className="bg-[#FAF7F2] border border-[#EFE2DE] p-4 sm:p-5 rounded-2xl space-y-3">
