@@ -157,131 +157,121 @@ CATEGORIES = [
     }
 ]
 
-def seed_db():
-    logger.info("Initializing tables...")
+def seed_db(only_if_empty: bool = True):
+    logger.info("Verifying database schema...")
     Base.metadata.create_all(bind=engine)
     
-    # Safe migration for phone_number and is_admin columns
+    # Safe migration for columns (ADD COLUMN IF NOT EXISTS)
     from sqlalchemy import text
     db: Session = SessionLocal()
-    try:
-        db.execute(text("ALTER TABLE users ADD COLUMN phone_number VARCHAR"))
-        db.commit()
-        logger.info("Added phone_number column to users table during seeding.")
-    except Exception as e:
-        db.rollback()
-        
-    try:
-        db.execute(text("ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT FALSE"))
-        db.commit()
-        logger.info("Added is_admin column to users table during seeding.")
-    except Exception as e:
-        db.rollback()
+    
+    # Run safe column migrations
+    user_cols = [
+        ("phone_number", "VARCHAR"),
+        ("is_admin", "BOOLEAN DEFAULT FALSE"),
+        ("total_matched_sw", "FLOAT DEFAULT 0.0"),
+        ("current_level", "INTEGER DEFAULT 0"),
+        ("level_name", "VARCHAR DEFAULT 'Member'")
+    ]
+    for col, col_type in user_cols:
+        try:
+            db.execute(text(f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col} {col_type}"))
+            db.commit()
+        except Exception:
+            db.rollback()
 
-    # Migration for products table photo gallery views and variant options
-    for col, col_type in [
+    product_cols = [
         ("images", "TEXT"),
         ("colors", "TEXT"),
         ("sizes", "TEXT"),
         ("options", "TEXT"),
-    ]:
+    ]
+    for col, col_type in product_cols:
         try:
-            db.execute(text(f"ALTER TABLE products ADD COLUMN {col} {col_type}"))
+            db.execute(text(f"ALTER TABLE products ADD COLUMN IF NOT EXISTS {col} {col_type}"))
             db.commit()
-            logger.info(f"Added {col} column to products table during seeding.")
         except Exception:
             db.rollback()
 
-    # Migration for order_items table selected variant options
-    for col, col_type in [
+    order_item_cols = [
         ("selected_color", "VARCHAR"),
         ("selected_size", "VARCHAR"),
-    ]:
+    ]
+    for col, col_type in order_item_cols:
         try:
-            db.execute(text(f"ALTER TABLE order_items ADD COLUMN {col} {col_type}"))
+            db.execute(text(f"ALTER TABLE order_items ADD COLUMN IF NOT EXISTS {col} {col_type}"))
             db.commit()
-            logger.info(f"Added {col} column to order_items table during seeding.")
         except Exception:
             db.rollback()
 
     try:
-        # 1. Seed Root Administrator Member
+        # 1. Seed Root Administrator Member (Only if not already existing)
         admin = db.query(User).filter(User.username == "admin").first()
         if not admin:
-            logger.info("Seeding root user 'admin'...")
+            logger.info("Admin user not found. Seeding initial root user 'admin'...")
             admin = User(
                 username="admin",
                 email="admin@mlm-amazon.com",
                 full_name="System Administrator",
                 hashed_password=get_password_hash("admin123"),
                 phone_number="+919876543210",
-                status="active", # Root user is active by default
+                status="active",
                 personal_sw=100.0,
                 wallet_balance=0.0,
                 is_admin=True
             )
             db.add(admin)
             db.commit()
-            db.refresh(admin)
             logger.info("Root user 'admin' created successfully.")
         else:
-            logger.info("Root user 'admin' already exists.")
+            logger.info("Root user 'admin' already exists. Leaving untouched.")
 
-        # 1b. Seed Genealogy Mother Node (rootuser)
+        # 1b. Seed Genealogy Mother Node (rootuser) (Only if not already existing)
         rootuser = db.query(User).filter(User.username == "rootuser").first()
         if not rootuser:
-            logger.info("Seeding root genealogy node 'rootuser'...")
+            logger.info("Root tree node not found. Seeding genealogy node 'rootuser'...")
             rootuser = User(
                 username="rootuser",
                 email="rootuser@mlm-amazon.com",
                 full_name="Root User",
                 hashed_password=get_password_hash("user@root.123"),
                 phone_number="+919876543211",
-                status="active", # Root user of tree is active by default
+                status="active",
                 personal_sw=100.0,
                 wallet_balance=0.0,
                 is_admin=False
             )
             db.add(rootuser)
             db.commit()
-            db.refresh(rootuser)
             logger.info("Genealogy root user 'rootuser' created successfully.")
         else:
-            logger.info("Genealogy root user 'rootuser' already exists.")
+            logger.info("Genealogy root user 'rootuser' already exists. Leaving untouched.")
             
-        # 2. Seed Categories
-        logger.info("Seeding categories catalog...")
-        for c_data in CATEGORIES:
-            category = db.query(Category).filter(Category.name == c_data["name"]).first()
-            if not category:
-                category = Category(**c_data)
-                db.add(category)
-                logger.info(f"Seeded category: {c_data['name']}")
-            else:
-                category.image_url = c_data["image_url"]
-                db.add(category)
-        db.commit()
+        # 2. Seed Categories (ONLY if categories table is completely empty)
+        existing_categories_count = db.query(Category).count()
+        if existing_categories_count == 0:
+            logger.info("Categories table is empty. Seeding initial categories...")
+            for c_data in CATEGORIES:
+                db.add(Category(**c_data))
+            db.commit()
+            logger.info(f"Seeded {len(CATEGORIES)} initial categories.")
+        else:
+            logger.info(f"Categories table already contains {existing_categories_count} categories. Preserving all existing categories without changes.")
             
-        # 3. Seed Products
-        logger.info("Seeding products catalog...")
-        for p_data in PRODUCTS:
-            product = db.query(Product).filter(Product.name == p_data["name"]).first()
-            if not product:
-                product = Product(**p_data)
-                db.add(product)
-                logger.info(f"Seeded product: {p_data['name']}")
-            else:
-                # Update details if changed
-                for key, val in p_data.items():
-                    setattr(product, key, val)
-                db.add(product)
-                
-        db.commit()
-        logger.info("Database seeding complete!")
+        # 3. Seed Products (ONLY if products table is completely empty)
+        existing_products_count = db.query(Product).count()
+        if existing_products_count == 0:
+            logger.info("Products catalog is empty. Seeding initial starter catalog...")
+            for p_data in PRODUCTS:
+                db.add(Product(**p_data))
+            db.commit()
+            logger.info(f"Seeded {len(PRODUCTS)} starter products into catalog.")
+        else:
+            logger.info(f"Products catalog already contains {existing_products_count} items. Preserving all existing products and inventory without changes.")
         
     except Exception as e:
         db.rollback()
-        logger.error(f"Error seeding database: {e}")
+        logger.error(f"Error during database initialization: {e}")
         raise e
     finally:
         db.close()
