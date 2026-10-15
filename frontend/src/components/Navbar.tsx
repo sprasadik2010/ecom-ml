@@ -32,14 +32,7 @@ export const Navbar: React.FC = () => {
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [categories, setCategories] = useState<string[]>([
-    'Fashion',
-    'Beauty & Personal Care',
-    'Home & Living',
-    'Accessories',
-    'Electronics',
-    'Kids & Baby'
-  ]);
+  const [categories, setCategories] = useState<string[]>([]);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const categoriesRef = useRef<HTMLDivElement>(null);
@@ -52,12 +45,10 @@ export const Navbar: React.FC = () => {
         if (res.ok) {
           const data = await res.json();
           const names = data.map((c: any) => c.name);
-          if (names.length > 0) {
-            setCategories(names);
-          }
+          setCategories(names);
         }
       } catch (e) {
-        // Fallback already preset
+        setCategories([]);
       }
     };
     fetchCategories();
@@ -182,19 +173,32 @@ export const Navbar: React.FC = () => {
                     View All
                   </Link>
                 </div>
-                {categories.map((cat) => (
+                {categories.length > 0 ? (
+                  categories.map((cat) => (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => {
+                        setIsCategoriesOpen(false);
+                        navigate(`/shop?category=${encodeURIComponent(cat)}`);
+                      }}
+                      className="w-full text-left px-4 py-2 text-xs text-[#331B21] hover:bg-[#FDF4F6] hover:text-[#A8435D] font-medium transition-colors flex items-center justify-between"
+                    >
+                      <span>{cat}</span>
+                    </button>
+                  ))
+                ) : (
                   <button
-                    key={cat}
                     type="button"
                     onClick={() => {
                       setIsCategoriesOpen(false);
-                      navigate(`/shop?category=${encodeURIComponent(cat)}`);
+                      navigate('/shop');
                     }}
-                    className="w-full text-left px-4 py-2 text-xs text-[#331B21] hover:bg-[#FDF4F6] hover:text-[#A8435D] font-medium transition-colors flex items-center justify-between"
+                    className="w-full text-left px-4 py-2.5 text-xs text-[#6B545A] hover:bg-[#FDF4F6] hover:text-[#A8435D] font-medium transition-colors"
                   >
-                    <span>{cat}</span>
+                    All Products
                   </button>
-                ))}
+                )}
               </div>
             )}
           </div>

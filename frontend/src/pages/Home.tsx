@@ -47,58 +47,38 @@ export const Home: React.FC = () => {
     fetchCatalog();
   }, []);
 
-  // 7 Categories exactly matching the attached image design
-  const categoriesList = [
-    {
-      label: 'Fashion',
-      query: 'Fashion',
-      image: catFashion,
-      bgHex: '#FDE4E8',
-      link: '/shop?category=Fashion'
-    },
-    {
-      label: 'Beauty & Personal Care',
-      query: 'Beauty',
-      image: catBeauty,
-      bgHex: '#FCE4D6',
-      link: '/shop?category=Beauty'
-    },
-    {
-      label: 'Home & Living',
-      query: 'Home',
-      image: catHome,
-      bgHex: '#E2EFE4',
-      link: '/shop?category=Home'
-    },
-    {
-      label: 'Accessories',
-      query: 'Accessories',
-      image: catAccessories,
-      bgHex: '#EFE2F5',
-      link: '/shop?category=Accessories'
-    },
-    {
-      label: 'Electronics',
-      query: 'Electronics',
-      image: catElectronics,
-      bgHex: '#DEF0FB',
-      link: '/shop?category=Electronics'
-    },
-    {
-      label: 'Kids & Baby',
-      query: 'Kids',
-      image: catKids,
-      bgHex: '#FEF2D8',
-      link: '/shop?category=Kids'
-    },
-    {
-      label: 'More',
-      query: '',
-      image: catMore,
-      bgHex: '#FCE4EC',
-      link: '/categories'
-    }
-  ];
+  interface HomeCategory {
+    label: string;
+    query: string;
+    image: string;
+    bgHex: string;
+    link: string;
+  }
+
+  const [categoriesList, setCategoriesList] = useState<HomeCategory[]>([]);
+
+  useEffect(() => {
+    const fetchHomeCategories = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/categories`);
+        if (response.ok) {
+          const data = await response.json();
+          const pastelColors = ['#FDE4E8', '#FCE4D6', '#E2EFE4', '#EFE2F5', '#DEF0FB', '#FEF2D8', '#FCE4EC'];
+          const mapped: HomeCategory[] = data.map((c: any, idx: number) => ({
+            label: c.name,
+            query: c.name,
+            image: c.image_url || catMore,
+            bgHex: pastelColors[idx % pastelColors.length],
+            link: `/shop?category=${encodeURIComponent(c.name)}`
+          }));
+          setCategoriesList(mapped);
+        }
+      } catch (err) {
+        console.error('Failed to load categories for home:', err);
+      }
+    };
+    fetchHomeCategories();
+  }, []);
 
   return (
     <div className="bg-[#FAF7F2] min-h-screen py-4 sm:py-6">
@@ -197,45 +177,47 @@ export const Home: React.FC = () => {
           </div>
         </section>
 
-        {/* 3. SHOP BY CATEGORY - EXACT MATCH TO ATTACHED IMAGE */}
-        <section className="space-y-4 sm:space-y-6">
-          {/* Decorative Divider Header: — Shop by Category — */}
-          <div className="flex items-center justify-center gap-3 sm:gap-4">
-            <div className="h-[1px] w-8 sm:w-28 bg-[#E4D1D6]"></div>
-            <h2 className="font-serif text-xl sm:text-3xl text-[#331B21] font-normal tracking-wide text-center">
-              Shop by Category
-            </h2>
-            <div className="h-[1px] w-8 sm:w-28 bg-[#E4D1D6]"></div>
-          </div>
+        {/* 3. SHOP BY CATEGORY - DYNAMIC ONLY IF REAL CATEGORIES EXIST */}
+        {categoriesList.length > 0 && (
+          <section className="space-y-4 sm:space-y-6">
+            {/* Decorative Divider Header: — Shop by Category — */}
+            <div className="flex items-center justify-center gap-3 sm:gap-4">
+              <div className="h-[1px] w-8 sm:w-28 bg-[#E4D1D6]"></div>
+              <h2 className="font-serif text-xl sm:text-3xl text-[#331B21] font-normal tracking-wide text-center">
+                Shop by Category
+              </h2>
+              <div className="h-[1px] w-8 sm:w-28 bg-[#E4D1D6]"></div>
+            </div>
 
-          {/* 7 Circular Category Pills Extracted Exactly from Mockup */}
-          <div className="flex items-center justify-start sm:justify-center gap-3.5 sm:gap-7 overflow-x-auto pb-4 pt-2 scrollbar-thin -mx-4 px-4 sm:mx-0 sm:px-0">
-            {categoriesList.map((cat, idx) => (
-              <Link
-                key={idx}
-                to={cat.link}
-                className="flex flex-col items-center gap-2 sm:gap-2.5 shrink-0 group focus:outline-none cursor-pointer"
-              >
-                {/* Circular Image Container with Exact Mockup Crop */}
-                <div
-                  className="w-16 h-16 sm:w-22 sm:h-22 rounded-full p-1 sm:p-1.5 transition-all duration-300 flex items-center justify-center group-hover:scale-105 group-hover:shadow-md shadow-xs"
-                  style={{ backgroundColor: cat.bgHex }}
+            {/* Circular Category Pills */}
+            <div className="flex items-center justify-start sm:justify-center gap-3.5 sm:gap-7 overflow-x-auto pb-4 pt-2 scrollbar-thin -mx-4 px-4 sm:mx-0 sm:px-0">
+              {categoriesList.map((cat, idx) => (
+                <Link
+                  key={idx}
+                  to={cat.link}
+                  className="flex flex-col items-center gap-2 sm:gap-2.5 shrink-0 group focus:outline-none cursor-pointer"
                 >
-                  <img
-                    src={cat.image}
-                    alt={cat.label}
-                    className="w-full h-full object-cover rounded-full"
-                  />
-                </div>
+                  {/* Circular Image Container with Exact Mockup Crop */}
+                  <div
+                    className="w-16 h-16 sm:w-22 sm:h-22 rounded-full p-1 sm:p-1.5 transition-all duration-300 flex items-center justify-center group-hover:scale-105 group-hover:shadow-md shadow-xs overflow-hidden"
+                    style={{ backgroundColor: cat.bgHex }}
+                  >
+                    <img
+                      src={cat.image}
+                      alt={cat.label}
+                      className="w-full h-full object-cover rounded-full"
+                    />
+                  </div>
 
-                {/* Label Underneath */}
-                <span className="text-[11px] sm:text-xs font-semibold text-center transition-colors max-w-[76px] sm:max-w-[85px] leading-tight text-[#4A343A] group-hover:text-[#B8586E]">
-                  {cat.label}
-                </span>
-              </Link>
-            ))}
-          </div>
-        </section>
+                  {/* Label Underneath */}
+                  <span className="text-[11px] sm:text-xs font-semibold text-center transition-colors max-w-[76px] sm:max-w-[85px] leading-tight text-[#4A343A] group-hover:text-[#B8586E]">
+                    {cat.label}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* 4. PROMOTIONAL STRIP - EXACT MATCH TO ATTACHED IMAGE */}
         <section className="bg-gradient-to-r from-[#9E4758] via-[#8B3A4A] to-[#7A303F] text-white rounded-2xl p-5 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-5 sm:gap-6 shadow-lg shadow-[#8B3A4A]/20 relative overflow-hidden">

@@ -1,71 +1,34 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, ArrowRight, Sparkles } from 'lucide-react';
-import catFashion from '../assets/cat_fashion.jpg';
-import catBeauty from '../assets/cat_beauty.jpg';
-import catHome from '../assets/cat_home.jpg';
-import catAccessories from '../assets/cat_accessories.jpg';
-import catElectronics from '../assets/cat_electronics.jpg';
-import catKids from '../assets/cat_kids.jpg';
-import catMore from '../assets/cat_more.jpg';
+import { ChevronRight, ArrowRight, Sparkles, FolderOpen } from 'lucide-react';
+import { API_BASE_URL } from '../context/AuthContext';
+
+interface CategoryItem {
+  id: number;
+  name: string;
+  image_url?: string;
+}
 
 export const Categories: React.FC = () => {
-  const categoryCards = [
-    {
-      name: 'Fashion',
-      query: 'Fashion',
-      image: catFashion,
-      bgHex: '#FDE4E8',
-      tag: 'Trendy & Style',
-      description: 'Elegant dresses, premium shirts, everyday essentials and bespoke seasonal outfits curated for supreme comfort.',
-      itemCount: '12+ Items'
-    },
-    {
-      name: 'Beauty & Personal Care',
-      query: 'Beauty',
-      image: catBeauty,
-      bgHex: '#FCE4D6',
-      tag: 'Glow & Wellness',
-      description: 'Natural skincare formulations, organic cleansers, nourishing serums, and daily personal care necessities.',
-      itemCount: '8+ Items'
-    },
-    {
-      name: 'Home & Living',
-      query: 'Home',
-      image: catHome,
-      bgHex: '#E2EFE4',
-      tag: 'Modern Living',
-      description: 'Aesthetic room accents, smart bedside lighting, ergonomic cushions, and sustainable homeware accessories.',
-      itemCount: '10+ Items'
-    },
-    {
-      name: 'Accessories',
-      query: 'Accessories',
-      image: catAccessories,
-      bgHex: '#EFE2F5',
-      tag: 'Luxury Details',
-      description: 'Handcrafted leather wallets, stylish sunglasses, smart utility bags, and statement jewelry.',
-      itemCount: '14+ Items'
-    },
-    {
-      name: 'Electronics',
-      query: 'Electronics',
-      image: catElectronics,
-      bgHex: '#DEF0FB',
-      tag: 'Smart Tech',
-      description: 'AMOLED smartwatches, active noise-cancelling headphones, wireless chargers, and cutting-edge tech gadgets.',
-      itemCount: '16+ Items'
-    },
-    {
-      name: 'Kids & Baby',
-      query: 'Kids',
-      image: catKids,
-      bgHex: '#FEF2D8',
-      tag: 'Safe & Gentle',
-      description: 'Child-safe plush toys, baby apparel, developmental games, and daily nursery essentials.',
-      itemCount: '6+ Items'
-    },
-  ];
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCats = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/categories`);
+        if (res.ok) {
+          const data = await res.json();
+          setCategories(data);
+        }
+      } catch (err) {
+        console.error('Failed to load categories:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCats();
+  }, []);
 
   return (
     <div className="bg-[#FAF7F2] min-h-screen py-4 sm:py-8">
@@ -91,53 +54,77 @@ export const Categories: React.FC = () => {
           </p>
         </div>
 
-        {/* Categories Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {categoryCards.map((cat, idx) => (
-            <div
-              key={idx}
-              className="bg-white rounded-3xl p-6 border border-[#EFE2DE] shadow-xs hover:shadow-lg hover:border-[#E8D0D6] transition-all duration-300 flex flex-col justify-between group"
-            >
-              <div>
-                {/* Visual Icon Halo */}
-                <div className="flex items-center justify-between mb-5">
-                  <div
-                    className="w-20 h-20 rounded-2xl p-2 flex items-center justify-center transition-transform duration-300 group-hover:scale-105 shadow-inner"
-                    style={{ backgroundColor: cat.bgHex }}
-                  >
-                    <img
-                      src={cat.image}
-                      alt={cat.name}
-                      className="w-full h-full object-cover rounded-xl"
-                    />
-                  </div>
-                  <span className="px-3 py-1 bg-[#FDF4F6] text-[#A8435D] text-[11px] font-bold rounded-full border border-[#F4D5DD]">
-                    {cat.tag}
-                  </span>
-                </div>
-
-                <h3 className="font-serif text-xl text-[#331B21] font-semibold mb-2 group-hover:text-[#B8586E] transition-colors">
-                  {cat.name}
-                </h3>
-                <p className="text-xs text-[#7A6369] leading-relaxed mb-4">
-                  {cat.description}
-                </p>
-              </div>
-
-              {/* Bottom Action */}
-              <div className="pt-4 border-t border-[#F2E8E5] flex items-center justify-between">
-                <span className="text-[11px] font-bold text-[#9E868D]">{cat.itemCount}</span>
-                <Link
-                  to={`/shop?category=${encodeURIComponent(cat.query)}`}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#A8435D] group-hover:gap-2.5 transition-all"
-                >
-                  <span>Explore Items</span>
-                  <ArrowRight size={14} />
-                </Link>
-              </div>
+        {/* Categories Grid or Clean Empty State */}
+        {categories.length === 0 && !loading ? (
+          <div className="bg-white rounded-3xl p-10 sm:p-14 border border-[#EFE2DE] text-center max-w-md mx-auto space-y-4 shadow-xs">
+            <div className="w-16 h-16 bg-[#FDF2F5] text-[#A8435D] rounded-2xl mx-auto flex items-center justify-center">
+              <FolderOpen size={32} />
             </div>
-          ))}
-        </div>
+            <h3 className="font-serif text-xl text-[#331B21] font-semibold">No Categories Yet</h3>
+            <p className="text-xs text-[#7A6369] leading-relaxed">
+              Categories added from the admin panel will appear here. You can explore all available products directly in the shop.
+            </p>
+            <Link
+              to="/shop"
+              className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#B8586E] hover:bg-[#A3475D] text-white rounded-full font-bold text-xs transition-all shadow-sm"
+            >
+              <span>Explore All Products</span>
+              <ArrowRight size={14} />
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {categories.map((cat, idx) => {
+              const pastelColors = ['#FDE4E8', '#FCE4D6', '#E2EFE4', '#EFE2F5', '#DEF0FB', '#FEF2D8', '#FCE4EC'];
+              const bgHex = pastelColors[idx % pastelColors.length];
+              return (
+                <div
+                  key={cat.id || idx}
+                  className="bg-white rounded-3xl p-6 border border-[#EFE2DE] shadow-xs hover:shadow-lg hover:border-[#E8D0D6] transition-all duration-300 flex flex-col justify-between group"
+                >
+                  <div>
+                    {/* Visual Icon Halo */}
+                    <div className="flex items-center justify-between mb-5">
+                      <div
+                        className="w-20 h-20 rounded-2xl p-2 flex items-center justify-center transition-transform duration-300 group-hover:scale-105 shadow-inner overflow-hidden"
+                        style={{ backgroundColor: bgHex }}
+                      >
+                        {cat.image_url ? (
+                          <img
+                            src={cat.image_url}
+                            alt={cat.name}
+                            className="w-full h-full object-cover rounded-xl"
+                          />
+                        ) : (
+                          <Sparkles size={28} className="text-[#A8435D]" />
+                        )}
+                      </div>
+                      <span className="px-3 py-1 bg-[#FDF4F6] text-[#A8435D] text-[11px] font-bold rounded-full border border-[#F4D5DD]">
+                        Collection
+                      </span>
+                    </div>
+
+                    <h3 className="font-serif text-xl text-[#331B21] font-semibold mb-2 group-hover:text-[#B8586E] transition-colors">
+                      {cat.name}
+                    </h3>
+                  </div>
+
+                  {/* Bottom Action */}
+                  <div className="pt-4 border-t border-[#F2E8E5] flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-[#9E868D]">View Catalog</span>
+                    <Link
+                      to={`/shop?category=${encodeURIComponent(cat.name)}`}
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-[#A8435D] group-hover:gap-2.5 transition-all"
+                    >
+                      <span>Explore Items</span>
+                      <ArrowRight size={14} />
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* All Products CTA Banner */}
         <div className="bg-gradient-to-r from-[#F6ECE7] via-[#F3E3DD] to-[#ECD5CD] rounded-3xl p-8 sm:p-10 border border-[#EEDCD6] flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">

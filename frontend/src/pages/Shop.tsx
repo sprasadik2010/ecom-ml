@@ -14,9 +14,17 @@ import {
   X
 } from 'lucide-react';
 
+interface CategoryOption {
+  name: string;
+  label: string;
+}
+
 export const Shop: React.FC = () => {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<CategoryOption[]>([
+    { name: '', label: 'All Products' }
+  ]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchParams, setSearchParams] = useSearchParams();
@@ -26,37 +34,61 @@ export const Shop: React.FC = () => {
   const [sortBy, setSortBy] = useState<'featured' | 'price-asc' | 'price-desc' | 'sw-desc'>('featured');
   const [searchInput, setSearchInput] = useState(searchQuery);
 
-  const categories = [
-    { name: '', label: 'All Products' },
-    { name: 'Fashion', label: 'Fashion' },
-    { name: 'Beauty', label: 'Beauty & Personal Care' },
-    { name: 'Home', label: 'Home & Living' },
-    { name: 'Accessories', label: 'Accessories' },
-    { name: 'Electronics', label: 'Electronics' },
-    { name: 'Kids', label: 'Kids & Baby' },
-  ];
-
   useEffect(() => {
     setSearchInput(searchQuery);
   }, [searchQuery]);
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchCatalogData = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`${API_BASE_URL}/products`);
-        if (!res.ok) throw new Error('Could not fetch catalog products.');
-        const data = await res.json();
-        setAllProducts(data);
+        const [prodRes, catRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/products`),
+          fetch(`${API_BASE_URL}/categories`)
+        ]);
+
+        let prods: Product[] = [];
+        if (prodRes.ok) {
+          prods = await prodRes.json();
+          setAllProducts(prods);
+        }
+
+        let backendCats: { name: string }[] = [];
+        if (catRes.ok) {
+          backendCats = await catRes.json();
+        }
+
+        // Gather real categories from backend table and from real product records
+        const uniqueCatMap = new Map<string, string>();
+        for (const c of backendCats) {
+          if (c.name && c.name.trim()) {
+            uniqueCatMap.set(c.name.trim().toLowerCase(), c.name.trim());
+          }
+        }
+        for (const p of prods) {
+          if (p.category && p.category.trim()) {
+            uniqueCatMap.set(p.category.trim().toLowerCase(), p.category.trim());
+          }
+        }
+
+        const realCategoriesList: CategoryOption[] = [
+          { name: '', label: 'All Products' },
+          ...Array.from(uniqueCatMap.values()).map(catName => ({
+            name: catName,
+            label: catName
+          }))
+        ];
+
+        setCategories(realCategoriesList);
         setError('');
       } catch (err: any) {
-        console.error('Error loading products:', err);
+        console.error('Error loading catalog data:', err);
         setError(err.message || 'Failed to connect to backend.');
       } finally {
         setLoading(false);
       }
     };
-    fetchProducts();
+    fetchCatalogData();
   }, []);
 
   useEffect(() => {
