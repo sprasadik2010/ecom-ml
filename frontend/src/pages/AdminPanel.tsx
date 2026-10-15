@@ -45,7 +45,8 @@ import {
   Cloud,
   UploadCloud,
   Key,
-  Image as ImageIcon
+  Image as ImageIcon,
+  LogOut
 } from 'lucide-react';
 import { API_BASE_URL } from '../context/AuthContext';
 
@@ -212,7 +213,7 @@ interface ImageUploadItem {
 type TabType = 'dashboard' | 'products' | 'categories' | 'users' | 'orders' | 'commissions' | 'rewards' | 'media';
 
 export const AdminPanel: React.FC = () => {
-  const { token } = useAuth();
+  const { token, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -1275,13 +1276,27 @@ export const AdminPanel: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={handleRefresh}
-          className="flex items-center gap-1.5 self-start md:self-center px-4 py-1.5 bg-slate-950 hover:bg-slate-850 border border-slate-800 text-slate-300 hover:text-white rounded-full font-bold text-xs cursor-pointer transition-colors shadow-sm"
-        >
-          <RefreshCw size={13} className={loading ? 'animate-spin text-amber-500' : ''} />
-          <span>Refresh Data</span>
-        </button>
+        <div className="flex items-center gap-2 self-start md:self-center flex-wrap">
+          <button
+            onClick={handleRefresh}
+            className="flex items-center gap-1.5 px-4 py-1.5 bg-slate-950 hover:bg-slate-850 border border-slate-800 text-slate-300 hover:text-white rounded-full font-bold text-xs cursor-pointer transition-colors shadow-sm"
+          >
+            <RefreshCw size={13} className={loading ? 'animate-spin text-amber-500' : ''} />
+            <span>Refresh Data</span>
+          </button>
+
+          <button
+            onClick={() => {
+              logout();
+              window.location.href = '/login';
+            }}
+            className="flex items-center gap-1.5 px-4 py-1.5 bg-red-950/30 hover:bg-red-900/40 border border-red-900/50 text-red-400 hover:text-red-300 rounded-full font-bold text-xs cursor-pointer transition-colors shadow-sm"
+            title="Sign Out Administrator"
+          >
+            <LogOut size={13} />
+            <span>Sign Out</span>
+          </button>
+        </div>
       </div>
 
       {/* Navigation Tab Bar */}

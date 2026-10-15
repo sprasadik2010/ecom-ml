@@ -132,22 +132,22 @@ export const Register: React.FC = () => {
   // 1. Success state
   if (success) {
     return (
-      <div className="max-w-md mx-auto px-4 py-20 flex flex-col justify-center text-center">
-        <div className="bg-slate-900 border border-slate-800 rounded-lg p-8 shadow-md relative">
-          <div className="absolute top-0 left-0 right-0 h-1 rounded-t-lg bg-emerald-500" />
+      <div className="max-w-md mx-auto px-4 py-8 sm:py-16 min-h-[calc(100dvh-12rem)] flex flex-col justify-center text-center">
+        <div className="bg-white border border-[#EFE2DE] rounded-2xl p-6 sm:p-8 shadow-md relative">
+          <div className="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl bg-[#0D7A5C]" />
           
-          <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-full mb-4 border border-emerald-500/20 inline-block">
-            <CheckCircle2 size={48} className="animate-bounce" />
+          <div className="p-3 bg-[#E8F5EF] text-[#0D7A5C] rounded-full mb-4 border border-[#C5E9D7] inline-block">
+            <CheckCircle2 size={44} className="animate-bounce" />
           </div>
           
-          <h2 className="text-xl font-black text-white mb-2">Registration Successful!</h2>
-          <p className="text-slate-400 text-xs leading-relaxed mb-6">
-            Congratulations! You have been successfully placed in the business tree under your sponsor leg. Your status starts as <span className="text-red-400 font-bold">Inactive</span>. To activate your account and start earning team commissions, please log in and buy products!
+          <h2 className="font-serif text-2xl text-[#331B21] font-normal mb-2">Registration Successful!</h2>
+          <p className="text-[#7A6369] text-xs leading-relaxed mb-6">
+            Congratulations! You have been successfully placed in the business tree under your sponsor leg. Your status starts as <span className="text-[#B91C1C] font-bold">Inactive</span>. To activate your account and start earning team commissions, please log in and buy products!
           </p>
 
           <Link
             to="/login"
-            className="w-full py-2.5 px-4 bg-emerald-500 hover:bg-emerald-600 text-slate-950 rounded-md font-extrabold text-xs flex items-center justify-center gap-1.5 transition-colors"
+            className="w-full min-h-[46px] py-3 px-4 bg-[#B8586E] hover:bg-[#A3475D] text-white rounded-full font-bold text-sm flex items-center justify-center gap-1.5 transition-all shadow-md shadow-[#B8586E]/20 active:scale-95"
           >
             Sign In Now
           </Link>
@@ -159,29 +159,29 @@ export const Register: React.FC = () => {
   // 2. Gatekeeper: Missing or empty referral link
   if (hasUsers && !token) {
     return (
-      <div className="max-w-md mx-auto px-4 py-20 flex flex-col justify-center text-center">
-        <div className="bg-slate-900 border border-slate-800 rounded-lg p-8 shadow-md relative">
-          <div className="absolute top-0 left-0 right-0 h-1 rounded-t-lg bg-amber-500" />
+      <div className="max-w-md mx-auto px-4 py-8 sm:py-16 min-h-[calc(100dvh-12rem)] flex flex-col justify-center text-center">
+        <div className="bg-white border border-[#EFE2DE] rounded-2xl p-6 sm:p-8 shadow-md relative">
+          <div className="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl bg-[#B8586E]" />
           
-          <div className="p-3 bg-amber-500/10 text-amber-500 rounded-full mb-4 border border-amber-500/20 inline-block">
-            <ShieldAlert size={44} />
+          <div className="p-3 bg-[#FAF2E8] text-[#C07718] rounded-full mb-4 border border-[#F4E1CA] inline-block">
+            <ShieldAlert size={40} />
           </div>
           
-          <h2 className="text-xl font-black text-white mb-2">Referral Link Required</h2>
-          <p className="text-slate-400 text-xs leading-relaxed mb-6">
-            Registration in BuyWay is strictly by referral link. Please use a <span className="text-amber-400 font-bold">Left Leg</span> or <span className="text-amber-400 font-bold">Right Leg</span> referral link provided by your sponsor.
+          <h2 className="font-serif text-2xl text-[#331B21] font-normal mb-2">Referral Link Required</h2>
+          <p className="text-[#7A6369] text-xs leading-relaxed mb-6">
+            Registration in BuyWay is strictly by referral invitation. Please use a <span className="text-[#C07718] font-bold">Left Leg</span> or <span className="text-[#C07718] font-bold">Right Leg</span> referral link provided by your sponsor.
           </p>
 
           <div className="flex flex-col gap-2.5">
             <Link
               to="/login"
-              className="w-full py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-md font-extrabold text-xs flex items-center justify-center gap-1.5 transition-colors"
+              className="w-full min-h-[46px] py-3 px-4 bg-[#B8586E] hover:bg-[#A3475D] text-white rounded-full font-bold text-sm flex items-center justify-center gap-1.5 transition-all shadow-md shadow-[#B8586E]/20 active:scale-95"
             >
               Sign In to Existing Account
             </Link>
             <Link
               to="/"
-              className="w-full py-2.5 px-4 bg-slate-950 hover:bg-slate-850 text-slate-300 rounded-md font-bold text-xs flex items-center justify-center transition-colors border border-slate-800"
+              className="w-full min-h-[42px] py-2.5 px-4 bg-[#FAF7F2] hover:bg-[#F2E8E5] text-[#4A343A] rounded-full font-bold text-xs flex items-center justify-center transition-all border border-[#E8D7DC]"
             >
               Explore Store Catalog
             </Link>
@@ -194,25 +194,31 @@ export const Register: React.FC = () => {
   // 3. Gatekeeper: Tampered or invalid referral link
   if (isLinkInvalid) {
     return (
-      <div className="max-w-md mx-auto px-4 py-20 flex flex-col justify-center text-center">
-        <div className="bg-slate-900 border border-red-900 rounded-lg p-8 shadow-md relative">
-          <div className="absolute top-0 left-0 right-0 h-1 rounded-t-lg bg-red-500" />
+      <div className="max-w-md mx-auto px-4 py-8 sm:py-16 min-h-[calc(100dvh-12rem)] flex flex-col justify-center text-center">
+        <div className="bg-white border border-[#EFE2DE] rounded-2xl p-6 sm:p-8 shadow-md relative">
+          <div className="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl bg-[#B91C1C]" />
           
-          <div className="p-3 bg-red-500/10 text-red-400 rounded-full mb-4 border border-red-500/20 inline-block">
-            <ShieldAlert size={44} />
+          <div className="p-3 bg-[#FDF2F2] text-[#B91C1C] rounded-full mb-4 border border-[#FAD1D1] inline-block">
+            <ShieldAlert size={40} />
           </div>
           
-          <h2 className="text-xl font-black text-white mb-2">Invalid Referral Link</h2>
-          <p className="text-red-300 text-xs leading-relaxed mb-6">
+          <h2 className="font-serif text-2xl text-[#331B21] font-normal mb-2">Invalid Referral Link</h2>
+          <p className="text-[#B91C1C] text-xs leading-relaxed mb-6 font-medium">
             {error || 'This referral link is invalid or expired. Please ask your sponsor for a new Left or Right referral link.'}
           </p>
 
           <div className="flex flex-col gap-2.5">
             <Link
               to="/login"
-              className="w-full py-2.5 px-4 bg-slate-850 hover:bg-slate-800 text-slate-200 rounded-md font-bold text-xs flex items-center justify-center transition-colors border border-slate-700"
+              className="w-full min-h-[46px] py-3 px-4 bg-[#B8586E] hover:bg-[#A3475D] text-white rounded-full font-bold text-sm flex items-center justify-center gap-1.5 transition-all shadow-md shadow-[#B8586E]/20 active:scale-95"
             >
               Go to Sign In
+            </Link>
+            <Link
+              to="/"
+              className="w-full min-h-[42px] py-2.5 px-4 bg-[#FAF7F2] hover:bg-[#F2E8E5] text-[#4A343A] rounded-full font-bold text-xs flex items-center justify-center transition-all border border-[#E8D7DC]"
+            >
+              Return to Store
             </Link>
           </div>
         </div>
@@ -221,7 +227,7 @@ export const Register: React.FC = () => {
   }
 
   return (
-    <div className="max-w-md mx-auto px-4 py-6 sm:py-12 flex flex-col justify-center">
+    <div className="max-w-md mx-auto px-4 py-6 sm:py-12 min-h-[calc(100dvh-12rem)] flex flex-col justify-center">
       <div className="bg-white border border-[#EFE2DE] rounded-2xl p-5 sm:p-8 shadow-md relative">
         <div className="absolute top-0 left-0 right-0 h-1.5 rounded-t-2xl bg-[#B8586E]" />
 
@@ -245,33 +251,31 @@ export const Register: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-4 text-xs font-normal">
           {/* Verified Sponsor & Position Banner */}
           {sponsorUsername && (
-            <div className="bg-amber-500/10 border border-amber-500/30 p-3 rounded-md text-slate-200">
+            <div className="bg-[#FAF2E8] border border-[#F4E1CA] p-3.5 rounded-xl text-[#331B21]">
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-amber-500 block">Sponsor</span>
-                  <span className="font-bold text-slate-100">@{sponsorUsername}</span>
+                  <span className="text-[10px] uppercase font-bold text-[#8C6B3D] block">Sponsor</span>
+                  <span className="font-bold text-[#331B21] text-xs">@{sponsorUsername}</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] uppercase font-bold text-amber-500 block">Placement</span>
-                  <span className="font-bold text-slate-100 capitalize">{position} Leg</span>
+                  <span className="text-[10px] uppercase font-bold text-[#8C6B3D] block">Placement</span>
+                  <span className="font-bold text-[#C07718] capitalize text-xs">{position} Leg</span>
                 </div>
               </div>
-              <p className="text-[9px] text-slate-400 mt-2 border-t border-amber-500/20 pt-1.5 leading-normal">
+              <p className="text-[10px] text-[#7A6369] mt-2 border-t border-[#F4E1CA] pt-1.5 leading-normal">
                 🔒 Placement verified by encrypted sponsor invitation link.
               </p>
             </div>
           )}
 
-          <div className="border-t border-slate-850 my-4" />
-
           {/* Personal Info */}
           <div>
-            <label className="text-slate-400 block mb-1">Full Name</label>
+            <label className="text-[#705960] block mb-1 font-medium">Full Name</label>
             <input
               type="text"
               required
               placeholder="John Doe"
-              className="w-full bg-slate-950 border border-slate-850 rounded p-2 focus:outline-none focus:border-amber-500 text-slate-200"
+              className="w-full bg-[#FAF7F2] border border-[#EFE2DE] rounded-xl p-3 focus:outline-none focus:border-[#B8586E] text-[#251117] text-sm"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               disabled={submitting}
@@ -279,12 +283,12 @@ export const Register: React.FC = () => {
           </div>
 
           <div>
-            <label className="text-slate-400 block mb-1">Phone Number</label>
+            <label className="text-[#705960] block mb-1 font-medium">Phone Number</label>
             <input
               type="tel"
               required
               placeholder="e.g. +91 98765 43210"
-              className="w-full bg-slate-950 border border-slate-850 rounded p-2 focus:outline-none focus:border-amber-500 text-slate-200"
+              className="w-full bg-[#FAF7F2] border border-[#EFE2DE] rounded-xl p-3 focus:outline-none focus:border-[#B8586E] text-[#251117] text-sm"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
               disabled={submitting}
@@ -292,29 +296,29 @@ export const Register: React.FC = () => {
           </div>
 
           <div>
-            <label className="text-slate-400 block mb-1">Username (min. 3 characters)</label>
+            <label className="text-[#705960] block mb-1 font-medium">Username (min. 3 characters)</label>
             <input
               type="text"
               required
               minLength={3}
               placeholder="choose_username"
-              className="w-full bg-slate-950 border border-slate-850 rounded p-2 focus:outline-none focus:border-amber-500 text-slate-200"
+              className="w-full bg-[#FAF7F2] border border-[#EFE2DE] rounded-xl p-3 focus:outline-none focus:border-[#B8586E] text-[#251117] text-sm"
               value={username}
               onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9_]/g, ''))}
               disabled={submitting}
             />
-            <p className="text-[10px] text-slate-500 mt-1">
-              Minimum 3 characters. Only letters, numbers, and underscores allowed (no spaces).
+            <p className="text-[10px] text-[#8C7077] mt-1">
+              Minimum 3 characters. Only lowercase letters, numbers, and underscores allowed.
             </p>
           </div>
 
           <div>
-            <label className="text-slate-400 block mb-1">Email Address</label>
+            <label className="text-[#705960] block mb-1 font-medium">Email Address</label>
             <input
               type="email"
               required
               placeholder="name@example.com"
-              className="w-full bg-slate-950 border border-slate-850 rounded p-2 focus:outline-none focus:border-amber-500 text-slate-200"
+              className="w-full bg-[#FAF7F2] border border-[#EFE2DE] rounded-xl p-3 focus:outline-none focus:border-[#B8586E] text-[#251117] text-sm"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={submitting}
@@ -322,18 +326,18 @@ export const Register: React.FC = () => {
           </div>
 
           <div>
-            <label className="text-slate-400 block mb-1">Password (min. 6 characters)</label>
+            <label className="text-[#705960] block mb-1 font-medium">Password (min. 6 characters)</label>
             <input
               type="password"
               required
               minLength={6}
               placeholder="••••••••"
-              className="w-full bg-slate-950 border border-slate-850 rounded p-2 focus:outline-none focus:border-amber-500 text-slate-200"
+              className="w-full bg-[#FAF7F2] border border-[#EFE2DE] rounded-xl p-3 focus:outline-none focus:border-[#B8586E] text-[#251117] text-sm"
               value={password}
               onChange={(e) => setPassword(e.target.value.replace(/\s+/g, ''))}
               disabled={submitting}
             />
-            <p className="text-[10px] text-slate-500 mt-1">
+            <p className="text-[10px] text-[#8C7077] mt-1">
               Minimum 6 characters without spaces.
             </p>
           </div>
@@ -341,22 +345,22 @@ export const Register: React.FC = () => {
           <button
             type="submit"
             disabled={submitting || isLinkInvalid}
-            className={`w-full py-3 px-4 bg-[#B8586E] hover:bg-[#A3475D] text-white rounded-full font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-[#B8586E]/20 cursor-pointer ${
+            className={`w-full min-h-[46px] py-3 px-4 bg-[#B8586E] hover:bg-[#A3475D] text-white rounded-full font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-md shadow-[#B8586E]/20 cursor-pointer ${
               submitting || isLinkInvalid ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'
             }`}
           >
             {submitting ? 'Creating member...' : 'Register'}
-            <UserPlus size={14} />
+            <UserPlus size={15} />
           </button>
         </form>
 
-        <div className="border-t border-[#F2E8E5] mt-6 pt-4 text-center text-xs text-[#8C7077]">
-          <span>Already have an account? </span>
+        <div className="border-t border-[#F2E8E5] mt-6 pt-4 text-center text-xs text-[#8C7077] flex items-center justify-between">
+          <span>Already have an account?</span>
           <Link
             to="/login"
-            className="text-[#B8586E] hover:text-[#A1455B] font-bold transition-colors inline-flex items-center gap-0.5"
+            className="text-[#B8586E] hover:text-[#A1455B] font-bold transition-colors inline-flex items-center gap-1"
           >
-            <ArrowLeft size={12} /> Sign In
+            <ArrowLeft size={13} /> Sign In
           </Link>
         </div>
       </div>

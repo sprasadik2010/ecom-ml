@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { IndianRupee, Award, Users, Share2, Clipboard, ShieldCheck, ShieldAlert, ShoppingBag, Landmark, ArrowRight, Star, Zap, Calendar, CheckCircle2, TrendingUp, Sparkles, Clock } from 'lucide-react';
+import { IndianRupee, Award, Users, Share2, Clipboard, ShieldCheck, ShieldAlert, ShoppingBag, Landmark, ArrowRight, Star, Zap, Calendar, CheckCircle2, TrendingUp, Sparkles, Clock, LogOut } from 'lucide-react';
 import { API_BASE_URL } from '../context/AuthContext';
 
 interface Order {
@@ -142,8 +142,13 @@ const DEFAULT_LEVELS: LevelDefinition[] = [
 ];
 
 export const Dashboard: React.FC = () => {
-  const { user, token } = useAuth();
+  const { user, token, logout } = useAuth();
   const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
   const [orders, setOrders] = useState<Order[]>([]);
   const [rewards, setRewards] = useState<RankReward[]>([]);
   const [commissions, setCommissions] = useState<Commission[]>([]);
@@ -332,21 +337,32 @@ export const Dashboard: React.FC = () => {
           <p className="text-slate-400 text-xs mt-1">Welcome to your BuyWay dashboard. Track 1:1 business matching pairs, 5-level sponsor overrides, and progressive monthly royalties.</p>
         </div>
 
-        {/* Member Status Pill */}
-        <div className="flex items-center gap-3">
-          <div className="flex flex-col items-end">
-            <span className="text-[10px] text-slate-500 uppercase font-black tracking-wider leading-none">Membership</span>
-            <span className={`text-sm font-black mt-1 leading-none ${isActive ? 'text-emerald-400 animate-pulse' : 'text-red-400'}`}>
-              {user.status.toUpperCase()} MEMBER
-            </span>
+        {/* Member Status Pill & Sign Out */}
+        <div className="flex items-center gap-3 self-stretch sm:self-auto justify-between sm:justify-end flex-wrap">
+          <div className="flex items-center gap-2.5">
+            <div className="flex flex-col items-end">
+              <span className="text-[10px] text-slate-500 uppercase font-black tracking-wider leading-none">Membership</span>
+              <span className={`text-sm font-black mt-1 leading-none ${isActive ? 'text-emerald-400 animate-pulse' : 'text-red-400'}`}>
+                {user.status.toUpperCase()} MEMBER
+              </span>
+            </div>
+            <div className={`p-2 rounded-lg border ${
+              isActive 
+                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                : 'bg-red-500/10 text-red-400 border-red-500/20'
+            }`}>
+              {isActive ? <ShieldCheck size={20} /> : <ShieldAlert size={20} />}
+            </div>
           </div>
-          <div className={`p-2.5 rounded-lg border ${
-            isActive 
-              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
-              : 'bg-red-500/10 text-red-400 border-red-500/20'
-          }`}>
-            {isActive ? <ShieldCheck size={24} /> : <ShieldAlert size={24} />}
-          </div>
+
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-1.5 px-3 py-2 bg-red-950/30 hover:bg-red-900/40 text-red-400 border border-red-900/50 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 shrink-0"
+            title="Sign Out from BuyWay"
+          >
+            <LogOut size={14} />
+            <span>Sign Out</span>
+          </button>
         </div>
       </div>
 

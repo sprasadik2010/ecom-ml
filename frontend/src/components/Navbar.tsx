@@ -17,7 +17,9 @@ import {
   Heart,
   Phone,
   Info,
-  BookOpen
+  BookOpen,
+  LogIn,
+  UserPlus
 } from 'lucide-react';
 import bwLogo from '../assets/bwLogo.jpeg';
 
@@ -75,6 +77,42 @@ export const Navbar: React.FC = () => {
   }, [isSearchOpen]);
 
   const cartCount = items.reduce((sum, item) => sum + item.quantity, 0);
+
+  const toggleSearch = () => {
+    setIsSearchOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        setIsUserMenuOpen(false);
+        setIsMobileMenuOpen(false);
+        setIsCategoriesOpen(false);
+      }
+      return next;
+    });
+  };
+
+  const toggleUserMenu = () => {
+    setIsUserMenuOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        setIsSearchOpen(false);
+        setIsMobileMenuOpen(false);
+        setIsCategoriesOpen(false);
+      }
+      return next;
+    });
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        setIsSearchOpen(false);
+        setIsUserMenuOpen(false);
+        setIsCategoriesOpen(false);
+      }
+      return next;
+    });
+  };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -254,7 +292,7 @@ export const Navbar: React.FC = () => {
           <div className="relative">
             <button
               type="button"
-              onClick={() => setIsSearchOpen(!isSearchOpen)}
+              onClick={toggleSearch}
               className="p-2 text-[#4A343A] hover:text-[#A8435D] hover:bg-[#FDF4F6] rounded-full transition-colors cursor-pointer"
               title="Search products"
               aria-label="Search"
@@ -264,24 +302,30 @@ export const Navbar: React.FC = () => {
 
             {/* Expandable Search Input Popover */}
             {isSearchOpen && (
-              <div className="absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] max-w-xs sm:w-80 bg-white border border-[#EFE2DE] rounded-2xl shadow-xl p-3 z-50">
-                <form onSubmit={handleSearchSubmit} className="relative flex items-center">
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    placeholder="Search trendy products..."
-                    className="w-full bg-[#FAF7F2] border border-[#E8D7DC] text-[#251117] rounded-full pl-4 pr-10 py-2 text-xs focus:outline-none focus:border-[#B8586E]"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                  <button
-                    type="submit"
-                    className="absolute right-3 text-[#705960] hover:text-[#A8435D] cursor-pointer"
-                  >
-                    <Search size={15} />
-                  </button>
-                </form>
-              </div>
+              <>
+                <div
+                  className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px] sm:hidden"
+                  onClick={() => setIsSearchOpen(false)}
+                />
+                <div className="fixed inset-x-3 top-16 sm:inset-x-auto sm:right-0 sm:top-full mt-2 sm:w-80 max-w-sm sm:max-w-none mx-auto sm:mx-0 bg-white border border-[#EFE2DE] rounded-2xl shadow-xl p-3 z-50">
+                  <form onSubmit={handleSearchSubmit} className="relative flex items-center">
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      placeholder="Search trendy products..."
+                      className="w-full bg-[#FAF7F2] border border-[#E8D7DC] text-[#251117] rounded-full pl-4 pr-10 py-2.5 text-xs focus:outline-none focus:border-[#B8586E]"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                    <button
+                      type="submit"
+                      className="absolute right-3.5 text-[#705960] hover:text-[#A8435D] cursor-pointer"
+                    >
+                      <Search size={15} />
+                    </button>
+                  </form>
+                </div>
+              </>
             )}
           </div>
 
@@ -289,7 +333,7 @@ export const Navbar: React.FC = () => {
           <div className="relative" ref={userMenuRef}>
             <button
               type="button"
-              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              onClick={toggleUserMenu}
               className="p-2 text-[#4A343A] hover:text-[#A8435D] hover:bg-[#FDF4F6] rounded-full transition-colors cursor-pointer"
               title="My Account"
               aria-label="Account"
@@ -299,104 +343,112 @@ export const Navbar: React.FC = () => {
 
             {/* User Dropdown Menu */}
             {isUserMenuOpen && (
-              <div className="absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] max-w-xs sm:w-64 bg-white border border-[#EFE2DE] rounded-2xl shadow-xl py-3 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
-                {user ? (
-                  <>
-                    <div className="px-4 py-2 border-b border-[#F7EFE8]">
-                      <div className="text-[11px] text-[#8C7077] font-normal">Signed in as</div>
-                      <div className="font-bold text-[#331B21] text-xs truncate">@{user.username}</div>
-                      <div className="text-[10px] text-[#A8435D] font-medium">{user.full_name}</div>
-                      
-                      {!user.is_admin && (
-                        <div className="mt-2 bg-[#FAF2E8] border border-[#F4E1CA] px-2.5 py-1 rounded-lg flex items-center justify-between text-xs font-mono font-bold text-[#C07718]">
-                          <span className="text-[10px] font-sans text-[#8C6B3D]">Wallet:</span>
-                          <span>₹{user.wallet_balance?.toFixed(2) || '0.00'}</span>
-                        </div>
-                      )}
-                    </div>
+              <>
+                <div
+                  className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px] sm:hidden"
+                  onClick={() => setIsUserMenuOpen(false)}
+                />
+                <div className="fixed inset-x-3 top-16 sm:inset-x-auto sm:right-0 sm:top-full mt-2 sm:w-64 max-w-sm sm:max-w-none mx-auto sm:mx-0 bg-white border border-[#EFE2DE] rounded-2xl shadow-2xl py-3 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+                  {user ? (
+                    <>
+                      <div className="px-4 py-2 border-b border-[#F7EFE8]">
+                        <div className="text-[11px] text-[#8C7077] font-semibold uppercase tracking-wider">Signed in as</div>
+                        <div className="font-bold text-[#331B21] text-xs truncate">@{user.username}</div>
+                        <div className="text-[11px] text-[#A8435D] font-medium truncate">{user.full_name}</div>
+                        
+                        {!user.is_admin && (
+                          <div className="mt-2 bg-[#FAF2E8] border border-[#F4E1CA] px-2.5 py-1.5 rounded-lg flex items-center justify-between text-xs font-mono font-bold text-[#C07718]">
+                            <span className="text-[10px] font-sans text-[#8C6B3D] uppercase font-bold">Wallet:</span>
+                            <span>₹{user.wallet_balance?.toFixed(2) || '0.00'}</span>
+                          </div>
+                        )}
+                      </div>
 
-                    <div className="py-1">
-                      {user.is_admin ? (
-                        <Link
-                          to="/admin"
-                          onClick={() => setIsUserMenuOpen(false)}
-                          className="flex items-center gap-2.5 px-4 py-2 text-xs text-[#331B21] hover:bg-[#FDF4F6] hover:text-[#A8435D] font-medium"
+                      <div className="py-1">
+                        {user.is_admin ? (
+                          <Link
+                            to="/admin"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="flex items-center gap-2.5 px-4 py-2 text-xs text-[#331B21] hover:bg-[#FDF4F6] hover:text-[#A8435D] font-medium"
+                          >
+                            <ShieldCheck size={14} className="text-[#A8435D]" />
+                            <span>Admin Control Center</span>
+                          </Link>
+                        ) : (
+                          <>
+                            <Link
+                              to="/orders"
+                              onClick={() => setIsUserMenuOpen(false)}
+                              className="flex items-center gap-2.5 px-4 py-2 text-xs text-[#331B21] hover:bg-[#FDF4F6] hover:text-[#A8435D] font-medium"
+                            >
+                              <ShoppingBag size={14} />
+                              <span>My Orders</span>
+                            </Link>
+                            <Link
+                              to="/dashboard"
+                              onClick={() => setIsUserMenuOpen(false)}
+                              className="flex items-center gap-2.5 px-4 py-2 text-xs text-[#331B21] hover:bg-[#FDF4F6] hover:text-[#A8435D] font-medium"
+                            >
+                              <ShieldCheck size={14} />
+                              <span>Member Dashboard</span>
+                            </Link>
+                            <Link
+                              to="/tree"
+                              onClick={() => setIsUserMenuOpen(false)}
+                              className="flex items-center gap-2.5 px-4 py-2 text-xs text-[#331B21] hover:bg-[#FDF4F6] hover:text-[#A8435D] font-medium"
+                            >
+                              <GitFork size={14} />
+                              <span>My Team Tree</span>
+                            </Link>
+                            <Link
+                              to="/commissions"
+                              onClick={() => setIsUserMenuOpen(false)}
+                              className="flex items-center gap-2.5 px-4 py-2 text-xs text-[#331B21] hover:bg-[#FDF4F6] hover:text-[#A8435D] font-medium"
+                            >
+                              <IndianRupee size={14} />
+                              <span>Commissions & SW</span>
+                            </Link>
+                          </>
+                        )}
+                      </div>
+
+                      <div className="border-t border-[#F7EFE8] pt-1.5 mt-1 px-2">
+                        <button
+                          type="button"
+                          onClick={handleLogout}
+                          className="w-full text-left flex items-center justify-center sm:justify-start gap-2 px-3 py-2 text-xs text-[#B91C1C] hover:bg-[#FDF2F2] active:scale-95 rounded-lg font-bold cursor-pointer transition-all"
                         >
-                          <ShieldCheck size={14} className="text-[#A8435D]" />
-                          <span>Admin Control Center</span>
-                        </Link>
-                      ) : (
-                        <>
-                          <Link
-                            to="/orders"
-                            onClick={() => setIsUserMenuOpen(false)}
-                            className="flex items-center gap-2.5 px-4 py-2 text-xs text-[#331B21] hover:bg-[#FDF4F6] hover:text-[#A8435D] font-medium"
-                          >
-                            <ShoppingBag size={14} />
-                            <span>My Orders</span>
-                          </Link>
-                          <Link
-                            to="/dashboard"
-                            onClick={() => setIsUserMenuOpen(false)}
-                            className="flex items-center gap-2.5 px-4 py-2 text-xs text-[#331B21] hover:bg-[#FDF4F6] hover:text-[#A8435D] font-medium"
-                          >
-                            <ShieldCheck size={14} />
-                            <span>Member Dashboard</span>
-                          </Link>
-                          <Link
-                            to="/tree"
-                            onClick={() => setIsUserMenuOpen(false)}
-                            className="flex items-center gap-2.5 px-4 py-2 text-xs text-[#331B21] hover:bg-[#FDF4F6] hover:text-[#A8435D] font-medium"
-                          >
-                            <GitFork size={14} />
-                            <span>My Team Tree</span>
-                          </Link>
-                          <Link
-                            to="/commissions"
-                            onClick={() => setIsUserMenuOpen(false)}
-                            className="flex items-center gap-2.5 px-4 py-2 text-xs text-[#331B21] hover:bg-[#FDF4F6] hover:text-[#A8435D] font-medium"
-                          >
-                            <IndianRupee size={14} />
-                            <span>Commissions & SW</span>
-                          </Link>
-                        </>
-                      )}
-                    </div>
-
-                    <div className="border-t border-[#F7EFE8] pt-1 mt-1">
-                      <button
-                        type="button"
-                        onClick={handleLogout}
-                        className="w-full text-left flex items-center gap-2.5 px-4 py-2 text-xs text-[#B91C1C] hover:bg-[#FDF2F2] font-semibold cursor-pointer"
+                          <LogOut size={14} />
+                          <span>Sign Out</span>
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="p-3 space-y-2.5">
+                      <div className="text-center pb-2 border-b border-[#F7EFE8]">
+                        <div className="text-xs font-bold text-[#331B21]">Welcome to BuyWay</div>
+                        <div className="text-[10px] text-[#8C7077]">Sign in to shop, earn, and grow</div>
+                      </div>
+                      <Link
+                        to="/login"
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="w-full min-h-[40px] py-2.5 px-4 bg-[#B8586E] hover:bg-[#A3475D] active:scale-95 text-white text-center rounded-xl font-bold text-xs shadow-xs flex items-center justify-center gap-1.5 transition-all"
                       >
-                        <LogOut size={14} />
-                        <span>Sign Out</span>
-                      </button>
+                        <LogIn size={14} />
+                        <span>Sign In</span>
+                      </Link>
+                      <Link
+                        to="/register"
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="w-full min-h-[40px] py-2.5 px-4 border border-[#E8D7DC] text-[#4A343A] hover:bg-[#FAF7F2] active:scale-95 text-center rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all"
+                      >
+                        <UserPlus size={14} />
+                        <span>Create Account</span>
+                      </Link>
                     </div>
-                  </>
-                ) : (
-                  <div className="p-3 space-y-2">
-                    <div className="text-center pb-2 border-b border-[#F7EFE8]">
-                      <div className="text-xs font-bold text-[#331B21]">Welcome to BuyWay</div>
-                      <div className="text-[10px] text-[#8C7077]">Sign in to shop, earn, and grow</div>
-                    </div>
-                    <Link
-                      to="/login"
-                      onClick={() => setIsUserMenuOpen(false)}
-                      className="w-full block py-2 px-4 bg-[#B8586E] hover:bg-[#A3475D] text-white text-center rounded-full font-bold text-xs shadow-xs"
-                    >
-                      Sign In
-                    </Link>
-                    <Link
-                      to="/register"
-                      onClick={() => setIsUserMenuOpen(false)}
-                      className="w-full block py-2 px-4 border border-[#E8D7DC] text-[#4A343A] hover:bg-[#FAF7F2] text-center rounded-full font-bold text-xs"
-                    >
-                      Create Account
-                    </Link>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              </>
             )}
           </div>
 
@@ -416,8 +468,8 @@ export const Navbar: React.FC = () => {
           {/* 4. Mobile Menu Hamburger */}
           <button
             type="button"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 text-[#4A343A] hover:text-[#A8435D] lg:hidden rounded-full hover:bg-[#FDF4F6] transition-colors"
+            onClick={toggleMobileMenu}
+            className="p-2 text-[#4A343A] hover:text-[#A8435D] lg:hidden rounded-full hover:bg-[#FDF4F6] transition-colors cursor-pointer"
             aria-label="Toggle Navigation"
           >
             {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
@@ -427,148 +479,179 @@ export const Navbar: React.FC = () => {
 
       {/* Mobile Drawer */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden bg-white border-t border-[#F0E4E7] px-5 py-5 space-y-4 shadow-xl">
-          {/* Mobile Search */}
-          <form onSubmit={handleSearchSubmit} className="relative flex items-center">
-            <input
-              type="text"
-              placeholder="Search trendy products..."
-              className="w-full bg-[#FAF7F2] border border-[#E8D7DC] text-[#251117] rounded-full pl-4 pr-10 py-2.5 text-xs focus:outline-none focus:border-[#B8586E]"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <button
-              type="submit"
-              className="absolute right-3.5 text-[#705960] hover:text-[#A8435D]"
-            >
-              <Search size={15} />
-            </button>
-          </form>
+        <>
+          <div
+            className="lg:hidden fixed inset-0 top-16 sm:top-20 z-40 bg-black/40 backdrop-blur-xs"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+          <div className="lg:hidden fixed inset-x-0 top-16 sm:top-20 z-50 bg-white border-t border-[#F0E4E7] px-4 sm:px-5 py-4 sm:py-5 space-y-4 shadow-2xl max-h-[calc(100dvh-4rem)] sm:max-h-[calc(100dvh-5rem)] overflow-y-auto overscroll-contain">
+            {/* Mobile Search */}
+            <form onSubmit={handleSearchSubmit} className="relative flex items-center">
+              <input
+                type="text"
+                placeholder="Search trendy products..."
+                className="w-full bg-[#FAF7F2] border border-[#E8D7DC] text-[#251117] rounded-full pl-4 pr-10 py-2.5 text-xs focus:outline-none focus:border-[#B8586E]"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <button
+                type="submit"
+                className="absolute right-3.5 text-[#705960] hover:text-[#A8435D] cursor-pointer"
+              >
+                <Search size={15} />
+              </button>
+            </form>
 
-          {/* Mobile Navigation Links */}
-          <nav className="flex flex-col gap-2.5 text-sm font-medium text-[#4A343A] border-b border-[#F7EFE8] pb-4">
-            <Link
-              to="/"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="py-1.5 px-3 rounded-lg hover:bg-[#FDF4F6] hover:text-[#A8435D]"
-            >
-              Home
-            </Link>
-            <Link
-              to="/shop"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="py-1.5 px-3 rounded-lg hover:bg-[#FDF4F6] hover:text-[#A8435D]"
-            >
-              Shop All Products
-            </Link>
-            <Link
-              to="/categories"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="py-1.5 px-3 rounded-lg hover:bg-[#FDF4F6] hover:text-[#A8435D]"
-            >
-              Categories
-            </Link>
-            <Link
-              to="/about"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="py-1.5 px-3 rounded-lg hover:bg-[#FDF4F6] hover:text-[#A8435D]"
-            >
-              About Us
-            </Link>
-            <Link
-              to="/blog"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="py-1.5 px-3 rounded-lg hover:bg-[#FDF4F6] hover:text-[#A8435D]"
-            >
-              Blog
-            </Link>
-            <Link
-              to="/contact"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="py-1.5 px-3 rounded-lg hover:bg-[#FDF4F6] hover:text-[#A8435D]"
-            >
-              Contact Support
-            </Link>
-            <Link
-              to="/return-policy"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="py-1.5 px-3 rounded-lg hover:bg-[#FDF4F6] hover:text-[#A8435D]"
-            >
-              Return Policy
-            </Link>
-          </nav>
+            {/* Mobile Navigation Links */}
+            <nav className="flex flex-col gap-1 text-sm font-medium text-[#4A343A] border-b border-[#F7EFE8] pb-3">
+              <Link
+                to="/"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="py-2 px-3 rounded-xl hover:bg-[#FDF4F6] hover:text-[#A8435D] transition-colors"
+              >
+                Home
+              </Link>
+              <Link
+                to="/shop"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="py-2 px-3 rounded-xl hover:bg-[#FDF4F6] hover:text-[#A8435D] transition-colors"
+              >
+                Shop All Products
+              </Link>
+              <Link
+                to="/categories"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="py-2 px-3 rounded-xl hover:bg-[#FDF4F6] hover:text-[#A8435D] transition-colors"
+              >
+                Categories
+              </Link>
+              <Link
+                to="/about"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="py-2 px-3 rounded-xl hover:bg-[#FDF4F6] hover:text-[#A8435D] transition-colors"
+              >
+                About Us
+              </Link>
+              <Link
+                to="/blog"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="py-2 px-3 rounded-xl hover:bg-[#FDF4F6] hover:text-[#A8435D] transition-colors"
+              >
+                Blog
+              </Link>
+              <Link
+                to="/contact"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="py-2 px-3 rounded-xl hover:bg-[#FDF4F6] hover:text-[#A8435D] transition-colors"
+              >
+                Contact Support
+              </Link>
+              <Link
+                to="/return-policy"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="py-2 px-3 rounded-xl hover:bg-[#FDF4F6] hover:text-[#A8435D] transition-colors"
+              >
+                Return Policy
+              </Link>
+            </nav>
 
-          {/* Member Links in Drawer */}
-          {user ? (
-            <div className="space-y-2 pt-1">
-              <div className="text-xs font-bold text-[#331B21]">Account (@{user.username})</div>
-              {user.is_admin ? (
-                <Link
-                  to="/admin"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block py-2 px-3 bg-[#FDF2F5] text-[#A8435D] rounded-lg text-xs font-bold"
+            {/* Member Links in Drawer */}
+            {user ? (
+              <div className="space-y-3 pt-1">
+                <div className="bg-[#FAF7F2] border border-[#EFE2DE] p-3 rounded-xl flex items-center justify-between">
+                  <div className="min-w-0 flex-1 pr-2">
+                    <div className="text-[10px] text-[#8C7077] font-semibold uppercase tracking-wider">Signed in as</div>
+                    <div className="font-bold text-[#331B21] text-xs truncate">@{user.username}</div>
+                    <div className="text-[11px] text-[#A8435D] font-medium truncate">{user.full_name}</div>
+                  </div>
+                  {!user.is_admin && (
+                    <div className="bg-[#FAF2E8] border border-[#F4E1CA] px-2.5 py-1.5 rounded-lg text-right shrink-0">
+                      <div className="text-[9px] font-sans text-[#8C6B3D] uppercase font-bold">Wallet</div>
+                      <div className="text-xs font-mono font-bold text-[#C07718]">₹{user.wallet_balance?.toFixed(2) || '0.00'}</div>
+                    </div>
+                  )}
+                </div>
+
+                {user.is_admin ? (
+                  <Link
+                    to="/admin"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-[#FDF2F5] text-[#A8435D] border border-[#F4D5DD] rounded-xl text-xs font-bold"
+                  >
+                    <ShieldCheck size={15} />
+                    <span>Admin Center</span>
+                  </Link>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <Link
+                      to="/orders"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="py-2.5 px-3 bg-[#FAF7F2] border border-[#EFE2DE] rounded-xl text-center font-bold text-[#331B21] hover:bg-[#FDF4F6] hover:text-[#A8435D] flex items-center justify-center gap-1.5 transition-colors"
+                    >
+                      <ShoppingBag size={14} />
+                      <span>My Orders</span>
+                    </Link>
+                    <Link
+                      to="/dashboard"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="py-2.5 px-3 bg-[#FAF7F2] border border-[#EFE2DE] rounded-xl text-center font-bold text-[#331B21] hover:bg-[#FDF4F6] hover:text-[#A8435D] flex items-center justify-center gap-1.5 transition-colors"
+                    >
+                      <ShieldCheck size={14} />
+                      <span>Dashboard</span>
+                    </Link>
+                    <Link
+                      to="/tree"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="py-2.5 px-3 bg-[#FAF7F2] border border-[#EFE2DE] rounded-xl text-center font-bold text-[#331B21] hover:bg-[#FDF4F6] hover:text-[#A8435D] flex items-center justify-center gap-1.5 transition-colors"
+                    >
+                      <GitFork size={14} />
+                      <span>Team Tree</span>
+                    </Link>
+                    <Link
+                      to="/commissions"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="py-2.5 px-3 bg-[#FAF7F2] border border-[#EFE2DE] rounded-xl text-center font-bold text-[#331B21] hover:bg-[#FDF4F6] hover:text-[#A8435D] flex items-center justify-center gap-1.5 transition-colors"
+                    >
+                      <IndianRupee size={14} />
+                      <span>Commissions</span>
+                    </Link>
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="w-full min-h-[44px] py-2.5 px-4 bg-[#FDF2F2] hover:bg-[#FCE8E8] active:scale-95 text-[#B91C1C] border border-[#FAD1D1] rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all shadow-xs"
                 >
-                  Admin Center
-                </Link>
-              ) : (
-                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <LogOut size={15} />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            ) : (
+              <div className="pt-2 border-t border-[#F7EFE8] space-y-2">
+                <div className="text-xs font-bold text-[#331B21] px-1">Account & Membership</div>
+                <div className="flex gap-2">
                   <Link
-                    to="/orders"
+                    to="/login"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="py-2 px-3 bg-[#FAF7F2] rounded-lg text-center font-medium hover:bg-[#FDF4F6] hover:text-[#A8435D]"
+                    className="flex-1 min-h-[44px] py-2.5 px-4 text-center bg-[#B8586E] hover:bg-[#A3475D] active:scale-95 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm transition-all"
                   >
-                    My Orders
+                    <LogIn size={15} />
+                    <span>Sign In</span>
                   </Link>
                   <Link
-                    to="/dashboard"
+                    to="/register"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="py-2 px-3 bg-[#FAF7F2] rounded-lg text-center font-medium hover:bg-[#FDF4F6] hover:text-[#A8435D]"
+                    className="flex-1 min-h-[44px] py-2.5 px-4 text-center border border-[#E8D7DC] hover:bg-[#FAF7F2] active:scale-95 text-[#4A343A] rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all"
                   >
-                    Dashboard
-                  </Link>
-                  <Link
-                    to="/tree"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="py-2 px-3 bg-[#FAF7F2] rounded-lg text-center font-medium hover:bg-[#FDF4F6] hover:text-[#A8435D]"
-                  >
-                    Team Tree
-                  </Link>
-                  <Link
-                    to="/commissions"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="py-2 px-3 bg-[#FAF7F2] rounded-lg text-center font-medium hover:bg-[#FDF4F6] hover:text-[#A8435D]"
-                  >
-                    Commissions
+                    <UserPlus size={15} />
+                    <span>Register</span>
                   </Link>
                 </div>
-              )}
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="w-full mt-2 py-2 px-3 bg-[#FDF2F2] text-[#B91C1C] rounded-lg text-xs font-bold text-center"
-              >
-                Sign Out
-              </button>
-            </div>
-          ) : (
-            <div className="flex gap-2 pt-1">
-              <Link
-                to="/login"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex-1 py-2 text-center bg-[#B8586E] text-white rounded-full text-xs font-bold"
-              >
-                Sign In
-              </Link>
-              <Link
-                to="/register"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex-1 py-2 text-center border border-[#E8D7DC] text-[#4A343A] rounded-full text-xs font-bold"
-              >
-                Register
-              </Link>
-            </div>
-          )}
-        </div>
+              </div>
+            )}
+          </div>
+        </>
       )}
     </header>
   );
