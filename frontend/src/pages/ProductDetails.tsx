@@ -96,6 +96,12 @@ export const ProductDetails: React.FC = () => {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [addedAnimation, setAddedAnimation] = useState(false);
 
+  // Touch & Mouse horizontal swipe handling
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchStartY, setTouchStartY] = useState<number | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStartX, setDragStartX] = useState<number | null>(null);
+
   const { addToCart } = useCart();
   const navigate = useNavigate();
 
@@ -170,12 +176,6 @@ export const ProductDetails: React.FC = () => {
     if (galleryImages.length <= 1) return;
     setActiveImageIdx((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
   };
-
-  // Touch & Mouse horizontal swipe handling
-  const [touchStartX, setTouchStartX] = useState<number | null>(null);
-  const [touchStartY, setTouchStartY] = useState<number | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStartX, setDragStartX] = useState<number | null>(null);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStartX(e.targetTouches[0].clientX);
