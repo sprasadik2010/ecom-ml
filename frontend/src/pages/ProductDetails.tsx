@@ -11,7 +11,6 @@ import {
   ChevronRight,
   Maximize2,
   Check,
-  CheckCircle2,
   X,
   Layers,
   RotateCcw,
@@ -104,6 +103,21 @@ export const ProductDetails: React.FC = () => {
 
   const { addToCart } = useCart();
   const navigate = useNavigate();
+
+  // Ensure page always starts scrolled to the top when navigating to product details
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+
+    const timer = setTimeout(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }, 50);
+
+    return () => clearTimeout(timer);
+  }, [id, loading]);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -584,20 +598,6 @@ export const ProductDetails: React.FC = () => {
             <div className="border-t border-[#F0E4E7]" />
 
             <div className="space-y-4">
-              {/* Stock Status */}
-              <div>
-                <span className="text-[#705960] text-xs block mb-1">Inventory Status:</span>
-                <span className={`text-xs font-bold inline-flex items-center gap-1.5 ${product.stock > 0 ? 'text-[#0D7A5C]' : 'text-red-500'}`}>
-                  {product.stock > 0 ? (
-                    <>
-                      <CheckCircle2 size={13} />
-                      <span>In Stock ({product.stock} units available)</span>
-                    </>
-                  ) : (
-                    'Temporarily Out of Stock'
-                  )}
-                </span>
-              </div>
 
               {/* Quantity Selector */}
               {product.stock > 0 && (
