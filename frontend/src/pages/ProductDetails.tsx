@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Maximize2,
   Check,
+  CheckCircle2,
   X,
   Layers,
   RotateCcw,
@@ -598,6 +599,20 @@ export const ProductDetails: React.FC = () => {
             <div className="border-t border-[#F0E4E7]" />
 
             <div className="space-y-4">
+              {/* Stock Status */}
+              <div>
+                <span className="text-[#705960] text-xs block mb-1">Inventory Status:</span>
+                <span className={`text-xs font-bold inline-flex items-center gap-1.5 ${product.stock > 0 ? 'text-[#0D7A5C]' : 'text-red-500'}`}>
+                  {product.stock > 0 ? (
+                    <>
+                      <CheckCircle2 size={13} />
+                      <span>In Stock</span>
+                    </>
+                  ) : (
+                    'Temporarily Out of Stock'
+                  )}
+                </span>
+              </div>
 
               {/* Quantity Selector */}
               {product.stock > 0 && (
