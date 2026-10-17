@@ -51,8 +51,8 @@ export const Blog: React.FC = () => {
     },
     {
       id: 4,
-      title: 'A Beginner’s Guide to Tracked India Post Parcel Logistics',
-      excerpt: 'How Buyway processes every order, generates official Article tracking codes, and ensures reliable dispatch right to your doorstep.',
+      title: 'A Beginner’s Guide to Tracked Parcel Logistics',
+      excerpt: 'How Buyway processes every order, generates official consignment tracking codes, and ensures reliable dispatch right to your doorstep.',
       category: 'Guides',
       author: 'Logistics Operations',
       date: 'September 19, 2026',

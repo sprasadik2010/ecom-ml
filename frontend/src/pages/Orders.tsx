@@ -30,6 +30,7 @@ import {
 
 interface ProductInfo {
   id: number;
+  product_code?: string;
   name: string;
   description?: string;
   price: number;
@@ -206,9 +207,9 @@ export const Orders: React.FC = () => {
               <ShoppingBag size={22} />
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-black text-white">My Orders & Postal Tracking</h1>
+              <h1 className="text-xl sm:text-2xl font-black text-white">My Orders & Tracking</h1>
               <p className="text-slate-400 text-xs mt-0.5">
-                Track your package shipments, postal tracking numbers (India Post), delivery progress, and personal SW volume credits.
+                Track your package shipments, consignment tracking numbers, delivery progress, and personal SW volume credits.
               </p>
             </div>
           </div>
@@ -575,13 +576,13 @@ export const Orders: React.FC = () => {
                             </div>
                             <div>
                               <div className="font-bold text-sm text-slate-100 flex items-center gap-2">
-                                <span>Postal Department Dispatch & Live Tracking</span>
+                                <span>Courier Dispatch & Live Tracking</span>
                                 <span className="px-2 py-0.5 bg-sky-500/20 text-sky-300 rounded text-[9px] font-bold uppercase">
                                   {isDelivered ? 'Delivered' : 'In Transit'}
                                 </span>
                               </div>
                               <div className="text-[11px] text-slate-400 mt-0.5">
-                                Carrier: <strong className="text-white">{order.courier_name || 'India Post (Speed Post)'}</strong>
+                                Carrier: <strong className="text-white">{order.courier_name || 'Express Courier'}</strong>
                                 {order.dispatched_at && (
                                   <span> • Dispatched on {new Date(order.dispatched_at).toLocaleDateString()}</span>
                                 )}
@@ -596,7 +597,7 @@ export const Orders: React.FC = () => {
                             rel="noopener noreferrer"
                             className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-sky-500 hover:bg-sky-600 text-slate-950 font-black rounded-lg text-xs transition-all shadow-md active:scale-95 cursor-pointer shrink-0"
                           >
-                            <span>Track on Postal Dept Website</span>
+                            <span>Track Shipment Online</span>
                             <ExternalLink size={13} />
                           </a>
                         </div>
@@ -630,10 +631,10 @@ export const Orders: React.FC = () => {
                           }`}>
                             <div className="font-bold flex items-center justify-center gap-1 text-sky-400">
                               <Truck size={12} />
-                              <span>3. Postal Dispatched</span>
+                              <span>3. Dispatched</span>
                             </div>
                             <span className="text-[9px] text-sky-300/80 font-mono mt-0.5 block">
-                              {order.courier_name || 'India Post'}
+                              {order.courier_name || 'In Transit'}
                             </span>
                           </div>
 
@@ -688,11 +689,11 @@ export const Orders: React.FC = () => {
                             <div className="text-[11px] text-slate-400 space-y-1 bg-slate-900/60 p-2.5 rounded-lg border border-slate-800/80 max-w-sm">
                               <div className="text-slate-300 font-bold flex items-center gap-1">
                                 <HelpCircle size={12} className="text-sky-400 shrink-0" />
-                                <span>How to track on Postal Dept website:</span>
+                                <span>How to track your shipment:</span>
                               </div>
                               <p className="text-[10.5px] leading-tight text-slate-400">
                                 1. Copy the Consignment Number above.<br/>
-                                2. Click <strong>'Track on Postal Dept Website'</strong> to open the India Post tracking portal.<br/>
+                                2. Click <strong>'Track Shipment Online'</strong> to open the tracking portal.<br/>
                                 3. Paste your number in the <em>Consignment Number</em> field to view live delivery scans.
                               </p>
                             </div>
@@ -705,7 +706,7 @@ export const Orders: React.FC = () => {
                             <div className="flex items-start gap-1.5">
                               <MapPin size={13} className="text-amber-500 shrink-0 mt-0.5" />
                               <div>
-                                <span className="font-bold text-slate-200">Postal Delivery To: </span>
+                                <span className="font-bold text-slate-200">Delivery Address: </span>
                                 <span className="text-slate-300">{recipientName}</span>
                                 {fullAddressString && <span className="text-slate-400"> ({fullAddressString})</span>}
                               </div>

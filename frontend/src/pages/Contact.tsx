@@ -31,7 +31,7 @@ export const Contact: React.FC = () => {
   const faqs = [
     {
       q: 'How do I track my dispatched order?',
-      a: 'All orders are dispatched via official India Post speed and tracked parcel logistics. Once an administrator approves your order, your tracking Article number is instantly posted on your Orders page with a direct India Post tracking link.'
+      a: 'All orders are dispatched via verified express courier and tracked parcel logistics. Once an administrator approves your order, your consignment tracking number is instantly posted on your Orders page with a direct tracking link.'
     },
     {
       q: 'When do my Sales Wallet (SW) points get credited?',

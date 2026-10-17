@@ -114,6 +114,7 @@ class Product(Base):
     __tablename__ = "products"
 
     id = Column(Integer, primary_key=True, index=True)
+    product_code = Column(String, unique=True, index=True, nullable=True) # Unique Product Code for search & identification
     name = Column(String, nullable=False)
     description = Column(Text, nullable=True)
     price = Column(Float, nullable=False)
@@ -196,7 +197,7 @@ class Order(Base):
     
     # Postal Dispatch & Carrier Tracking
     dispatch_status = Column(String, default="pending") # 'pending', 'dispatched', 'in_transit', 'delivered', 'cancelled'
-    courier_name = Column(String, default="India Post", nullable=True) # e.g. 'India Post (Speed Post)', 'DTDC', etc.
+    courier_name = Column(String, default="Speed Post", nullable=True) # e.g. 'Speed Post', 'DTDC', etc.
     tracking_number = Column(String, nullable=True)     # Consignment Tracking / Postal Article No
     tracking_url = Column(String, nullable=True)        # Postal Tracking Web Portal URL
     dispatched_at = Column(DateTime, nullable=True)     # Timestamp when admin dispatched the parcel

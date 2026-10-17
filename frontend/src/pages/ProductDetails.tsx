@@ -403,9 +403,16 @@ export const ProductDetails: React.FC = () => {
         {/* Middle Column: Details & Variant Selection */}
         <div className="lg:col-span-4 flex flex-col space-y-5">
           <div>
-            <span className="text-xs uppercase font-extrabold text-[#8C2E42] tracking-widest block mb-1.5">
-              {product.category || 'Featured'}
-            </span>
+            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+              <span className="text-xs uppercase font-extrabold text-[#8C2E42] tracking-widest">
+                {product.category || 'Featured'}
+              </span>
+              {product.product_code && (
+                <span className="text-[10px] bg-[#FAF2E8] text-[#8C2E42] border border-[#EFE2DE] font-mono px-2 py-0.5 rounded-full font-bold">
+                  Code: {product.product_code}
+                </span>
+              )}
+            </div>
             <h1 className="font-serif text-2xl sm:text-3xl text-[#331B21] leading-tight mb-2 font-normal">
               {product.name}
             </h1>
@@ -668,7 +675,7 @@ export const ProductDetails: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <Truck size={14} className="text-[#B8586E] shrink-0" />
-                  <span>Tracked India Post Dispatch Logistics</span>
+                  <span>Tracked Express Dispatch Logistics</span>
                 </div>
               </div>
             </div>

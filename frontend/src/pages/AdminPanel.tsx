@@ -53,6 +53,7 @@ import { API_BASE_URL } from '../context/AuthContext';
 // Types matched to backend models/schemas
 interface Product {
   id: number;
+  product_code?: string | null;
   name: string;
   description: string | null;
   price: number;
@@ -250,7 +251,7 @@ export const AdminPanel: React.FC = () => {
   const [dispatchFilter, setDispatchFilter] = useState<'all' | 'pending' | 'ready_dispatch' | 'dispatched' | 'delivered' | 'cancelled'>('all');
   const [dispatchForm, setDispatchForm] = useState({
     dispatch_status: 'dispatched',
-    courier_name: 'India Post (Speed Post)',
+    courier_name: 'Speed Post',
     tracking_number: '',
     tracking_url: 'https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx',
     dispatch_notes: ''
@@ -263,6 +264,7 @@ export const AdminPanel: React.FC = () => {
   const [customColorInput, setCustomColorInput] = useState('');
   const [customSizeInput, setCustomSizeInput] = useState('');
   const [productForm, setProductForm] = useState({
+    product_code: '',
     name: '',
     description: '',
     price: 0,
@@ -774,7 +776,9 @@ export const AdminPanel: React.FC = () => {
     setNewViewImageUrl('');
     setCustomColorInput('');
     setCustomSizeInput('');
+    const nextCode = `BW-PRD-${String(products.length + 1).padStart(4, '0')}`;
     setProductForm({
+      product_code: nextCode,
       name: '',
       description: '',
       price: 1999.00,
@@ -800,6 +804,7 @@ export const AdminPanel: React.FC = () => {
       : (prod.image_url ? [prod.image_url] : []);
 
     setProductForm({
+      product_code: prod.product_code || '',
       name: prod.name,
       description: prod.description || '',
       price: prod.price,
@@ -898,6 +903,10 @@ export const AdminPanel: React.FC = () => {
     e.preventDefault();
     if (!productForm.name || productForm.price <= 0 || productForm.sw <= 0) {
       triggerError('Please fill in Name, Price, and Sales Wallet (SW) values.');
+      return;
+    }
+    if (!productForm.product_code.trim()) {
+      triggerError('Please enter a unique Product Code (e.g. BW-PRD-001).');
       return;
     }
 
@@ -1031,7 +1040,7 @@ export const AdminPanel: React.FC = () => {
     setSelectedDispatchOrder(order);
     setDispatchForm({
       dispatch_status: order.dispatch_status && order.dispatch_status !== 'pending' ? order.dispatch_status : 'dispatched',
-      courier_name: order.courier_name || 'India Post (Speed Post)',
+      courier_name: order.courier_name || 'Speed Post',
       tracking_number: order.tracking_number || '',
       tracking_url: order.tracking_url || 'https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx',
       dispatch_notes: order.dispatch_notes || ''
@@ -1080,7 +1089,7 @@ export const AdminPanel: React.FC = () => {
         },
         body: JSON.stringify({
           dispatch_status: 'delivered',
-          courier_name: 'India Post',
+          courier_name: 'Speed Post',
           tracking_url: 'https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx'
         })
       });
@@ -1106,7 +1115,7 @@ export const AdminPanel: React.FC = () => {
     const zip = order.shipping_zip || '';
     const phone = order.shipping_phone || buyer?.phone_number || '';
     const trackingNo = order.tracking_number || 'PENDING DISPATCH';
-    const courier = order.courier_name || 'India Post - Speed Post';
+    const courier = order.courier_name || 'Speed Post';
     const itemsList = order.items.map(i => {
       const parts = [`${i.quantity}x ${i.product ? i.product.name : 'Product'}`];
       const variants = [];
@@ -1150,7 +1159,7 @@ export const AdminPanel: React.FC = () => {
           <div class="header">
             <div>
               <div class="title">${courier}</div>
-              <div class="subtitle">Postal Dept Logistics & Consignment Delivery</div>
+              <div class="subtitle">Logistics & Consignment Delivery</div>
             </div>
             <div style="text-align: right;">
               <div style="font-size: 15px; font-weight: 900;">ORDER #00${order.id}</div>
@@ -1205,6 +1214,7 @@ export const AdminPanel: React.FC = () => {
   const filteredProducts = products.filter(
     (p) =>
       p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
+      (p.product_code && p.product_code.toLowerCase().includes(productSearch.toLowerCase())) ||
       (p.category && p.category.toLowerCase().includes(productSearch.toLowerCase()))
   );
 
@@ -1560,7 +1570,14 @@ export const AdminPanel: React.FC = () => {
                               </div>
                             )}
                             <div>
-                              <div className="font-bold text-slate-200">{p.name}</div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-slate-200">{p.name}</span>
+                                {p.product_code && (
+                                  <span className="px-1.5 py-0.5 rounded font-mono text-[9px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                    {p.product_code}
+                                  </span>
+                                )}
+                              </div>
                               <div className="text-[10px] text-slate-400 line-clamp-1 max-w-[240px] font-normal">
                                 {p.description || 'No description provided.'}
                               </div>
@@ -1643,7 +1660,14 @@ export const AdminPanel: React.FC = () => {
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-bold text-slate-200 text-sm truncate">{p.name}</h4>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <h4 className="font-bold text-slate-200 text-sm truncate">{p.name}</h4>
+                            {p.product_code && (
+                              <span className="px-1.5 py-0.2 rounded font-mono text-[8.5px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                {p.product_code}
+                              </span>
+                            )}
+                          </div>
                           <p className="text-[10px] text-slate-400 font-normal truncate">{p.category || 'Uncategorized'}</p>
                           <div className="flex flex-wrap items-center gap-1 mt-1">
                             {p.images && p.images.length > 1 && (
@@ -2032,13 +2056,13 @@ export const AdminPanel: React.FC = () => {
                       <Truck size={12} />
                       Logistics & Dispatch Management
                     </span>
-                    <span className="text-slate-400 font-mono text-xs">Postal Department Integration</span>
+                    <span className="text-slate-400 font-mono text-xs">Logistics & Fulfillment Integration</span>
                   </div>
                   <h2 className="text-xl font-black text-white mt-1 uppercase tracking-tight font-sans flex items-center gap-2">
-                    <span>Order Processing & Postal Fulfillment</span>
+                    <span>Order Processing & Fulfillment</span>
                   </h2>
                   <p className="text-slate-400 text-xs mt-0.5">
-                    Verify UPI payments, print postal parcel slips, enter postal consignment tracking numbers (India Post / Speed Post), and keep members updated with live tracking.
+                    Verify UPI payments, print shipping slips, enter consignment tracking numbers (Speed Post / Courier), and keep members updated with live tracking.
                   </p>
                 </div>
               </div>
@@ -2357,7 +2381,7 @@ export const AdminPanel: React.FC = () => {
                                     <span>Ready for Postal Dispatch</span>
                                   </span>
                                   <div className="text-[10px] text-slate-400">
-                                    Book parcel at Post Office and enter Consignment Number.
+                                    Book parcel with courier service and enter Consignment Number.
                                   </div>
                                 </div>
                               ) : isDispatched ? (
@@ -2365,7 +2389,7 @@ export const AdminPanel: React.FC = () => {
                                   <div className="flex items-center justify-between gap-1">
                                     <span className="text-[10px] font-bold text-sky-400 flex items-center gap-1">
                                       <Truck size={12} />
-                                      {o.courier_name || 'India Post (Speed Post)'}
+                                      {o.courier_name || 'Speed Post'}
                                     </span>
                                     <span className="px-1.5 py-0.2 bg-sky-500/20 text-sky-300 rounded text-[9px] font-bold uppercase">
                                       In Transit
@@ -2402,7 +2426,7 @@ export const AdminPanel: React.FC = () => {
                                       rel="noopener noreferrer"
                                       className="text-blue-400 hover:text-blue-300 font-bold inline-flex items-center gap-1 hover:underline cursor-pointer"
                                     >
-                                      <span>Track on Postal Dept Website</span>
+                                      <span>Track Shipment Online</span>
                                       <ExternalLink size={10} />
                                     </a>
                                   </div>
@@ -2647,7 +2671,7 @@ export const AdminPanel: React.FC = () => {
                         {isDispatched && (
                           <div className="bg-sky-950/30 border border-sky-500/20 p-2.5 rounded-lg space-y-1">
                             <div className="flex items-center justify-between text-[10px]">
-                              <span className="font-bold text-sky-400">{o.courier_name || 'India Post'}</span>
+                              <span className="font-bold text-sky-400">{o.courier_name || 'Speed Post'}</span>
                               <span className="text-sky-300 bg-sky-500/20 px-1.5 py-0.2 rounded text-[8px] font-bold uppercase">In Transit</span>
                             </div>
                             <div className="font-mono font-bold text-white text-xs select-all">
@@ -2659,7 +2683,7 @@ export const AdminPanel: React.FC = () => {
                               rel="noopener noreferrer"
                               className="text-blue-400 font-bold text-[10px] inline-flex items-center gap-1 hover:underline pt-0.5"
                             >
-                              <span>Track on Postal Dept Website</span>
+                              <span>Track Shipment Online</span>
                               <ExternalLink size={10} />
                             </a>
                           </div>
@@ -3308,8 +3332,27 @@ export const AdminPanel: React.FC = () => {
             <form onSubmit={handleProductSubmit} className="p-6 space-y-5 text-xs font-bold text-slate-200 overflow-y-auto flex-1">
               {/* 1. Core Product Details */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Product Code */}
+                <div className="space-y-1">
+                  <label className="text-[10px] text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                    <span>Product Code *</span>
+                    <span className="text-[9px] text-amber-400 font-mono lowercase">e.g. BW-PRD-001</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. BW-PRD-001"
+                    className="w-full bg-slate-950 border border-slate-850 rounded-lg px-3.5 py-2 text-amber-300 font-mono tracking-wider font-bold focus:outline-none focus:border-amber-500 uppercase placeholder:text-slate-600"
+                    value={productForm.product_code}
+                    onChange={(e) => setProductForm({ ...productForm, product_code: e.target.value.toUpperCase() })}
+                  />
+                  <span className="text-[9.5px] text-slate-500 font-normal block">
+                    Unique product identifier used by admin to search, identify, and inventory items.
+                  </span>
+                </div>
+
                 {/* Name */}
-                <div className="sm:col-span-2 space-y-1">
+                <div className="space-y-1">
                   <label className="text-[10px] text-slate-400 uppercase tracking-wider">Product Display Name *</label>
                   <input
                     type="text"
@@ -4066,8 +4109,8 @@ export const AdminPanel: React.FC = () => {
                 {/* 1. Postal Service / Courier Provider */}
                 <div>
                   <label className="text-[11px] font-bold text-slate-200 block mb-1.5 flex items-center justify-between">
-                    <span>1. Postal / Courier Carrier Name</span>
-                    <span className="text-[10px] text-slate-500 font-normal">e.g. India Post Speed Post</span>
+                    <span>1. Courier / Carrier Name</span>
+                    <span className="text-[10px] text-slate-500 font-normal">e.g. Speed Post, DTDC, Delhivery</span>
                   </label>
                   <select
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-amber-500 text-xs font-semibold cursor-pointer"
@@ -4075,7 +4118,7 @@ export const AdminPanel: React.FC = () => {
                     onChange={(e) => {
                       const val = e.target.value;
                       let defaultUrl = dispatchForm.tracking_url;
-                      if (val.includes('India Post')) {
+                      if (val.includes('Speed Post') || val.includes('Registered Post') || val.includes('Business Parcel')) {
                         defaultUrl = 'https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx';
                       } else if (val.includes('DTDC')) {
                         defaultUrl = 'https://www.dtdc.in/tracking/shipment-tracking.asp';
@@ -4087,14 +4130,14 @@ export const AdminPanel: React.FC = () => {
                       setDispatchForm({ ...dispatchForm, courier_name: val, tracking_url: defaultUrl });
                     }}
                   >
-                    <option value="India Post (Speed Post)">India Post (Speed Post) - Recommended</option>
-                    <option value="India Post (Registered Post)">India Post (Registered Post)</option>
-                    <option value="India Post (Business Parcel)">India Post (Business Parcel)</option>
+                    <option value="Speed Post">Speed Post (EMS)</option>
+                    <option value="Registered Post">Registered Post</option>
+                    <option value="Business Parcel">Business Parcel</option>
                     <option value="DTDC Courier">DTDC Express Courier</option>
                     <option value="Professional Couriers">The Professional Couriers</option>
                     <option value="Delhivery Express">Delhivery Express</option>
                     <option value="Blue Dart Express">Blue Dart Express</option>
-                    <option value="Other Postal Service">Other Postal / Courier Service</option>
+                    <option value="Other Courier">Other Courier / Logistics Service</option>
                   </select>
                 </div>
 
@@ -4102,7 +4145,7 @@ export const AdminPanel: React.FC = () => {
                 <div className="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800 space-y-1.5">
                   <label className="text-[11px] font-bold text-slate-100 flex items-center gap-1.5">
                     <span className="p-1 bg-amber-500/10 text-amber-400 rounded">#</span>
-                    <span>2. Postal Consignment / Tracking Number (Article No)</span>
+                    <span>2. Consignment / Tracking Number</span>
                     <span className="text-red-400">*</span>
                   </label>
                   <input
@@ -4114,7 +4157,7 @@ export const AdminPanel: React.FC = () => {
                     onChange={(e) => setDispatchForm({ ...dispatchForm, tracking_number: e.target.value.toUpperCase() })}
                   />
                   <span className="text-[10px] text-slate-400 block">
-                    💡 Enter the 13-character Speed Post / Postal Consignment number from your postal booking counter receipt. This will be shown on the user's order dashboard.
+                    💡 Enter the tracking / consignment number from your dispatch booking receipt. This will be shown on the user's order dashboard.
                   </span>
                 </div>
 
@@ -4136,7 +4179,7 @@ export const AdminPanel: React.FC = () => {
                   </div>
                   <input
                     type="url"
-                    placeholder="https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx"
+                    placeholder="https://carrier-website.com/tracking"
                     className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-slate-200 font-mono text-xs focus:outline-none focus:border-amber-500"
                     value={dispatchForm.tracking_url}
                     onChange={(e) => setDispatchForm({ ...dispatchForm, tracking_url: e.target.value })}

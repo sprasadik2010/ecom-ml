@@ -70,7 +70,7 @@ export const About: React.FC = () => {
             </div>
             <h3 className="font-serif text-lg sm:text-xl text-[#331B21] font-semibold">Integrity & Speed</h3>
             <p className="text-xs sm:text-sm text-[#7A6369] leading-relaxed">
-              Transparent team trees, automated commission calculations, and official India Post tracked logistics for dependable delivery.
+              Transparent team trees, automated commission calculations, and dependable tracked logistics for reliable delivery.
             </p>
           </div>
         </div>

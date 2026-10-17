@@ -181,6 +181,7 @@ def seed_db(only_if_empty: bool = True):
             db.rollback()
 
     product_cols = [
+        ("product_code", "VARCHAR"),
         ("images", "TEXT"),
         ("colors", "TEXT"),
         ("sizes", "TEXT"),

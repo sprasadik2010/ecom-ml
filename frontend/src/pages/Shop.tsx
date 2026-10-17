@@ -109,6 +109,7 @@ export const Shop: React.FC = () => {
       const q = searchQuery.toLowerCase();
       result = result.filter(p =>
         p.name.toLowerCase().includes(q) ||
+        (p.product_code && p.product_code.toLowerCase().includes(q)) ||
         (p.description && p.description.toLowerCase().includes(q)) ||
         (p.category && p.category.toLowerCase().includes(q))
       );

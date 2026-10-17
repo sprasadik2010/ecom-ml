@@ -201,7 +201,7 @@ export const App: React.FC = () => {
                   <div>
                     <h5 className="font-serif text-sm text-[#331B21] font-semibold mb-3">Logistics & Trust</h5>
                     <ul className="space-y-2">
-                      <li><span className="text-[#8C7077]">Tracked India Post Dispatch</span></li>
+                      <li><span className="text-[#8C7077]">Tracked Courier Dispatch</span></li>
                       <li><span className="text-[#8C7077]">Instant UPI Verification</span></li>
                       <li><Link to="/return-policy" className="hover:text-[#A8435D] text-[#8C2E42] font-semibold transition-colors underline decoration-[#B8586E]/40">3-Day Damage Return Policy</Link></li>
                       <li><Link to="/contact" className="hover:text-[#A8435D] transition-colors text-[#8C7077]">Support: 24/7 Helpline</Link></li>

@@ -313,9 +313,9 @@ export const Home: React.FC = () => {
             <div className="w-10 h-10 rounded-xl bg-[#E8F5EF] text-[#0D7A5C] flex items-center justify-center font-bold">
               <CheckCircle2 size={20} />
             </div>
-            <h4 className="font-serif text-lg text-[#331B21]">India Post Tracked Logistics</h4>
+            <h4 className="font-serif text-lg text-[#331B21]">Tracked Courier Logistics</h4>
             <p className="text-xs text-[#7A6369] leading-relaxed">
-              Every order is dispatched via official India Post tracked parcel logistics with direct postal tracking references.
+              Every order is dispatched via verified tracked courier and parcel logistics with direct consignment tracking references.
             </p>
           </div>
         </section>

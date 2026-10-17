@@ -138,7 +138,7 @@ export const ReturnPolicy: React.FC = () => {
           </ul>
 
           <div className="bg-[#FAF7F2] border border-[#EFE2DE] p-4 rounded-xl text-[11px] text-[#705960] leading-normal">
-            💡 <strong>Helpful Tip:</strong> When receiving parcels via India Post, please inspect the external box before opening and take a quick unboxing video or photos.
+            💡 <strong>Helpful Tip:</strong> When receiving parcels, please inspect the external box before opening and take a quick unboxing video or photos.
           </div>
         </div>
       </div>

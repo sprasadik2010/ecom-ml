@@ -75,15 +75,29 @@ def create_user(db: Session, user_data: UserCreate) -> User:
     return new_user
 
 
+from sqlalchemy import or_
+
 # --- Product CRUD ---
-def get_products(db: Session, skip: int = 0, limit: int = 100, category: Optional[str] = None) -> List[Product]:
+def get_products(db: Session, skip: int = 0, limit: int = 100, category: Optional[str] = None, search: Optional[str] = None) -> List[Product]:
     query = db.query(Product)
     if category:
         query = query.filter(Product.category == category)
+    if search:
+        search_pattern = f"%{search.strip()}%"
+        query = query.filter(
+            or_(
+                Product.name.ilike(search_pattern),
+                Product.product_code.ilike(search_pattern),
+                Product.description.ilike(search_pattern)
+            )
+        )
     return query.offset(skip).limit(limit).all()
 
 def get_product_by_id(db: Session, product_id: int) -> Optional[Product]:
     return db.query(Product).filter(Product.id == product_id).first()
+
+def get_product_by_code(db: Session, product_code: str) -> Optional[Product]:
+    return db.query(Product).filter(Product.product_code == product_code.strip()).first()
 
 
 # --- Order CRUD ---
@@ -133,7 +147,7 @@ def create_order(db: Session, user: User, order_data: OrderCreate) -> Order:
         shipping_zip=order_data.shipping_zip,
         shipping_phone=order_data.shipping_phone or user.phone_number,
         dispatch_status="pending",
-        courier_name="India Post",
+        courier_name="Speed Post",
         items=order_items
     )
     

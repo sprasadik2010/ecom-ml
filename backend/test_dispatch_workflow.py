@@ -65,9 +65,9 @@ def test_dispatch_workflow():
         print(f"✓ Order #{completed_order.id} approved by Admin. Status: {completed_order.status}")
         assert completed_order.status == "completed"
 
-        # 4. Admin Dispatches Order with India Post Tracking Consignment Number
+        # 4. Admin Dispatches Order with Tracking Consignment Number
         tracking_num = "EM987654321IN"
-        courier = "India Post - Speed Post"
+        courier = "Speed Post"
         tracking_url = f"https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx"
         
         completed_order.dispatch_status = "dispatched"

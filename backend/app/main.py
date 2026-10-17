@@ -108,7 +108,7 @@ def on_startup():
         ("shipping_zip", "VARCHAR"),
         ("shipping_phone", "VARCHAR"),
         ("dispatch_status", "VARCHAR DEFAULT 'pending'"),
-        ("courier_name", "VARCHAR DEFAULT 'India Post'"),
+        ("courier_name", "VARCHAR DEFAULT 'Speed Post'"),
         ("tracking_number", "VARCHAR"),
         ("tracking_url", "VARCHAR"),
         ("dispatched_at", "TIMESTAMP"),
@@ -122,8 +122,9 @@ def on_startup():
         except Exception:
             db.rollback()
 
-    # Migration for products table photo gallery views and variant options
+    # Migration for products table photo gallery views, product_code, and variant options
     for col, col_type in [
+        ("product_code", "VARCHAR"),
         ("images", "TEXT"),
         ("colors", "TEXT"),
         ("sizes", "TEXT"),
@@ -135,6 +136,12 @@ def on_startup():
             logger.info(f"Added {col} column to products table.")
         except Exception:
             db.rollback()
+
+    try:
+        db.execute(text("UPDATE products SET product_code = 'BW-PRD-' || LPAD(id::text, 4, '0') WHERE product_code IS NULL OR product_code = ''"))
+        db.commit()
+    except Exception:
+        db.rollback()
 
     # Migration for order_items table selected variant options
     for col, col_type in [
@@ -406,8 +413,8 @@ def get_user_tree(
 # --- Product Endpoints ---
 
 @app.get("/products", response_model=List[schemas.ProductResponse])
-def read_products(category: Optional[str] = None, db: Session = Depends(get_db)):
-    return crud.get_products(db, category=category)
+def read_products(category: Optional[str] = None, search: Optional[str] = None, db: Session = Depends(get_db)):
+    return crud.get_products(db, category=category, search=search)
 
 
 @app.get("/products/{product_id}", response_model=schemas.ProductResponse)
@@ -584,8 +591,8 @@ def serialize_product_data(data_dict: dict, db: Optional[Session] = None) -> dic
     if "sizes" in result and result["sizes"] is not None:
         result["sizes"] = json.dumps(result["sizes"] if isinstance(result["sizes"], list) else [])
 
-    if "options" in result and result["options"] is not None:
-        result["options"] = json.dumps(result["options"] if isinstance(result["options"], dict) else {})
+    if "product_code" in result and result["product_code"]:
+        result["product_code"] = str(result["product_code"]).strip().upper()
 
     return result
 
@@ -596,6 +603,17 @@ def admin_create_product(
     db: Session = Depends(get_db)
 ):
     product_dict = serialize_product_data(product_data.dict(), db=db)
+    
+    # If product_code is provided, check for uniqueness
+    if product_dict.get("product_code"):
+        existing = db.query(models.Product).filter(models.Product.product_code == product_dict["product_code"]).first()
+        if existing:
+            raise HTTPException(status_code=400, detail=f"Product Code '{product_dict['product_code']}' is already in use by '{existing.name}'.")
+    else:
+        # Generate default unique code if not provided
+        last_id = db.execute(text("SELECT COALESCE(MAX(id), 0) + 1 FROM products")).scalar() or 1
+        product_dict["product_code"] = f"BW-PRD-{str(last_id).zfill(4)}"
+
     product = models.Product(**product_dict)
     db.add(product)
     db.commit()
@@ -614,6 +632,15 @@ def admin_update_product(
         raise HTTPException(status_code=404, detail="Product not found")
     
     update_dict = serialize_product_data(product_data.dict(exclude_unset=True), db=db)
+    
+    if update_dict.get("product_code"):
+        existing = db.query(models.Product).filter(
+            models.Product.product_code == update_dict["product_code"],
+            models.Product.id != product_id
+        ).first()
+        if existing:
+            raise HTTPException(status_code=400, detail=f"Product Code '{update_dict['product_code']}' is already in use by another product ({existing.name}).")
+
     for key, value in update_dict.items():
         setattr(product, key, value)
     
@@ -741,7 +768,7 @@ def admin_dispatch_order(
 ):
     """
     Updates the dispatch and postal tracking information for an order.
-    Saves carrier (e.g. India Post / Speed Post), postal consignment tracking number,
+    Saves carrier (e.g. Speed Post / Courier), postal consignment tracking number,
     tracking website URL, dispatch timestamp, and delivery status.
     """
     import datetime

@@ -125,6 +125,7 @@ class LevelDefinitionResponse(BaseModel):
 
 # --- Product Schemas ---
 class ProductBase(BaseModel):
+    product_code: Optional[str] = None
     name: str
     description: Optional[str] = None
     price: float
@@ -141,6 +142,7 @@ class ProductCreate(ProductBase):
     pass
 
 class ProductUpdate(BaseModel):
+    product_code: Optional[str] = None
     name: Optional[str] = None
     description: Optional[str] = None
     price: Optional[float] = None
@@ -255,7 +257,7 @@ class OrderCheckoutRequest(BaseModel):
 
 class OrderDispatchUpdate(BaseModel):
     dispatch_status: str = "dispatched" # 'pending', 'dispatched', 'in_transit', 'delivered', 'cancelled'
-    courier_name: Optional[str] = "India Post"
+    courier_name: Optional[str] = "Speed Post"
     tracking_number: Optional[str] = None
     tracking_url: Optional[str] = "https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx"
     dispatch_notes: Optional[str] = None
@@ -281,7 +283,7 @@ class OrderResponse(BaseModel):
     
     # Postal dispatch & tracking details
     dispatch_status: Optional[str] = "pending"
-    courier_name: Optional[str] = "India Post"
+    courier_name: Optional[str] = "Speed Post"
     tracking_number: Optional[str] = None
     tracking_url: Optional[str] = None
     dispatched_at: Optional[datetime] = None

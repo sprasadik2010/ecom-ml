@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export interface Product {
   id: number;
+  product_code?: string;
   name: string;
   description: string;
   price: number;
