@@ -40,6 +40,13 @@ export const Navbar: React.FC = () => {
   const categoriesRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
+  const userInitial = user
+    ? (user.full_name?.trim() || user.username?.trim() || 'U')[0].toUpperCase()
+    : '';
+  const firstName = user
+    ? (user.full_name?.trim().split(' ')[0] || user.username)
+    : '';
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -334,11 +341,46 @@ export const Navbar: React.FC = () => {
             <button
               type="button"
               onClick={toggleUserMenu}
-              className="p-2 text-[#4A343A] hover:text-[#A8435D] hover:bg-[#FDF4F6] rounded-full transition-colors cursor-pointer"
-              title="My Account"
-              aria-label="Account"
+              className={`transition-all cursor-pointer flex items-center ${
+                user
+                  ? 'p-1 sm:pl-1 sm:pr-2.5 sm:py-1 bg-[#FDF2F5] hover:bg-[#FAE4EB] border border-[#F4D5DD] rounded-full gap-2 shadow-2xs'
+                  : 'p-2 text-[#4A343A] hover:text-[#A8435D] hover:bg-[#FDF4F6] rounded-full'
+              }`}
+              title={user ? `Signed in as @${user.username}` : 'Sign In / Register'}
+              aria-label={user ? 'User Menu' : 'Sign In'}
             >
-              <UserIcon size={20} />
+              {user ? (
+                <>
+                  {/* Circular Avatar with Active Online Dot */}
+                  <div className="relative">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-tr from-[#9E4758] to-[#C4677C] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                      {userInitial}
+                    </div>
+                    <span
+                      className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full"
+                      title="Online / Logged in"
+                    />
+                  </div>
+
+                  {/* Desktop Name Greeting & Caret */}
+                  <div className="hidden md:flex flex-col text-left leading-tight">
+                    <span className="text-[9px] text-[#8C7077] font-semibold uppercase tracking-wider">
+                      {user.is_admin ? 'Admin' : 'Member'}
+                    </span>
+                    <span className="text-xs font-bold text-[#331B21] max-w-[85px] truncate">
+                      {firstName}
+                    </span>
+                  </div>
+                  <ChevronDown
+                    size={13}
+                    className={`hidden md:inline text-[#8C7077] transition-transform duration-200 ${
+                      isUserMenuOpen ? 'rotate-180' : ''
+                    }`}
+                  />
+                </>
+              ) : (
+                <UserIcon size={20} />
+              )}
             </button>
 
             {/* User Dropdown Menu */}
@@ -352,9 +394,16 @@ export const Navbar: React.FC = () => {
                   {user ? (
                     <>
                       <div className="px-4 py-2 border-b border-[#F7EFE8]">
-                        <div className="text-[11px] text-[#8C7077] font-semibold uppercase tracking-wider">Signed in as</div>
-                        <div className="font-bold text-[#331B21] text-xs truncate">@{user.username}</div>
-                        <div className="text-[11px] text-[#A8435D] font-medium truncate">{user.full_name}</div>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#9E4758] to-[#C4677C] text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
+                            {userInitial}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="text-[10px] text-[#8C7077] font-semibold uppercase tracking-wider">Signed in as</div>
+                            <div className="font-bold text-[#331B21] text-xs truncate">@{user.username}</div>
+                            <div className="text-[11px] text-[#A8435D] font-medium truncate">{user.full_name}</div>
+                          </div>
+                        </div>
                         
                         {!user.is_admin && (
                           <div className="mt-2 bg-[#FAF2E8] border border-[#F4E1CA] px-2.5 py-1.5 rounded-lg flex items-center justify-between text-xs font-mono font-bold text-[#C07718]">
@@ -559,10 +608,16 @@ export const Navbar: React.FC = () => {
             {user ? (
               <div className="space-y-3 pt-1">
                 <div className="bg-[#FAF7F2] border border-[#EFE2DE] p-3 rounded-xl flex items-center justify-between">
-                  <div className="min-w-0 flex-1 pr-2">
-                    <div className="text-[10px] text-[#8C7077] font-semibold uppercase tracking-wider">Signed in as</div>
-                    <div className="font-bold text-[#331B21] text-xs truncate">@{user.username}</div>
-                    <div className="text-[11px] text-[#A8435D] font-medium truncate">{user.full_name}</div>
+                  <div className="flex items-center gap-3 min-w-0 flex-1 pr-2">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#9E4758] to-[#C4677C] text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs relative">
+                      {userInitial}
+                      <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[10px] text-[#8C7077] font-semibold uppercase tracking-wider">Signed in as</div>
+                      <div className="font-bold text-[#331B21] text-xs truncate">@{user.username}</div>
+                      <div className="text-[11px] text-[#A8435D] font-medium truncate">{user.full_name}</div>
+                    </div>
                   </div>
                   {!user.is_admin && (
                     <div className="bg-[#FAF2E8] border border-[#F4E1CA] px-2.5 py-1.5 rounded-lg text-right shrink-0">
