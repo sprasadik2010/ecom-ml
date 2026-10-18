@@ -1347,7 +1347,7 @@ export const AdminPanel: React.FC = () => {
       </div>
 
       {/* Main Tab Render Grid */}
-      {loading && !stats && !products.length ? (
+      {loading && activeTab === 'dashboard' && !stats ? (
         <div className="bg-slate-900 border border-slate-850 rounded-2xl p-16 text-center shadow-sm">
           <div className="h-10 w-10 border-4 border-rose-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-slate-400 text-sm font-bold font-mono">Syncing system database...</p>
@@ -1548,10 +1548,19 @@ export const AdminPanel: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-850 text-xs">
-                    {filteredProducts.length === 0 ? (
+                    {loading ? (
+                      <tr>
+                        <td colSpan={6} className="py-12 text-center text-slate-400">
+                          <div className="flex flex-col items-center justify-center gap-2">
+                            <RefreshCw size={20} className="animate-spin text-rose-500" />
+                            <span className="text-xs font-mono">Loading product catalog...</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : filteredProducts.length === 0 ? (
                       <tr>
                         <td colSpan={6} className="py-8 text-center text-slate-500">
-                          No products match your search.
+                          {productSearch ? 'No products match your search.' : 'No products found.'}
                         </td>
                       </tr>
                     ) : (
@@ -1644,9 +1653,14 @@ export const AdminPanel: React.FC = () => {
 
               {/* Mobile View Cards */}
               <div className="block md:hidden space-y-4">
-                {filteredProducts.length === 0 ? (
+                {loading ? (
+                  <div className="text-center py-10 text-slate-400 bg-slate-950/20 border border-slate-850 rounded-xl flex flex-col items-center justify-center gap-2">
+                    <RefreshCw size={20} className="animate-spin text-rose-500" />
+                    <span className="text-xs font-mono">Loading products...</span>
+                  </div>
+                ) : filteredProducts.length === 0 ? (
                   <div className="text-center py-6 text-slate-500 bg-slate-950/20 border border-slate-850 rounded-xl font-normal">
-                    No products match your search.
+                    {productSearch ? 'No products match your search.' : 'No products found.'}
                   </div>
                 ) : (
                   filteredProducts.map((p) => (
@@ -1749,7 +1763,16 @@ export const AdminPanel: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-850 text-xs">
-                    {categories.length === 0 ? (
+                    {loading ? (
+                      <tr>
+                        <td colSpan={3} className="py-12 text-center text-slate-400">
+                          <div className="flex flex-col items-center justify-center gap-2">
+                            <RefreshCw size={20} className="animate-spin text-rose-500" />
+                            <span className="text-xs font-mono">Loading categories...</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : categories.length === 0 ? (
                       <tr>
                         <td colSpan={3} className="py-8 text-center text-slate-500">
                           No categories created yet.
@@ -1801,7 +1824,12 @@ export const AdminPanel: React.FC = () => {
 
               {/* Mobile View Cards */}
               <div className="block md:hidden space-y-4">
-                {categories.length === 0 ? (
+                {loading ? (
+                  <div className="text-center py-10 text-slate-400 bg-slate-950/20 border border-slate-850 rounded-xl flex flex-col items-center justify-center gap-2">
+                    <RefreshCw size={20} className="animate-spin text-rose-500" />
+                    <span className="text-xs font-mono">Loading categories...</span>
+                  </div>
+                ) : categories.length === 0 ? (
                   <div className="text-center py-6 text-slate-500 bg-slate-950/20 border border-slate-850 rounded-xl font-normal">
                     No categories created yet.
                   </div>
@@ -1870,10 +1898,19 @@ export const AdminPanel: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-855 text-xs">
-                    {filteredUsers.length === 0 ? (
+                    {loading ? (
+                      <tr>
+                        <td colSpan={7} className="py-12 text-center text-slate-400">
+                          <div className="flex flex-col items-center justify-center gap-2">
+                            <RefreshCw size={20} className="animate-spin text-rose-500" />
+                            <span className="text-xs font-mono">Loading members list...</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : filteredUsers.length === 0 ? (
                       <tr>
                         <td colSpan={7} className="py-8 text-center text-slate-500">
-                          No members found.
+                          {userSearch ? 'No members match your search.' : 'No members found.'}
                         </td>
                       </tr>
                     ) : (
@@ -1970,9 +2007,14 @@ export const AdminPanel: React.FC = () => {
 
               {/* Mobile View Cards */}
               <div className="block md:hidden space-y-4 text-xs font-sans">
-                {filteredUsers.length === 0 ? (
+                {loading ? (
+                  <div className="text-center py-10 text-slate-400 bg-slate-950/20 border border-slate-850 rounded-xl flex flex-col items-center justify-center gap-2">
+                    <RefreshCw size={20} className="animate-spin text-rose-500" />
+                    <span className="text-xs font-mono">Loading members...</span>
+                  </div>
+                ) : filteredUsers.length === 0 ? (
                   <div className="text-center py-6 text-slate-500 bg-slate-950/20 border border-slate-850 rounded-xl font-normal">
-                    No members found.
+                    {userSearch ? 'No members match your search.' : 'No members found.'}
                   </div>
                 ) : (
                   filteredUsers.map((u) => {
@@ -2203,7 +2245,16 @@ export const AdminPanel: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-850 text-xs">
-                    {filteredOrders.length === 0 ? (
+                    {loading ? (
+                      <tr>
+                        <td colSpan={6} className="py-12 text-center text-slate-400">
+                          <div className="flex flex-col items-center justify-center gap-2">
+                            <RefreshCw size={20} className="animate-spin text-rose-500" />
+                            <span className="text-xs font-mono">Loading orders...</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : filteredOrders.length === 0 ? (
                       <tr>
                         <td colSpan={6} className="py-12 text-center text-slate-500">
                           <Package size={32} className="mx-auto text-slate-600 mb-2" />
@@ -2564,7 +2615,12 @@ export const AdminPanel: React.FC = () => {
 
               {/* Mobile View Cards */}
               <div className="block md:hidden space-y-4 font-sans text-xs">
-                {filteredOrders.length === 0 ? (
+                {loading ? (
+                  <div className="text-center py-10 text-slate-400 bg-slate-950/20 border border-slate-855 rounded-xl flex flex-col items-center justify-center gap-2">
+                    <RefreshCw size={20} className="animate-spin text-rose-500" />
+                    <span className="text-xs font-mono">Loading orders...</span>
+                  </div>
+                ) : filteredOrders.length === 0 ? (
                   <div className="text-center py-8 text-slate-500 bg-slate-950/20 border border-slate-855 rounded-xl font-normal">
                     <Package size={28} className="mx-auto text-slate-600 mb-1" />
                     <div>No orders matched your filters.</div>
@@ -2772,7 +2828,16 @@ export const AdminPanel: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-850 text-xs">
-                    {commissions.length === 0 ? (
+                    {loading ? (
+                      <tr>
+                        <td colSpan={6} className="py-12 text-center text-slate-400">
+                          <div className="flex flex-col items-center justify-center gap-2">
+                            <RefreshCw size={20} className="animate-spin text-rose-500" />
+                            <span className="text-xs font-mono">Loading commission ledger logs...</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : commissions.length === 0 ? (
                       <tr>
                         <td colSpan={6} className="py-8 text-center text-slate-500">
                           No commission ledger logs recorded.
@@ -2827,7 +2892,12 @@ export const AdminPanel: React.FC = () => {
 
               {/* Mobile View Cards */}
               <div className="block md:hidden space-y-4 font-sans text-xs">
-                {commissions.length === 0 ? (
+                {loading ? (
+                  <div className="text-center py-10 text-slate-400 bg-slate-950/20 border border-slate-850 rounded-xl flex flex-col items-center justify-center gap-2">
+                    <RefreshCw size={20} className="animate-spin text-rose-500" />
+                    <span className="text-xs font-mono">Loading commissions...</span>
+                  </div>
+                ) : commissions.length === 0 ? (
                   <div className="text-center py-6 text-slate-555 bg-slate-950/20 border border-slate-850 rounded-xl font-normal">
                     No commission ledger logs recorded.
                   </div>
@@ -2943,7 +3013,16 @@ export const AdminPanel: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-850/60">
-                      {rewards.length === 0 ? (
+                      {loading ? (
+                        <tr>
+                          <td colSpan={6} className="py-10 text-center text-slate-400">
+                            <div className="flex flex-col items-center justify-center gap-2">
+                              <RefreshCw size={20} className="animate-spin text-rose-500" />
+                              <span className="text-xs font-mono">Loading rank royalty schedules...</span>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : rewards.length === 0 ? (
                         <tr>
                           <td colSpan={6} className="py-10 text-center text-slate-500">
                             No member rank royalty schedules created yet.
@@ -3001,7 +3080,12 @@ export const AdminPanel: React.FC = () => {
 
                 {/* Mobile View */}
                 <div className="block md:hidden space-y-3">
-                  {rewards.length === 0 ? (
+                  {loading ? (
+                    <div className="text-center py-8 text-slate-400 bg-slate-950/20 border border-slate-850 rounded-xl flex flex-col items-center justify-center gap-2">
+                      <RefreshCw size={20} className="animate-spin text-rose-500" />
+                      <span className="text-xs font-mono">Loading rewards...</span>
+                    </div>
+                  ) : rewards.length === 0 ? (
                     <div className="text-center py-6 text-slate-500 bg-slate-950/20 border border-slate-850 rounded-xl">
                       No member rank royalty schedules created yet.
                     </div>
@@ -3192,7 +3276,12 @@ export const AdminPanel: React.FC = () => {
                   </span>
                 </div>
 
-                {imgbbImages.length === 0 ? (
+                {loading ? (
+                  <div className="py-16 text-center text-slate-400 text-xs flex flex-col items-center justify-center gap-2">
+                    <RefreshCw size={24} className="animate-spin text-rose-500" />
+                    <span className="font-mono">Loading media gallery...</span>
+                  </div>
+                ) : imgbbImages.length === 0 ? (
                   <div className="py-16 text-center text-slate-500 text-xs">
                     <UploadCloud size={32} className="mx-auto mb-2 text-slate-700" />
                     <p className="font-semibold text-slate-400">No images uploaded yet</p>

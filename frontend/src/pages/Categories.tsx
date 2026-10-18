@@ -55,7 +55,17 @@ export const Categories: React.FC = () => {
         </div>
 
         {/* Categories Grid or Clean Empty State */}
-        {categories.length === 0 && !loading ? (
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="bg-white rounded-3xl p-6 border border-[#EFE2DE] animate-pulse space-y-4">
+                <div className="w-20 h-20 rounded-2xl bg-[#FAF7F2]" />
+                <div className="h-6 bg-[#F2E8E4] rounded w-2/3" />
+                <div className="h-4 bg-[#F2E8E4] rounded w-full" />
+              </div>
+            ))}
+          </div>
+        ) : categories.length === 0 ? (
           <div className="bg-white rounded-3xl p-10 sm:p-14 border border-[#EFE2DE] text-center max-w-md mx-auto space-y-4 shadow-xs">
             <div className="w-16 h-16 bg-[#FDF2F5] text-[#A8435D] rounded-2xl mx-auto flex items-center justify-center">
               <FolderOpen size={32} />
