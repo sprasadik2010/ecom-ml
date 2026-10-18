@@ -3,9 +3,11 @@ import os
 import re
 import shutil
 from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Request, BackgroundTasks
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import timedelta
@@ -176,17 +178,28 @@ origins = [
     "http://127.0.0.1:8000",
     "https://ecom-ml-frontend.onrender.com",
     "https://ecom-ml-backend.onrender.com",
-    "https://buyway.biz"
+    "https://buyway.biz",
+    "https://www.buyway.biz",
+    "http://buyway.biz",
+    "http://www.buyway.biz",
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?|https://.*\.onrender\.com|https://.*\.vercel\.app|https://.*\.netlify\.app",
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?|https://.*\.onrender\.com|https://.*\.vercel\.app|https://.*\.netlify\.app|https?://(www\.)?buyway\.biz",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.exception(f"Unhandled server error on {request.method} {request.url}: {exc}")
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": f"Internal Server Error: {str(exc)}"},
+    )
 
 # Root endpoint
 @app.get("/")
@@ -591,6 +604,12 @@ def serialize_product_data(data_dict: dict, db: Optional[Session] = None) -> dic
     if "sizes" in result and result["sizes"] is not None:
         result["sizes"] = json.dumps(result["sizes"] if isinstance(result["sizes"], list) else [])
 
+    if "options" in result:
+        if isinstance(result["options"], (dict, list)):
+            result["options"] = json.dumps(result["options"])
+        elif result["options"] is None:
+            result["options"] = "{}"
+
     if "product_code" in result and result["product_code"]:
         result["product_code"] = str(result["product_code"]).strip().upper()
 
@@ -614,7 +633,10 @@ def admin_create_product(
         last_id = db.execute(text("SELECT COALESCE(MAX(id), 0) + 1 FROM products")).scalar() or 1
         product_dict["product_code"] = f"BW-PRD-{str(last_id).zfill(4)}"
 
-    product = models.Product(**product_dict)
+    # Filter to only valid column attributes on the Product model
+    valid_cols = {c.name for c in models.Product.__table__.columns}
+    filtered_dict = {k: v for k, v in product_dict.items() if k in valid_cols}
+    product = models.Product(**filtered_dict)
     db.add(product)
     db.commit()
     db.refresh(product)
@@ -641,8 +663,10 @@ def admin_update_product(
         if existing:
             raise HTTPException(status_code=400, detail=f"Product Code '{update_dict['product_code']}' is already in use by another product ({existing.name}).")
 
+    valid_cols = {c.name for c in models.Product.__table__.columns}
     for key, value in update_dict.items():
-        setattr(product, key, value)
+        if key in valid_cols:
+            setattr(product, key, value)
     
     # Ensure primary image_url stays synced if images was updated
     if product.images and not product.image_url:
