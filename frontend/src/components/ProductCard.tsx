@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart, Product } from '../context/CartContext';
 import { ShoppingBag, Heart, Award, Eye } from 'lucide-react';
@@ -10,6 +10,19 @@ interface ProductCardProps {
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addToCart } = useCart();
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
+  const rawImageUrl = (product.image_url || (product.images && product.images[0]) || '').trim();
+  const hasValidImage = Boolean(
+    rawImageUrl &&
+    rawImageUrl !== 'null' &&
+    rawImageUrl !== 'undefined' &&
+    !imageError
+  );
+
+  useEffect(() => {
+    setImageError(false);
+  }, [product.image_url, product.images]);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -30,13 +43,20 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   return (
     <div className="bg-white border border-[#EFE2DE] rounded-2xl overflow-hidden flex flex-col hover:border-[#B8586E]/40 hover:shadow-[0_12px_32px_rgba(168,67,93,0.08)] transition-all duration-300 group relative">
       {/* Product Image Container */}
-      <Link to={`/products/${product.id}`} className="block relative aspect-[3/4] overflow-hidden bg-[#FAF7F2] border-b border-[#F0E4E0]">
-        <img
-          src={product.image_url || ''}
-          alt={product.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          loading="lazy"
-        />
+      <Link to={`/products/${product.id}`} className="block relative aspect-[3/4] overflow-hidden bg-white border-b border-[#F0E4E0]">
+        {hasValidImage ? (
+          <img
+            src={rawImageUrl}
+            alt=""
+            onError={() => setImageError(true)}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            loading="lazy"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-white text-[#A89498] text-xs select-none">
+            No image available
+          </div>
+        )}
         
         {/* Category Pill */}
         <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-xs text-[#8C2E42] text-[9px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-[#EFE2DE] shadow-xs">
