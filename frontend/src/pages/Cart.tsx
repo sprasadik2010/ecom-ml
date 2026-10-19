@@ -1,8 +1,33 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { Trash2, ShoppingBag, ArrowRight, Award, ChevronLeft } from 'lucide-react';
+
+const CartItemImage: React.FC<{ src?: string; sizeClass: string }> = ({ src, sizeClass }) => {
+  const [hasError, setHasError] = useState(false);
+  const cleanSrc = (src || '').trim();
+  const isValid = Boolean(cleanSrc && cleanSrc !== 'null' && cleanSrc !== 'undefined' && !hasError);
+
+  if (!isValid) {
+    return (
+      <div className={`${sizeClass} rounded bg-slate-950 border border-slate-800 shrink-0 flex items-center justify-center text-center p-1 select-none`}>
+        <span className="text-[9px] text-slate-500 font-medium leading-tight">
+          No image
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={cleanSrc}
+      alt=""
+      onError={() => setHasError(true)}
+      className={`${sizeClass} object-cover rounded bg-slate-950 border border-slate-800 shrink-0`}
+    />
+  );
+};
 
 export const Cart: React.FC = () => {
   const { items, updateQuantity, removeFromCart, totalAmount, totalSw } = useCart();
@@ -62,10 +87,9 @@ export const Cart: React.FC = () => {
                   <div className="hidden md:grid p-4 grid-cols-12 gap-2 items-center text-xs">
                     {/* Name & Image */}
                     <div className="col-span-6 flex gap-3 items-center">
-                      <img
+                      <CartItemImage
                         src={item.product.image_url}
-                        alt={item.product.name}
-                        className="w-12 h-12 object-cover rounded bg-slate-950 border border-slate-800 shrink-0"
+                        sizeClass="w-12 h-12"
                       />
                       <div className="flex flex-col">
                         <Link to={`/products/${item.product.id}`} className="font-extrabold text-slate-200 hover:text-amber-500 transition-colors line-clamp-1">
@@ -132,10 +156,9 @@ export const Cart: React.FC = () => {
                   <div className="block md:hidden p-3.5 sm:p-4 relative text-xs">
                     {/* Top Section: Image, Name, and Delete Button */}
                     <div className="flex gap-3 items-start pr-8">
-                      <img
+                      <CartItemImage
                         src={item.product.image_url}
-                        alt={item.product.name}
-                        className="w-16 h-16 object-cover rounded bg-slate-950 border border-slate-800 shrink-0"
+                        sizeClass="w-16 h-16"
                       />
                       <div className="flex flex-col min-w-0">
                         <Link to={`/products/${item.product.id}`} className="font-extrabold text-slate-200 hover:text-amber-500 transition-colors line-clamp-2 leading-tight">

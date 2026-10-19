@@ -285,7 +285,10 @@ export const ProductDetails: React.FC = () => {
                   >
                     <img
                       src={imgUrl}
-                      alt={`${product.name} view ${idx + 1}`}
+                      alt=""
+                      onError={(e) => {
+                        (e.target as HTMLElement).style.display = 'none';
+                      }}
                       className="w-full h-full object-contain rounded-2xl transition-all duration-300 group-hover:scale-102 cursor-pointer pointer-events-none"
                       draggable={false}
                     />
@@ -293,7 +296,7 @@ export const ProductDetails: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <div className="text-[#A89498] text-xs">No image available</div>
+              <div className="text-[#A89498] text-xs">No image</div>
             )}
 
             {/* Photo Counter & Swipe Navigation Badge */}

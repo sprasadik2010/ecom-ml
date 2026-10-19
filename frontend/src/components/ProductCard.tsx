@@ -54,7 +54,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-white text-[#A89498] text-xs select-none">
-            No image available
+            No image
           </div>
         )}
         

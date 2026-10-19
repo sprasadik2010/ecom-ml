@@ -752,7 +752,10 @@ export const Orders: React.FC = () => {
                               {item.product?.image_url ? (
                                 <img
                                   src={item.product.image_url}
-                                  alt={item.product.name}
+                                  alt=""
+                                  onError={(e) => {
+                                    (e.target as HTMLElement).style.display = 'none';
+                                  }}
                                   className="h-full w-full object-cover"
                                 />
                               ) : (
