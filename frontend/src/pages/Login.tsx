@@ -82,7 +82,15 @@ export const Login: React.FC = () => {
           </div>
 
           <div>
-            <label className="text-[#705960] block mb-1 font-medium">Password</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-[#705960] font-medium">Password</label>
+              <Link
+                to="/forgot-password"
+                className="text-xs text-[#B8586E] hover:text-[#A1455B] font-semibold transition-colors"
+              >
+                Forgot Password?
+              </Link>
+            </div>
             <input
               type="password"
               required

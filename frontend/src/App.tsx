@@ -13,6 +13,8 @@ import { Commissions } from './pages/Commissions';
 import { Orders } from './pages/Orders';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
+import { ForgotPassword } from './pages/ForgotPassword';
+import { ResetPassword } from './pages/ResetPassword';
 import { AdminPanel } from './pages/AdminPanel';
 import { ReturnPolicy } from './pages/ReturnPolicy';
 import { Shop } from './pages/Shop';
@@ -118,6 +120,8 @@ export const App: React.FC = () => {
                 {/* Authentication routes */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<StoreRoute><Register /></StoreRoute>} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
 
                 {/* Protected Checkout route */}
                 <Route

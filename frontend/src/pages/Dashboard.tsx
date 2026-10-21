@@ -276,7 +276,7 @@ export const Dashboard: React.FC = () => {
   };
 
   const isActive = user.status === 'active';
-  const progressPercent = Math.min((user.personal_sw / 50) * 100, 100);
+  const progressPercent = Math.min((user.personal_sw / 1) * 100, 100);
   const matchedSW = user.total_matched_sw || 0;
   const left100Nodes = user.left_100_nodes || 0;
   const right100Nodes = user.right_100_nodes || 0;
@@ -372,7 +372,7 @@ export const Dashboard: React.FC = () => {
           <div className="flex-1">
             <h4 className="font-extrabold text-sm text-red-200 mb-1">Your Account is Currently Inactive!</h4>
             <p className="text-xs text-slate-400 leading-normal max-w-2xl font-normal">
-              You are currently placed in the business tree but **cannot earn team matching commissions (₹10/SW)** from child leg transactions. Buy products to accumulate at least <span className="text-amber-400 font-bold">50 SW Points</span> to activate your commissions!
+              You are currently placed in the business tree but **cannot earn team matching commissions (₹10/SW)** from child leg transactions. Buy products to accumulate at least <span className="text-amber-400 font-bold">1 SW Point</span> to activate your commissions!
             </p>
 
             {user.pending_sw && user.pending_sw > 0 ? (
@@ -385,7 +385,7 @@ export const Dashboard: React.FC = () => {
             {/* Progress Bar */}
             <div className="mt-3 max-w-sm">
               <div className="flex justify-between text-[10px] text-slate-400 font-mono mb-1">
-                <span>Personal: {user.personal_sw} / 50 SW {user.pending_sw && user.pending_sw > 0 ? `(+${user.pending_sw} SW Pending)` : ''}</span>
+                <span>Personal: {user.personal_sw} / 1 SW {user.pending_sw && user.pending_sw > 0 ? `(+${user.pending_sw} SW Pending)` : ''}</span>
                 <span>{progressPercent.toFixed(0)}%</span>
               </div>
               <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-800">

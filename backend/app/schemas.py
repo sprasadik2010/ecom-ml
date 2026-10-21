@@ -417,3 +417,31 @@ class ImageUploadResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
+# --- Password Reset Schemas ---
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
+    @field_validator('new_password')
+    @classmethod
+    def validate_password(cls, v: str) -> str:
+        if not v:
+            raise ValueError("Password is required.")
+        if ' ' in v or re.search(r'\s', v):
+            raise ValueError("Password cannot contain spaces.")
+        if len(v) < 6:
+            raise ValueError("Password must be at least 6 characters long.")
+        return v
+
+class VerifyResetTokenResponse(BaseModel):
+    valid: bool
+    email: str
+    username: str
+
+class MessageResponse(BaseModel):
+    message: str
+

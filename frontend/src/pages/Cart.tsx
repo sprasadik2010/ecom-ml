@@ -268,13 +268,13 @@ export const Cart: React.FC = () => {
             {/*  Info Blurb */}
             {user && user.status === 'inactive' && (
               <div className="bg-blue-950/20 border border-blue-900 rounded p-3 text-[10px] text-slate-400 leading-normal">
-                {totalSw >= 50 ? (
+                {totalSw >= 1 ? (
                   <p className="text-emerald-400 font-bold">
                     🎉 This purchase of {totalSw} SW will ACTIVATE your member status!
                   </p>
                 ) : (
                   <p>
-                    💡 Add more items to reach <span className="text-amber-400 font-bold">50 SW</span> and activate your account tree status! (Current Cart: {totalSw} SW)
+                    💡 Add more items to reach <span className="text-amber-400 font-bold">1 SW</span> and activate your account tree status! (Current Cart: {totalSw} SW)
                   </p>
                 )}
               </div>

@@ -94,9 +94,9 @@ export const About: React.FC = () => {
 
             <div className="p-5 bg-[#FAF7F2] rounded-2xl border border-[#E8D7DC] space-y-2">
               <div className="text-sm font-bold text-[#A8435D]">Step 2</div>
-              <h4 className="font-semibold text-sm text-[#331B21]">50 SW Activation</h4>
+              <h4 className="font-semibold text-sm text-[#331B21]">1 SW Activation</h4>
               <p className="text-xs text-[#7A6369] leading-relaxed">
-                Make your first purchase accumulating at least 50 SW volume points to activate your member ID and team node.
+                Make your first purchase accumulating at least 1 SW volume point to activate your member ID and team node.
               </p>
             </div>
 

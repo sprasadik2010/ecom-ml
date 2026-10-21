@@ -43,7 +43,7 @@ export const Contact: React.FC = () => {
     },
     {
       q: 'How does personal member activation work?',
-      a: 'To activate your member ID and begin qualifying for 1:1 team matching pairs, you need a minimum personal cumulative purchase of 50 SW volume points.'
+      a: 'To activate your member ID and begin qualifying for 1:1 team matching pairs, you need a minimum personal cumulative purchase of 1 SW volume point.'
     }
   ];
 

@@ -13,7 +13,7 @@ from typing import List, Optional
 from datetime import timedelta
 
 from .database import get_db, engine, Base
-from . import models, schemas, crud, auth, imgbb
+from . import models, schemas, crud, auth, imgbb, email_utils
 from .config import settings
 
 # Configure logging
@@ -348,6 +348,82 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = D
         data={"sub": user.username}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+# --- Password Reset Endpoints ---
+
+@app.post("/auth/forgot-password", response_model=schemas.MessageResponse)
+def forgot_password(
+    request_data: schemas.ForgotPasswordRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)
+):
+    """
+    Accepts an email address and dispatches a password reset link.
+    Returns a uniform message regardless of email existence to prevent user enumeration.
+    """
+    email = request_data.email.strip().lower()
+    user = crud.get_user_by_email(db, email)
+    if user:
+        token = auth.create_password_reset_token(user.email)
+        background_tasks.add_task(
+            email_utils.send_password_reset_email,
+            to_email=user.email,
+            recipient_name=user.full_name or user.username,
+            reset_token=token
+        )
+    return {
+        "message": "If an account exists with this email address, a password reset link has been sent. Please check your inbox and spam folder."
+    }
+
+
+@app.get("/auth/verify-reset-token", response_model=schemas.VerifyResetTokenResponse)
+def verify_reset_token(token: str, db: Session = Depends(get_db)):
+    """
+    Validates a password reset token from the email link.
+    """
+    email = auth.verify_password_reset_token(token)
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The password reset link is invalid or has expired. Please request a new one."
+        )
+    user = crud.get_user_by_email(db, email)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Account associated with this reset link was not found."
+        )
+    return {"valid": True, "email": user.email, "username": user.username}
+
+
+@app.post("/auth/reset-password", response_model=schemas.MessageResponse)
+def reset_password(req: schemas.ResetPasswordRequest, db: Session = Depends(get_db)):
+    """
+    Resets the user's password given a valid reset token.
+    """
+    email = auth.verify_password_reset_token(req.token)
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The password reset link is invalid or has expired. Please request a new one."
+        )
+    user = crud.get_user_by_email(db, email)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Account associated with this reset link was not found."
+        )
+
+    # Hash and update the new password
+    user.hashed_password = auth.get_password_hash(req.new_password)
+    db.add(user)
+    db.commit()
+    logger.info(f"Password successfully reset for user @{user.username} ({user.email})")
+
+    return {
+        "message": "Your password has been successfully reset! You can now log in with your new password."
+    }
 
 
 # --- User Endpoints ---
