@@ -820,6 +820,59 @@ def admin_adjust_user_wallet(
     db.refresh(user)
     return user
 
+@app.put("/admin/users/{user_id}/credentials", response_model=schemas.UserResponse)
+def admin_update_user_credentials(
+    user_id: int,
+    cred_data: schemas.UserUpdateCredentials,
+    current_admin: models.User = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    has_changes = False
+
+    # 1. Update username if provided and different
+    if cred_data.username and cred_data.username.strip():
+        new_username = cred_data.username.strip().lower()
+        if new_username != user.username:
+            # Check for conflict with existing users
+            existing_user = db.query(models.User).filter(
+                models.User.username == new_username,
+                models.User.id != user.id
+            ).first()
+            if existing_user:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Username '@{new_username}' is already in use by another account."
+                )
+
+            old_username = user.username
+            user.username = new_username
+            has_changes = True
+            logger.info(
+                f"Admin @{current_admin.username} updated username for User #{user.id} "
+                f"from @{old_username} to @{new_username}"
+            )
+
+    # 2. Update password if provided
+    if cred_data.password and cred_data.password.strip():
+        user.hashed_password = auth.get_password_hash(cred_data.password.strip())
+        has_changes = True
+        logger.info(f"Admin @{current_admin.username} updated password for User #{user.id} (@{user.username})")
+
+    if not has_changes:
+        raise HTTPException(
+            status_code=400,
+            detail="No changes detected. Please specify a new username or new password."
+        )
+
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
 @app.get("/admin/orders", response_model=List[schemas.OrderResponse])
 def admin_get_orders(
     current_admin: models.User = Depends(auth.get_current_admin),

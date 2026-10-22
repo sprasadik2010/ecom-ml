@@ -319,6 +319,37 @@ class CommissionResponse(BaseModel):
 
 
 # --- Admin Action Schemas ---
+class UserUpdateCredentials(BaseModel):
+    username: Optional[str] = None
+    password: Optional[str] = None
+
+    @field_validator('username')
+    @classmethod
+    def validate_username(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            v = v.strip().lower()
+            if not v:
+                return None
+            if ' ' in v or re.search(r'\s', v):
+                raise ValueError("Username cannot contain spaces.")
+            if len(v) < 3:
+                raise ValueError("Username must be at least 3 characters long.")
+            if not re.match(r'^[a-z0-9_]+$', v):
+                raise ValueError("Username can only contain letters, numbers, and underscores.")
+            return v
+        return None
+
+    @field_validator('password')
+    @classmethod
+    def validate_password(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and v != "":
+            if ' ' in v or re.search(r'\s', v):
+                raise ValueError("Password cannot contain spaces.")
+            if len(v) < 6:
+                raise ValueError("Password must be at least 6 characters long.")
+            return v
+        return None
+
 class UserUpdateStatus(BaseModel):
     status: str # 'active' or 'inactive'
 

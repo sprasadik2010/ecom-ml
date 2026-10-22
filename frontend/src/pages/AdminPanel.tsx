@@ -40,6 +40,8 @@ import {
   Palette,
   Tag,
   Eye,
+  EyeOff,
+  Lock,
   ArrowUp,
   ArrowDown,
   Cloud,
@@ -627,6 +629,16 @@ export const AdminPanel: React.FC = () => {
     description: ''
   });
 
+  // User Credentials Modal (Change Username / Password)
+  const [isCredentialsModalOpen, setIsCredentialsModalOpen] = useState(false);
+  const [credentialsTargetUser, setCredentialsTargetUser] = useState<UserListItem | null>(null);
+  const [credentialsForm, setCredentialsForm] = useState({
+    username: '',
+    password: ''
+  });
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [isSubmittingCredentials, setIsSubmittingCredentials] = useState(false);
+
   // Show status alerts temporarily
   const triggerSuccess = (msg: string) => {
     setSuccess(msg);
@@ -1003,6 +1015,91 @@ export const AdminPanel: React.FC = () => {
       fetchUsers();
     } catch (err: any) {
       triggerError(err.message || 'Wallet adjustment failed.');
+    }
+  };
+
+  const handleOpenCredentialsModal = (user: UserListItem) => {
+    setCredentialsTargetUser(user);
+    setCredentialsForm({
+      username: user.username,
+      password: ''
+    });
+    setShowNewPassword(false);
+    setIsCredentialsModalOpen(true);
+  };
+
+  const handleCredentialsSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!credentialsTargetUser) return;
+
+    const trimmedUsername = credentialsForm.username.trim().toLowerCase();
+    const trimmedPassword = credentialsForm.password.trim();
+
+    if (!trimmedUsername && !trimmedPassword) {
+      triggerError('Please provide a valid username or new password.');
+      return;
+    }
+
+    if (trimmedUsername) {
+      if (trimmedUsername.length < 3) {
+        triggerError('Username must be at least 3 characters.');
+        return;
+      }
+      if (/\s/.test(trimmedUsername)) {
+        triggerError('Username cannot contain spaces.');
+        return;
+      }
+      if (!/^[a-z0-9_]+$/.test(trimmedUsername)) {
+        triggerError('Username can only contain letters, numbers, and underscores.');
+        return;
+      }
+    }
+
+    if (trimmedPassword) {
+      if (trimmedPassword.length < 6) {
+        triggerError('Password must be at least 6 characters.');
+        return;
+      }
+      if (/\s/.test(trimmedPassword)) {
+        triggerError('Password cannot contain spaces.');
+        return;
+      }
+    }
+
+    const payload: { username?: string; password?: string } = {};
+    if (trimmedUsername && trimmedUsername !== credentialsTargetUser.username) {
+      payload.username = trimmedUsername;
+    }
+    if (trimmedPassword) {
+      payload.password = trimmedPassword;
+    }
+
+    if (Object.keys(payload).length === 0) {
+      triggerError('No changes detected. Modify the username or enter a new password.');
+      return;
+    }
+
+    setIsSubmittingCredentials(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/users/${credentialsTargetUser.id}/credentials`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || 'Failed to update credentials.');
+      }
+      triggerSuccess(`Credentials updated successfully for @${data.username || credentialsTargetUser.username}!`);
+      setIsCredentialsModalOpen(false);
+      fetchUsers();
+    } catch (err: any) {
+      triggerError(err.message || 'Credentials update failed.');
+    } finally {
+      setIsSubmittingCredentials(false);
     }
   };
 
@@ -1995,6 +2092,14 @@ export const AdminPanel: React.FC = () => {
                                 >
                                   Adjust Bal
                                 </button>
+                                <button
+                                  onClick={() => handleOpenCredentialsModal(u)}
+                                  className="px-2 py-1 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-[10px] font-bold text-blue-400 rounded cursor-pointer transition-colors flex items-center gap-1"
+                                  title="Edit Username or Password"
+                                >
+                                  <Key size={11} />
+                                  Credentials
+                                </button>
                               </div>
                             </td>
                           </tr>
@@ -2077,6 +2182,10 @@ export const AdminPanel: React.FC = () => {
                           </button>
                           <button onClick={() => handleOpenWalletModal(u)} className="flex-1 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-[10px] font-bold text-amber-500 rounded cursor-pointer transition-colors text-center">
                             Adjust Balance
+                          </button>
+                          <button onClick={() => handleOpenCredentialsModal(u)} className="flex-1 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-[10px] font-bold text-blue-400 rounded cursor-pointer transition-colors text-center flex items-center justify-center gap-1">
+                            <Key size={11} />
+                            Credentials
                           </button>
                         </div>
                       </div>
@@ -4089,6 +4198,123 @@ export const AdminPanel: React.FC = () => {
                   className="px-6 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-full font-bold transition-colors cursor-pointer shadow-sm"
                 >
                   Submit Adjustment
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* USER CREDENTIALS (USERNAME & PASSWORD) MODAL */}
+      {isCredentialsModalOpen && credentialsTargetUser && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in font-sans">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl animate-scale-up">
+            <div className="flex items-center justify-between border-b border-slate-800 px-6 py-4 bg-slate-950/60 font-sans">
+              <h3 className="text-sm font-black text-white flex items-center gap-2">
+                <div className="p-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-lg">
+                  <Key size={16} />
+                </div>
+                <span>Edit Member Credentials</span>
+              </h3>
+              <button
+                onClick={() => setIsCredentialsModalOpen(false)}
+                className="text-slate-400 hover:text-white p-1 rounded hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCredentialsSubmit} className="p-6 space-y-4 text-xs font-sans">
+              {/* Target User Info Card */}
+              <div className="bg-slate-950 p-3.5 border border-slate-850 rounded-xl space-y-1">
+                <span className="text-[10px] text-slate-500 uppercase font-black tracking-wider">Target Member</span>
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-200">{credentialsTargetUser.full_name}</span>
+                  <span className="font-mono text-[10px] text-blue-400 font-bold bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
+                    ID #{credentialsTargetUser.id}
+                  </span>
+                </div>
+                <div className="text-[11px] text-slate-400 font-mono">Current Handle: @{credentialsTargetUser.username}</div>
+              </div>
+
+              {/* Username Input */}
+              <div className="space-y-1">
+                <label className="text-[10px] text-slate-400 uppercase font-bold flex items-center justify-between">
+                  <span>Username</span>
+                  <span className="text-[9px] text-slate-500 font-normal">Min 3 chars, letters/numbers/underscore</span>
+                </label>
+                <div className="relative flex items-center">
+                  <span className="absolute left-3.5 text-slate-500 font-mono">@</span>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. johndoe"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-8 pr-4 py-2 text-slate-100 focus:outline-none focus:border-blue-500 font-mono font-medium text-xs transition-colors"
+                    value={credentialsForm.username}
+                    onChange={(e) => setCredentialsForm({ ...credentialsForm, username: e.target.value.toLowerCase().replace(/\s/g, '') })}
+                  />
+                </div>
+              </div>
+
+              {/* Password Input */}
+              <div className="space-y-1">
+                <label className="text-[10px] text-slate-400 uppercase font-bold flex items-center justify-between">
+                  <span>New Password</span>
+                  <span className="text-[9px] text-amber-500/80 font-normal">Leave blank to keep unchanged</span>
+                </label>
+                <div className="relative flex items-center">
+                  <input
+                    type={showNewPassword ? 'text' : 'password'}
+                    placeholder="Enter new password (min 6 characters)"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-3.5 pr-10 py-2 text-slate-100 focus:outline-none focus:border-blue-500 font-mono text-xs transition-colors"
+                    value={credentialsForm.password}
+                    onChange={(e) => setCredentialsForm({ ...credentialsForm, password: e.target.value })}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-3 text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+                  >
+                    {showNewPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-3 bg-blue-500/5 border border-blue-500/15 rounded-xl text-[11px] text-blue-300/80 leading-relaxed space-y-1">
+                <div className="font-bold flex items-center gap-1.5 text-blue-300">
+                  <ShieldCheck size={13} />
+                  <span>Impact Notice</span>
+                </div>
+                <p>
+                  Changing the username will update their login handle and referral link. Tree genealogy and order history are linked by internal member ID and remain completely safe.
+                </p>
+              </div>
+
+              {/* Form Actions */}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-850 mt-5">
+                <button
+                  type="button"
+                  onClick={() => setIsCredentialsModalOpen(false)}
+                  className="px-4 py-2 border border-slate-800 hover:bg-slate-850 text-slate-400 hover:text-slate-200 rounded-lg font-bold transition-colors cursor-pointer text-xs"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingCredentials}
+                  className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold transition-colors cursor-pointer shadow-md disabled:opacity-50 text-xs flex items-center gap-1.5"
+                >
+                  {isSubmittingCredentials ? (
+                    <>
+                      <RefreshCw size={13} className="animate-spin" />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save size={13} />
+                      <span>Update Credentials</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>
