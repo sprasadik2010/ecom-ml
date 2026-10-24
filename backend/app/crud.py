@@ -33,9 +33,14 @@ def create_user(db: Session, user_data: UserCreate) -> User:
         if not sponsor_username or not sponsor_username.strip():
             raise ValueError("Referral sponsor username is required.")
             
-        sponsor = get_user_by_username(db, sponsor_username)
+        sponsor = None
+        if sponsor_username.strip().isdigit():
+            sponsor = get_user_by_id(db, int(sponsor_username.strip()))
         if not sponsor:
-            raise ValueError(f"Referral sponsor with username '{sponsor_username}' does not exist.")
+            sponsor = get_user_by_username(db, sponsor_username.strip())
+            
+        if not sponsor:
+            raise ValueError(f"Referral sponsor '{sponsor_username}' does not exist.")
             
         if sponsor.is_admin:
             raise ValueError("Admin cannot sponsor users in the business tree.")

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useCart, Product } from '../context/CartContext';
 import { API_BASE_URL } from '../context/AuthContext';
@@ -17,7 +17,9 @@ import {
   RotateCcw,
   ShieldCheck,
   Truck,
-  Info
+  Info,
+  ZoomIn,
+  ZoomOut
 } from 'lucide-react';
 
 // Helper to resolve CSS color or hex for popular variant color names
@@ -102,6 +104,84 @@ export const ProductDetails: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartX, setDragStartX] = useState<number | null>(null);
 
+  // Zoom & Pan state for hero product image box
+  const imageContainerRef = useRef<HTMLDivElement>(null);
+  const [zoomLevel, setZoomLevel] = useState<number>(1);
+  const [panOffset, setPanOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const initialPinchDist = useRef<number | null>(null);
+  const initialPinchZoom = useRef<number>(1);
+
+  const clampPan = (x: number, y: number, zoom: number) => {
+    if (!imageContainerRef.current || zoom <= 1) return { x: 0, y: 0 };
+    const rect = imageContainerRef.current.getBoundingClientRect();
+    const maxX = (rect.width * (zoom - 1)) / 2;
+    const maxY = (rect.height * (zoom - 1)) / 2;
+    return {
+      x: Math.max(-maxX, Math.min(maxX, x)),
+      y: Math.max(-maxY, Math.min(maxY, y)),
+    };
+  };
+
+  const resetZoom = () => {
+    setZoomLevel(1);
+    setPanOffset({ x: 0, y: 0 });
+    setIsPanning(false);
+  };
+
+  const updateZoom = (updater: (prev: number) => number) => {
+    setZoomLevel((prevZoom) => {
+      const nextZoom = updater(prevZoom);
+      if (nextZoom <= 1) {
+        setPanOffset({ x: 0, y: 0 });
+        return 1;
+      }
+      const clampedZoom = Math.min(3.5, Math.max(1, nextZoom));
+      setPanOffset((prevPan) => clampPan(prevPan.x, prevPan.y, clampedZoom));
+      return clampedZoom;
+    });
+  };
+
+  const handleZoomIn = () => updateZoom((prev) => Math.min(3.5, +(prev + 0.5).toFixed(1)));
+  const handleZoomOut = () => updateZoom((prev) => Math.max(1, +(prev - 0.5).toFixed(1)));
+
+  const handleDoubleClick = () => {
+    if (zoomLevel > 1) {
+      resetZoom();
+    } else {
+      updateZoom(() => 2.2);
+    }
+  };
+
+  // Non-passive wheel event listener on image container for smooth zoom
+  useEffect(() => {
+    const container = imageContainerRef.current;
+    if (!container) return;
+
+    const onWheelHandler = (e: WheelEvent) => {
+      e.preventDefault();
+      const zoomStep = e.deltaY < 0 ? 0.3 : -0.3;
+      updateZoom((prev) => Math.max(1, Math.min(3.5, +(prev + zoomStep).toFixed(1))));
+    };
+
+    container.addEventListener('wheel', onWheelHandler, { passive: false });
+    return () => {
+      container.removeEventListener('wheel', onWheelHandler);
+    };
+  }, []);
+
+  // Window mouseup listener so dragging doesn't get stuck if released outside the box
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      setIsPanning(false);
+      setIsDragging(false);
+      setDragStartX(null);
+    };
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+    return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
+  }, []);
+
   const { addToCart } = useCart();
   const navigate = useNavigate();
 
@@ -140,6 +220,7 @@ export const ProductDetails: React.FC = () => {
           setSelectedSize(data.sizes[0]);
         }
         setActiveImageIdx(0);
+        resetZoom();
       } catch (err: any) {
         console.error('Error fetching product:', err);
         setError(err.message || 'Error loading product details.');
@@ -184,20 +265,69 @@ export const ProductDetails: React.FC = () => {
 
   const handleNextImage = () => {
     if (galleryImages.length <= 1) return;
+    resetZoom();
     setActiveImageIdx((prev) => (prev + 1) % galleryImages.length);
   };
 
   const handlePrevImage = () => {
     if (galleryImages.length <= 1) return;
+    resetZoom();
     setActiveImageIdx((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
   };
 
+  const getTouchDistance = (t1: React.Touch, t2: React.Touch) => {
+    const dx = t1.clientX - t2.clientX;
+    const dy = t1.clientY - t2.clientY;
+    return Math.hypot(dx, dy);
+  };
+
   const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStartX(e.targetTouches[0].clientX);
-    setTouchStartY(e.targetTouches[0].clientY);
+    if (e.touches.length === 2) {
+      initialPinchDist.current = getTouchDistance(e.touches[0], e.touches[1]);
+      initialPinchZoom.current = zoomLevel;
+      return;
+    }
+
+    if (e.touches.length === 1) {
+      if (zoomLevel > 1) {
+        setIsPanning(true);
+        setPanStart({
+          x: e.touches[0].clientX - panOffset.x,
+          y: e.touches[0].clientY - panOffset.y,
+        });
+      } else {
+        setTouchStartX(e.targetTouches[0].clientX);
+        setTouchStartY(e.targetTouches[0].clientY);
+      }
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 2 && initialPinchDist.current) {
+      const dist = getTouchDistance(e.touches[0], e.touches[1]);
+      const scale = dist / initialPinchDist.current;
+      const newZoom = Math.max(1, Math.min(3.5, +(initialPinchZoom.current * scale).toFixed(2)));
+      updateZoom(() => newZoom);
+      return;
+    }
+
+    if (e.touches.length === 1 && zoomLevel > 1 && isPanning) {
+      const rawX = e.touches[0].clientX - panStart.x;
+      const rawY = e.touches[0].clientY - panStart.y;
+      setPanOffset(clampPan(rawX, rawY, zoomLevel));
+    }
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
+    if (e.touches.length < 2) {
+      initialPinchDist.current = null;
+    }
+
+    if (zoomLevel > 1) {
+      setIsPanning(false);
+      return;
+    }
+
     if (touchStartX === null) return;
     const touchEndX = e.changedTouches[0].clientX;
     const touchEndY = e.changedTouches[0].clientY;
@@ -217,27 +347,49 @@ export const ProductDetails: React.FC = () => {
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setDragStartX(e.clientX);
+    if (e.button !== 0) return;
+    if (zoomLevel > 1) {
+      setIsPanning(true);
+      setPanStart({
+        x: e.clientX - panOffset.x,
+        y: e.clientY - panOffset.y,
+      });
+    } else {
+      setIsDragging(true);
+      setDragStartX(e.clientX);
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (zoomLevel > 1 && isPanning) {
+      const rawX = e.clientX - panStart.x;
+      const rawY = e.clientY - panStart.y;
+      setPanOffset(clampPan(rawX, rawY, zoomLevel));
+    }
   };
 
   const handleMouseUp = (e: React.MouseEvent) => {
-    if (!isDragging || dragStartX === null) return;
-    const diffX = e.clientX - dragStartX;
-    if (Math.abs(diffX) > 35) {
-      if (diffX < 0) {
-        handleNextImage();
-      } else {
-        handlePrevImage();
+    if (zoomLevel > 1) {
+      setIsPanning(false);
+    } else if (isDragging && dragStartX !== null) {
+      const diffX = e.clientX - dragStartX;
+      if (Math.abs(diffX) > 35) {
+        if (diffX < 0) {
+          handleNextImage();
+        } else {
+          handlePrevImage();
+        }
       }
+      setIsDragging(false);
+      setDragStartX(null);
     }
-    setIsDragging(false);
-    setDragStartX(null);
   };
 
   const handleMouseLeave = () => {
-    setIsDragging(false);
-    setDragStartX(null);
+    if (zoomLevel === 1) {
+      setIsDragging(false);
+      setDragStartX(null);
+    }
   };
 
   const handleAddToCart = () => {
@@ -263,19 +415,27 @@ export const ProductDetails: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Column: Interactive Product Photo Views / Swipeable Gallery */}
         <div className="lg:col-span-5 flex flex-col gap-4">
-          {/* Main Hero Photo Container with Horizontal Swipe */}
+          {/* Main Hero Photo Container with Horizontal Swipe & Zoom/Drag */}
           <div
-            className="relative bg-white border border-[#EFE2DE] rounded-3xl p-3 flex items-center justify-center aspect-square max-h-[520px] overflow-hidden group shadow-xs select-none touch-pan-y cursor-grab active:cursor-grabbing"
+            ref={imageContainerRef}
+            className={`relative bg-white border border-[#EFE2DE] rounded-3xl p-3 flex items-center justify-center aspect-square max-h-[520px] overflow-hidden group shadow-xs select-none ${
+              zoomLevel > 1
+                ? (isPanning ? 'cursor-grabbing touch-none' : 'cursor-grab touch-none')
+                : 'cursor-grab active:cursor-grabbing touch-pan-y'
+            }`}
+            onDoubleClick={handleDoubleClick}
             onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
             onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseLeave}
           >
             {/* Horizontal Sliding Track */}
             {galleryImages.length > 0 ? (
               <div
-                className="w-full h-full flex transition-transform duration-300 ease-out"
+                className={`w-full h-full flex ${zoomLevel === 1 ? 'transition-transform duration-300 ease-out' : ''}`}
                 style={{ transform: `translateX(-${activeImageIdx * 100}%)` }}
               >
                 {galleryImages.map((imgUrl, idx) => (
@@ -289,7 +449,19 @@ export const ProductDetails: React.FC = () => {
                       onError={(e) => {
                         (e.target as HTMLElement).style.display = 'none';
                       }}
-                      className="w-full h-full object-contain rounded-2xl transition-all duration-300 group-hover:scale-102 cursor-pointer pointer-events-none"
+                      style={
+                        idx === activeImageIdx && zoomLevel > 1
+                          ? {
+                              transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoomLevel})`,
+                              transformOrigin: 'center center',
+                              transition: isPanning ? 'none' : 'transform 0.15s ease-out',
+                              willChange: 'transform',
+                            }
+                          : undefined
+                      }
+                      className={`w-full h-full object-contain rounded-2xl pointer-events-none ${
+                        zoomLevel === 1 ? 'transition-all duration-300 group-hover:scale-102' : ''
+                      }`}
                       draggable={false}
                     />
                   </div>
@@ -300,27 +472,84 @@ export const ProductDetails: React.FC = () => {
             )}
 
             {/* Photo Counter & Swipe Navigation Badge */}
-            {galleryImages.length > 1 && (
+            {galleryImages.length > 1 && zoomLevel === 1 && (
               <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md border border-[#EFE2DE] text-[#4A343A] text-[10px] font-bold px-2.5 sm:px-3 py-1 rounded-full flex items-center gap-1.5 shadow-xs pointer-events-none z-10">
                 <Layers size={11} className="text-[#B8586E]" />
                 <span>{activeImageIdx + 1} of {galleryImages.length} <span className="hidden sm:inline">• Swipe ↔ to view</span></span>
               </div>
             )}
 
-            {/* Lightbox / Zoom Trigger Button */}
+            {/* Zoom & Lightbox Controls Toolbar */}
             {currentImage && (
-              <button
-                type="button"
-                onClick={() => setIsLightboxOpen(true)}
-                className="absolute top-4 right-4 p-2 bg-white/90 hover:bg-white backdrop-blur-md text-[#4A343A] hover:text-[#B8586E] rounded-full border border-[#EFE2DE] transition-colors shadow-xs cursor-pointer z-10"
-                title="View full resolution photo"
-              >
-                <Maximize2 size={13} />
-              </button>
+              <div className="absolute top-4 right-4 flex items-center gap-1 bg-white/95 backdrop-blur-md border border-[#EFE2DE] rounded-full p-1 shadow-sm z-20">
+                {/* Zoom Out */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleZoomOut();
+                  }}
+                  disabled={zoomLevel <= 1}
+                  className="p-1.5 hover:bg-[#FAF2E8] text-[#4A343A] hover:text-[#B8586E] disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#4A343A] rounded-full transition-colors cursor-pointer"
+                  title="Zoom out"
+                >
+                  <ZoomOut size={13} />
+                </button>
+
+                {/* Zoom In */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleZoomIn();
+                  }}
+                  disabled={zoomLevel >= 3.5}
+                  className="p-1.5 hover:bg-[#FAF2E8] text-[#4A343A] hover:text-[#B8586E] disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#4A343A] rounded-full transition-colors cursor-pointer"
+                  title="Zoom in"
+                >
+                  <ZoomIn size={13} />
+                </button>
+
+                {/* Zoom Indicator & Reset */}
+                {zoomLevel > 1 && (
+                  <>
+                    <span className="text-[10px] font-bold text-[#B8586E] font-mono px-1">
+                      {zoomLevel.toFixed(1)}x
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        resetZoom();
+                      }}
+                      className="p-1.5 hover:bg-[#FAF2E8] text-[#4A343A] hover:text-[#B8586E] rounded-full transition-colors cursor-pointer"
+                      title="Reset zoom (or double-click image)"
+                    >
+                      <RotateCcw size={12} />
+                    </button>
+                  </>
+                )}
+
+                {/* Divider */}
+                <div className="w-[1px] h-3 bg-[#EFE2DE] mx-0.5" />
+
+                {/* Fullscreen Lightbox Trigger */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsLightboxOpen(true);
+                  }}
+                  className="p-1.5 hover:bg-[#FAF2E8] text-[#4A343A] hover:text-[#B8586E] rounded-full transition-colors cursor-pointer"
+                  title="View full resolution photo"
+                >
+                  <Maximize2 size={13} />
+                </button>
+              </div>
             )}
 
-            {/* Next / Prev Navigation Floating Arrows (shown if > 1 photo) */}
-            {galleryImages.length > 1 && (
+            {/* Next / Prev Navigation Floating Arrows (shown if > 1 photo and not zoomed in) */}
+            {galleryImages.length > 1 && zoomLevel === 1 && (
               <>
                 <button
                   type="button"
@@ -345,8 +574,16 @@ export const ProductDetails: React.FC = () => {
                 >
                   <ChevronRight size={16} />
                 </button>
+              </>
+            )}
 
-                {/* Dot Pagination Indicators */}
+            {/* When zoomed in: pan hint; When normal: Dot Pagination Indicators */}
+            {zoomLevel > 1 ? (
+              <div className="absolute bottom-3.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/60 backdrop-blur-xs text-white text-[10px] font-medium px-3 py-1 rounded-full pointer-events-none z-20 shadow-xs">
+                <span>Drag to pan inside box • Double-click to reset</span>
+              </div>
+            ) : (
+              galleryImages.length > 1 && (
                 <div className="absolute bottom-3.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/25 backdrop-blur-xs px-2.5 py-1 rounded-full pointer-events-none z-10">
                   {galleryImages.map((_, dotIdx) => (
                     <div
@@ -359,7 +596,7 @@ export const ProductDetails: React.FC = () => {
                     />
                   ))}
                 </div>
-              </>
+              )
             )}
           </div>
 
@@ -378,7 +615,10 @@ export const ProductDetails: React.FC = () => {
                     <button
                       key={idx}
                       type="button"
-                      onClick={() => setActiveImageIdx(idx)}
+                      onClick={() => {
+                        resetZoom();
+                        setActiveImageIdx(idx);
+                      }}
                       className={`relative shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-white border-2 transition-all cursor-pointer ${
                         isActive
                           ? 'border-[#B8586E] ring-2 ring-[#B8586E]/30 scale-102 shadow-md shadow-[#B8586E]/20'
@@ -755,7 +995,10 @@ export const ProductDetails: React.FC = () => {
                 <button
                   key={idx}
                   type="button"
-                  onClick={() => setActiveImageIdx(idx)}
+                  onClick={() => {
+                    resetZoom();
+                    setActiveImageIdx(idx);
+                  }}
                   className={`w-14 h-14 rounded-lg overflow-hidden border-2 shrink-0 transition-all cursor-pointer ${
                     idx === activeImageIdx
                       ? 'border-amber-500 ring-2 ring-amber-500/40 scale-105'

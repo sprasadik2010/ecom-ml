@@ -4280,13 +4280,13 @@ export const AdminPanel: React.FC = () => {
                 </div>
               </div>
 
-              <div className="p-3 bg-blue-500/5 border border-blue-500/15 rounded-xl text-[11px] text-blue-300/80 leading-relaxed space-y-1">
-                <div className="font-bold flex items-center gap-1.5 text-blue-300">
+              <div className="p-3 bg-emerald-500/5 border border-emerald-500/15 rounded-xl text-[11px] text-emerald-300/80 leading-relaxed space-y-1">
+                <div className="font-bold flex items-center gap-1.5 text-emerald-400">
                   <ShieldCheck size={13} />
-                  <span>Impact Notice</span>
+                  <span>Permanent Referral Link & Safe Tree</span>
                 </div>
                 <p>
-                  Changing the username will update their login handle and referral link. Tree genealogy and order history are linked by internal member ID and remain completely safe.
+                  Changing the username only updates their login handle. Their referral link, genealogy tree, commissions, and order history are tied to their permanent member ID and remain 100% intact and unchanged.
                 </p>
               </div>
 

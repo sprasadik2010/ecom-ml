@@ -273,13 +273,18 @@ def decrypt_referral(token: str) -> tuple[str, str]:
 @app.get("/auth/verify-referral")
 def verify_referral(token: str, db: Session = Depends(get_db)):
     try:
-        sponsor_username, position = decrypt_referral(token)
-        sponsor = crud.get_user_by_username(db, sponsor_username)
+        sponsor_identifier, position = decrypt_referral(token)
+        # Support permanent ID-based referral links and legacy username-based links
+        if sponsor_identifier.isdigit():
+            sponsor = crud.get_user_by_id(db, int(sponsor_identifier))
+        else:
+            sponsor = crud.get_user_by_username(db, sponsor_identifier)
+
         if not sponsor:
-            raise HTTPException(status_code=400, detail=f"Sponsor user '{sponsor_username}' does not exist.")
+            raise HTTPException(status_code=400, detail="Referral sponsor account does not exist.")
         if sponsor.is_admin:
             raise HTTPException(status_code=400, detail="Admin cannot sponsor tree nodes.")
-        return {"sponsor": sponsor_username, "position": position}
+        return {"sponsor": sponsor.username, "position": position}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -317,8 +322,14 @@ def register_user(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
             raise HTTPException(status_code=400, detail="Referral token is required for registration.")
         
         try:
-            sponsor, position = decrypt_referral(user_data.token)
-            user_data.sponsor_username = sponsor
+            sponsor_identifier, position = decrypt_referral(user_data.token)
+            if sponsor_identifier.isdigit():
+                sponsor_user = crud.get_user_by_id(db, int(sponsor_identifier))
+                if not sponsor_user:
+                    raise HTTPException(status_code=400, detail="Referral sponsor account does not exist.")
+                user_data.sponsor_username = sponsor_user.username
+            else:
+                user_data.sponsor_username = sponsor_identifier
             user_data.position = position
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))

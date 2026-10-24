@@ -69,7 +69,7 @@ class User(Base):
         key_bytes = hashlib.sha256(settings.SECRET_KEY.encode('utf-8')).digest()
         fernet_key = base64.urlsafe_b64encode(key_bytes)
         f = Fernet(fernet_key)
-        return f.encrypt(f"{self.username}:left".encode('utf-8')).decode('utf-8')
+        return f.encrypt(f"{self.id}:left".encode('utf-8')).decode('utf-8')
 
     @property
     def ref_token_right(self):
@@ -80,7 +80,7 @@ class User(Base):
         key_bytes = hashlib.sha256(settings.SECRET_KEY.encode('utf-8')).digest()
         fernet_key = base64.urlsafe_b64encode(key_bytes)
         f = Fernet(fernet_key)
-        return f.encrypt(f"{self.username}:right".encode('utf-8')).decode('utf-8')
+        return f.encrypt(f"{self.id}:right".encode('utf-8')).decode('utf-8')
 
     @property
     def pending_sw(self) -> float:
