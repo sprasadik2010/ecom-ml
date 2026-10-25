@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useCart, Product } from '../context/CartContext';
 import { API_BASE_URL } from '../context/AuthContext';
@@ -10,6 +10,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Maximize2,
+  Minimize2,
   Check,
   CheckCircle2,
   X,
@@ -17,7 +18,6 @@ import {
   RotateCcw,
   ShieldCheck,
   Truck,
-  Info,
   ZoomIn,
   ZoomOut
 } from 'lucide-react';
@@ -86,6 +86,8 @@ const getColorStyle = (colorName: string): string => {
   return '#64748b'; // default slate tone
 };
 
+const MAX_ZOOM = 20;
+
 export const ProductDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<Product | null>(null);
@@ -113,6 +115,20 @@ export const ProductDetails: React.FC = () => {
   const initialPinchDist = useRef<number | null>(null);
   const initialPinchZoom = useRef<number>(1);
 
+  // Lightbox Zoom & Pan state
+  const lightboxContainerRef = useRef<HTMLDivElement>(null);
+  const [lightboxZoom, setLightboxZoom] = useState<number>(1);
+  const [lightboxPan, setLightboxPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isLightboxPanning, setIsLightboxPanning] = useState(false);
+  const [lightboxPanStart, setLightboxPanStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const lightboxPinchDist = useRef<number | null>(null);
+  const lightboxPinchZoom = useRef<number>(1);
+  const [lightboxTouchStartX, setLightboxTouchStartX] = useState<number | null>(null);
+  const [lightboxTouchStartY, setLightboxTouchStartY] = useState<number | null>(null);
+  const [isLightboxDragging, setIsLightboxDragging] = useState(false);
+  const [lightboxDragStartX, setLightboxDragStartX] = useState<number | null>(null);
+  const [isBrowserFullscreen, setIsBrowserFullscreen] = useState(false);
+
   const clampPan = (x: number, y: number, zoom: number) => {
     if (!imageContainerRef.current || zoom <= 1) return { x: 0, y: 0 };
     const rect = imageContainerRef.current.getBoundingClientRect();
@@ -137,20 +153,76 @@ export const ProductDetails: React.FC = () => {
         setPanOffset({ x: 0, y: 0 });
         return 1;
       }
-      const clampedZoom = Math.min(3.5, Math.max(1, nextZoom));
+      const clampedZoom = Math.min(MAX_ZOOM, Math.max(1, nextZoom));
       setPanOffset((prevPan) => clampPan(prevPan.x, prevPan.y, clampedZoom));
       return clampedZoom;
     });
   };
 
-  const handleZoomIn = () => updateZoom((prev) => Math.min(3.5, +(prev + 0.5).toFixed(1)));
+  const handleZoomIn = () => updateZoom((prev) => Math.min(MAX_ZOOM, +(prev + 0.5).toFixed(1)));
   const handleZoomOut = () => updateZoom((prev) => Math.max(1, +(prev - 0.5).toFixed(1)));
 
   const handleDoubleClick = () => {
     if (zoomLevel > 1) {
       resetZoom();
     } else {
-      updateZoom(() => 2.2);
+      updateZoom(() => 2.5);
+    }
+  };
+
+  // Lightbox Zoom Helpers
+  const clampLightboxPan = (x: number, y: number, zoom: number) => {
+    if (!lightboxContainerRef.current || zoom <= 1) return { x: 0, y: 0 };
+    const rect = lightboxContainerRef.current.getBoundingClientRect();
+    const maxX = (rect.width * (zoom - 1)) / 2;
+    const maxY = (rect.height * (zoom - 1)) / 2;
+    return {
+      x: Math.max(-maxX, Math.min(maxX, x)),
+      y: Math.max(-maxY, Math.min(maxY, y)),
+    };
+  };
+
+  const resetLightboxZoom = () => {
+    setLightboxZoom(1);
+    setLightboxPan({ x: 0, y: 0 });
+    setIsLightboxPanning(false);
+  };
+
+  const openLightbox = () => {
+    resetLightboxZoom();
+    setIsLightboxOpen(true);
+  };
+
+  const closeLightbox = () => {
+    setIsLightboxOpen(false);
+    resetLightboxZoom();
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    }
+  };
+
+  const updateLightboxZoom = (updater: (prev: number) => number) => {
+    setLightboxZoom((prevZoom) => {
+      const nextZoom = updater(prevZoom);
+      if (nextZoom <= 1) {
+        setLightboxPan({ x: 0, y: 0 });
+        return 1;
+      }
+      const clampedZoom = Math.min(MAX_ZOOM, Math.max(1, nextZoom));
+      setLightboxPan((prevPan) => clampLightboxPan(prevPan.x, prevPan.y, clampedZoom));
+      return clampedZoom;
+    });
+  };
+
+  const handleLightboxZoomIn = () => updateLightboxZoom((prev) => Math.min(MAX_ZOOM, +(prev + 0.5).toFixed(1)));
+  const handleLightboxZoomOut = () => updateLightboxZoom((prev) => Math.max(1, +(prev - 0.5).toFixed(1)));
+
+  const handleLightboxDoubleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (lightboxZoom > 1) {
+      resetLightboxZoom();
+    } else {
+      updateLightboxZoom(() => 2.5);
     }
   };
 
@@ -161,8 +233,8 @@ export const ProductDetails: React.FC = () => {
 
     const onWheelHandler = (e: WheelEvent) => {
       e.preventDefault();
-      const zoomStep = e.deltaY < 0 ? 0.3 : -0.3;
-      updateZoom((prev) => Math.max(1, Math.min(3.5, +(prev + zoomStep).toFixed(1))));
+      const zoomStep = e.deltaY < 0 ? 0.35 : -0.35;
+      updateZoom((prev) => Math.max(1, Math.min(MAX_ZOOM, +(prev + zoomStep).toFixed(1))));
     };
 
     container.addEventListener('wheel', onWheelHandler, { passive: false });
@@ -171,12 +243,55 @@ export const ProductDetails: React.FC = () => {
     };
   }, []);
 
+  // Non-passive wheel listener on lightbox modal
+  useEffect(() => {
+    if (!isLightboxOpen) return;
+    const container = lightboxContainerRef.current;
+    if (!container) return;
+
+    const onWheelHandler = (e: WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const zoomStep = e.deltaY < 0 ? 0.35 : -0.35;
+      updateLightboxZoom((prev) => Math.max(1, Math.min(MAX_ZOOM, +(prev + zoomStep).toFixed(1))));
+    };
+
+    container.addEventListener('wheel', onWheelHandler, { passive: false });
+    return () => {
+      container.removeEventListener('wheel', onWheelHandler);
+    };
+  }, [isLightboxOpen]);
+
+  // Track browser native fullscreen state
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsBrowserFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  const toggleBrowserFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch (err) {
+      console.warn('Browser fullscreen error:', err);
+    }
+  };
+
   // Window mouseup listener so dragging doesn't get stuck if released outside the box
   useEffect(() => {
     const handleGlobalMouseUp = () => {
       setIsPanning(false);
       setIsDragging(false);
       setDragStartX(null);
+      setIsLightboxPanning(false);
+      setIsLightboxDragging(false);
+      setLightboxDragStartX(null);
     };
     window.addEventListener('mouseup', handleGlobalMouseUp);
     return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
@@ -232,6 +347,65 @@ export const ProductDetails: React.FC = () => {
     if (id) fetchProduct();
   }, [id]);
 
+  // Construct gallery images list (with fallbacks)
+  const galleryImages: string[] = (
+    product?.images && product.images.length > 0
+      ? product.images
+      : product?.image_url
+      ? [product.image_url]
+      : []
+  ).filter(Boolean);
+
+  const currentImage = galleryImages[activeImageIdx] || product?.image_url || '';
+
+  const handleNextImage = () => {
+    if (galleryImages.length <= 1) return;
+    resetZoom();
+    setActiveImageIdx((prev) => (prev + 1) % galleryImages.length);
+  };
+
+  const handlePrevImage = () => {
+    if (galleryImages.length <= 1) return;
+    resetZoom();
+    setActiveImageIdx((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
+  };
+
+  const handleNextImageLightbox = useCallback(() => {
+    if (galleryImages.length <= 1) return;
+    resetLightboxZoom();
+    setActiveImageIdx((prev) => (prev + 1) % galleryImages.length);
+  }, [galleryImages.length]);
+
+  const handlePrevImageLightbox = useCallback(() => {
+    if (galleryImages.length <= 1) return;
+    resetLightboxZoom();
+    setActiveImageIdx((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
+  }, [galleryImages.length]);
+
+  // Keyboard navigation when Lightbox is open
+  useEffect(() => {
+    if (!isLightboxOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        closeLightbox();
+      } else if (e.key === 'ArrowRight') {
+        handleNextImageLightbox();
+      } else if (e.key === 'ArrowLeft') {
+        handlePrevImageLightbox();
+      } else if (e.key === '+' || e.key === '=') {
+        handleLightboxZoomIn();
+      } else if (e.key === '-' || e.key === '_') {
+        handleLightboxZoomOut();
+      } else if (e.key === '0' || e.key === 'r' || e.key === 'R') {
+        resetLightboxZoom();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isLightboxOpen, galleryImages.length, handleNextImageLightbox, handlePrevImageLightbox]);
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-40 gap-4">
@@ -251,29 +425,6 @@ export const ProductDetails: React.FC = () => {
       </div>
     );
   }
-
-  // Construct gallery images list (with fallbacks)
-  const galleryImages: string[] = (
-    product.images && product.images.length > 0
-      ? product.images
-      : product.image_url
-      ? [product.image_url]
-      : []
-  ).filter(Boolean);
-
-  const currentImage = galleryImages[activeImageIdx] || product.image_url || '';
-
-  const handleNextImage = () => {
-    if (galleryImages.length <= 1) return;
-    resetZoom();
-    setActiveImageIdx((prev) => (prev + 1) % galleryImages.length);
-  };
-
-  const handlePrevImage = () => {
-    if (galleryImages.length <= 1) return;
-    resetZoom();
-    setActiveImageIdx((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
-  };
 
   const getTouchDistance = (t1: React.Touch, t2: React.Touch) => {
     const dx = t1.clientX - t2.clientX;
@@ -306,7 +457,7 @@ export const ProductDetails: React.FC = () => {
     if (e.touches.length === 2 && initialPinchDist.current) {
       const dist = getTouchDistance(e.touches[0], e.touches[1]);
       const scale = dist / initialPinchDist.current;
-      const newZoom = Math.max(1, Math.min(3.5, +(initialPinchZoom.current * scale).toFixed(2)));
+      const newZoom = Math.max(1, Math.min(MAX_ZOOM, +(initialPinchZoom.current * scale).toFixed(2)));
       updateZoom(() => newZoom);
       return;
     }
@@ -390,6 +541,110 @@ export const ProductDetails: React.FC = () => {
       setIsDragging(false);
       setDragStartX(null);
     }
+  };
+
+  // Lightbox Mouse & Touch event handlers
+  const handleLightboxMouseDown = (e: React.MouseEvent) => {
+    if (e.button !== 0) return;
+    if (lightboxZoom > 1) {
+      setIsLightboxPanning(true);
+      setLightboxPanStart({
+        x: e.clientX - lightboxPan.x,
+        y: e.clientY - lightboxPan.y,
+      });
+    } else {
+      setIsLightboxDragging(true);
+      setLightboxDragStartX(e.clientX);
+    }
+  };
+
+  const handleLightboxMouseMove = (e: React.MouseEvent) => {
+    if (lightboxZoom > 1 && isLightboxPanning) {
+      const rawX = e.clientX - lightboxPanStart.x;
+      const rawY = e.clientY - lightboxPanStart.y;
+      setLightboxPan(clampLightboxPan(rawX, rawY, lightboxZoom));
+    }
+  };
+
+  const handleLightboxMouseUp = (e: React.MouseEvent) => {
+    if (lightboxZoom > 1) {
+      setIsLightboxPanning(false);
+    } else if (isLightboxDragging && lightboxDragStartX !== null) {
+      const diffX = e.clientX - lightboxDragStartX;
+      if (Math.abs(diffX) > 40) {
+        if (diffX < 0) {
+          handleNextImageLightbox();
+        } else {
+          handlePrevImageLightbox();
+        }
+      }
+      setIsLightboxDragging(false);
+      setLightboxDragStartX(null);
+    }
+  };
+
+  const handleLightboxTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      lightboxPinchDist.current = getTouchDistance(e.touches[0], e.touches[1]);
+      lightboxPinchZoom.current = lightboxZoom;
+      return;
+    }
+
+    if (e.touches.length === 1) {
+      if (lightboxZoom > 1) {
+        setIsLightboxPanning(true);
+        setLightboxPanStart({
+          x: e.touches[0].clientX - lightboxPan.x,
+          y: e.touches[0].clientY - lightboxPan.y,
+        });
+      } else {
+        setLightboxTouchStartX(e.targetTouches[0].clientX);
+        setLightboxTouchStartY(e.targetTouches[0].clientY);
+      }
+    }
+  };
+
+  const handleLightboxTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 2 && lightboxPinchDist.current) {
+      const dist = getTouchDistance(e.touches[0], e.touches[1]);
+      const scale = dist / lightboxPinchDist.current;
+      const newZoom = Math.max(1, Math.min(MAX_ZOOM, +(lightboxPinchZoom.current * scale).toFixed(2)));
+      updateLightboxZoom(() => newZoom);
+      return;
+    }
+
+    if (e.touches.length === 1 && lightboxZoom > 1 && isLightboxPanning) {
+      const rawX = e.touches[0].clientX - lightboxPanStart.x;
+      const rawY = e.touches[0].clientY - lightboxPanStart.y;
+      setLightboxPan(clampLightboxPan(rawX, rawY, lightboxZoom));
+    }
+  };
+
+  const handleLightboxTouchEnd = (e: React.TouchEvent) => {
+    if (e.touches.length < 2) {
+      lightboxPinchDist.current = null;
+    }
+
+    if (lightboxZoom > 1) {
+      setIsLightboxPanning(false);
+      return;
+    }
+
+    if (lightboxTouchStartX === null) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    const diffX = touchEndX - lightboxTouchStartX;
+    const diffY = touchEndY - (lightboxTouchStartY ?? 0);
+
+    if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY)) {
+      if (diffX < 0) {
+        handleNextImageLightbox();
+      } else {
+        handlePrevImageLightbox();
+      }
+    }
+    setLightboxTouchStartX(null);
+    setLightboxTouchStartY(null);
   };
 
   const handleAddToCart = () => {
@@ -503,7 +758,7 @@ export const ProductDetails: React.FC = () => {
                     e.stopPropagation();
                     handleZoomIn();
                   }}
-                  disabled={zoomLevel >= 3.5}
+                  disabled={zoomLevel >= MAX_ZOOM}
                   className="p-1.5 hover:bg-[#FAF2E8] text-[#4A343A] hover:text-[#B8586E] disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-[#4A343A] rounded-full transition-colors cursor-pointer"
                   title="Zoom in"
                 >
@@ -538,7 +793,7 @@ export const ProductDetails: React.FC = () => {
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setIsLightboxOpen(true);
+                    openLightbox();
                   }}
                   className="p-1.5 hover:bg-[#FAF2E8] text-[#4A343A] hover:text-[#B8586E] rounded-full transition-colors cursor-pointer"
                   title="View full resolution photo"
@@ -929,66 +1184,165 @@ export const ProductDetails: React.FC = () => {
       {/* FULLSCREEN LIGHTBOX MODAL */}
       {isLightboxOpen && (
         <div
-          className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-4 animate-fade-in"
-          onClick={() => setIsLightboxOpen(false)}
+          className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex flex-col justify-between p-3 sm:p-5 select-none animate-fade-in"
+          onClick={closeLightbox}
         >
-          {/* Top Bar */}
+          {/* Top Bar with Title, Zoom Controls Toolbar & Close */}
           <div
-            className="w-full max-w-4xl flex items-center justify-between pb-3 text-slate-300"
+            className="w-full max-w-7xl mx-auto flex items-center justify-between pb-2 text-slate-300 z-30 flex-wrap gap-2"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="text-xs font-bold text-slate-200 flex items-center gap-2">
-              <span>{product.name}</span>
-              <span className="text-slate-500">•</span>
-              <span className="text-amber-400 font-mono">View {activeImageIdx + 1} of {galleryImages.length}</span>
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-xs sm:text-sm font-bold text-slate-100 truncate max-w-[200px] sm:max-w-md">
+                {product.name}
+              </span>
+              {galleryImages.length > 1 && (
+                <>
+                  <span className="text-slate-600 hidden sm:inline">•</span>
+                  <span className="text-amber-400 font-mono text-[11px] sm:text-xs whitespace-nowrap bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                    View {activeImageIdx + 1} of {galleryImages.length}
+                  </span>
+                </>
+              )}
             </div>
 
-            <button
-              type="button"
-              onClick={() => setIsLightboxOpen(false)}
-              className="p-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white rounded-full transition-colors cursor-pointer"
-            >
-              <X size={18} />
-            </button>
+            {/* Lightbox Controls Toolbar */}
+            <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-900/95 border border-slate-800 rounded-full p-1 shadow-xl">
+              {/* Zoom Out */}
+              <button
+                type="button"
+                onClick={handleLightboxZoomOut}
+                disabled={lightboxZoom <= 1}
+                className="p-1.5 hover:bg-slate-800 text-slate-300 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent rounded-full transition-colors cursor-pointer"
+                title="Zoom out (-)"
+              >
+                <ZoomOut size={16} />
+              </button>
+
+              {/* Zoom In */}
+              <button
+                type="button"
+                onClick={handleLightboxZoomIn}
+                disabled={lightboxZoom >= MAX_ZOOM}
+                className="p-1.5 hover:bg-slate-800 text-slate-300 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent rounded-full transition-colors cursor-pointer"
+                title="Zoom in (+)"
+              >
+                <ZoomIn size={16} />
+              </button>
+
+              {/* Zoom Level Indicator & Reset */}
+              {lightboxZoom > 1 && (
+                <>
+                  <span className="text-xs font-mono font-bold text-amber-400 px-1.5">
+                    {lightboxZoom.toFixed(1)}x
+                  </span>
+                  <button
+                    type="button"
+                    onClick={resetLightboxZoom}
+                    className="p-1.5 hover:bg-slate-800 text-slate-300 hover:text-amber-400 rounded-full transition-colors cursor-pointer"
+                    title="Reset zoom (R or double-click)"
+                  >
+                    <RotateCcw size={15} />
+                  </button>
+                </>
+              )}
+
+              <div className="w-[1px] h-4 bg-slate-700 mx-0.5" />
+
+              {/* Toggle True Browser Fullscreen */}
+              <button
+                type="button"
+                onClick={toggleBrowserFullscreen}
+                className="p-1.5 hover:bg-slate-800 text-slate-300 hover:text-white rounded-full transition-colors cursor-pointer hidden sm:flex"
+                title={isBrowserFullscreen ? 'Exit browser fullscreen' : 'Enter browser fullscreen'}
+              >
+                {isBrowserFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+              </button>
+
+              {/* Close Button */}
+              <button
+                type="button"
+                onClick={closeLightbox}
+                className="p-1.5 hover:bg-red-500/20 text-slate-300 hover:text-red-400 rounded-full transition-colors cursor-pointer"
+                title="Close fullscreen (Esc)"
+              >
+                <X size={18} />
+              </button>
+            </div>
           </div>
 
-          {/* Main Image with Prev / Next & Swipe */}
+          {/* Main Fullscreen Image Area with Zoom, Pan & Drag */}
           <div
-            className="relative max-w-4xl max-h-[80vh] flex items-center justify-center select-none touch-pan-y"
+            ref={lightboxContainerRef}
+            className={`relative flex-1 w-full max-w-7xl mx-auto flex items-center justify-center overflow-hidden rounded-2xl select-none ${
+              lightboxZoom > 1
+                ? (isLightboxPanning ? 'cursor-grabbing touch-none' : 'cursor-grab touch-none')
+                : 'cursor-zoom-in touch-pan-y'
+            }`}
             onClick={(e) => e.stopPropagation()}
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
+            onDoubleClick={handleLightboxDoubleClick}
+            onMouseDown={handleLightboxMouseDown}
+            onMouseMove={handleLightboxMouseMove}
+            onMouseUp={handleLightboxMouseUp}
+            onTouchStart={handleLightboxTouchStart}
+            onTouchMove={handleLightboxTouchMove}
+            onTouchEnd={handleLightboxTouchEnd}
           >
             <img
               src={currentImage}
               alt="Full resolution product view"
-              className="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl"
+              draggable={false}
+              style={
+                lightboxZoom > 1
+                  ? {
+                      transform: `translate(${lightboxPan.x}px, ${lightboxPan.y}px) scale(${lightboxZoom})`,
+                      transformOrigin: 'center center',
+                      transition: isLightboxPanning ? 'none' : 'transform 0.15s ease-out',
+                      willChange: 'transform',
+                    }
+                  : undefined
+              }
+              className={`max-w-full max-h-[75vh] object-contain rounded-xl shadow-2xl pointer-events-none ${
+                lightboxZoom === 1 ? 'transition-transform duration-200' : ''
+              }`}
             />
 
-            {galleryImages.length > 1 && (
+            {/* Prev / Next Nav Buttons in Lightbox (when zoom is 1) */}
+            {galleryImages.length > 1 && lightboxZoom === 1 && (
               <>
                 <button
                   type="button"
-                  onClick={handlePrevImage}
-                  className="absolute left-2 p-2.5 bg-slate-900/80 hover:bg-amber-500 hover:text-slate-950 text-white rounded-full transition-colors cursor-pointer"
+                  onClick={handlePrevImageLightbox}
+                  className="absolute left-3 p-3 bg-slate-900/80 hover:bg-amber-500 hover:text-slate-950 text-white rounded-full transition-colors cursor-pointer shadow-lg backdrop-blur-md z-20"
+                  title="Previous image (← or swipe)"
                 >
-                  <ChevronLeft size={20} />
+                  <ChevronLeft size={22} />
                 </button>
                 <button
                   type="button"
-                  onClick={handleNextImage}
-                  className="absolute right-2 p-2.5 bg-slate-900/80 hover:bg-amber-500 hover:text-slate-950 text-white rounded-full transition-colors cursor-pointer"
+                  onClick={handleNextImageLightbox}
+                  className="absolute right-3 p-3 bg-slate-900/80 hover:bg-amber-500 hover:text-slate-950 text-white rounded-full transition-colors cursor-pointer shadow-lg backdrop-blur-md z-20"
+                  title="Next image (→ or swipe)"
                 >
-                  <ChevronRight size={20} />
+                  <ChevronRight size={22} />
                 </button>
               </>
             )}
+
+            {/* Hint Badge at Bottom */}
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-slate-900/85 backdrop-blur-md text-slate-300 text-[11px] font-medium px-4 py-1.5 rounded-full pointer-events-none z-20 border border-slate-800 shadow-md whitespace-nowrap">
+              {lightboxZoom > 1 ? (
+                <span>Drag to pan image • Scroll wheel or +/- to zoom • Double-click to reset</span>
+              ) : (
+                <span>Scroll wheel or double-click to zoom • Swipe or arrow keys to switch</span>
+              )}
+            </div>
           </div>
 
           {/* Bottom Thumbnails */}
           {galleryImages.length > 1 && (
             <div
-              className="flex items-center gap-2 mt-4 overflow-x-auto max-w-xl pb-2"
+              className="flex items-center justify-center gap-2 mt-3 overflow-x-auto max-w-xl mx-auto pb-1 z-30"
               onClick={(e) => e.stopPropagation()}
             >
               {galleryImages.map((img, idx) => (
@@ -996,14 +1350,15 @@ export const ProductDetails: React.FC = () => {
                   key={idx}
                   type="button"
                   onClick={() => {
-                    resetZoom();
+                    resetLightboxZoom();
                     setActiveImageIdx(idx);
                   }}
                   className={`w-14 h-14 rounded-lg overflow-hidden border-2 shrink-0 transition-all cursor-pointer ${
                     idx === activeImageIdx
-                      ? 'border-amber-500 ring-2 ring-amber-500/40 scale-105'
-                      : 'border-slate-800 opacity-60 hover:opacity-100'
+                      ? 'border-amber-500 ring-2 ring-amber-500/40 scale-105 shadow-md'
+                      : 'border-slate-800 opacity-60 hover:opacity-100 hover:border-slate-600'
                   }`}
+                  title={`View photo ${idx + 1}`}
                 >
                   <img src={img} alt={`View ${idx + 1}`} className="w-full h-full object-cover" />
                 </button>
