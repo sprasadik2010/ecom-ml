@@ -111,18 +111,26 @@ export const ProductDetails: React.FC = () => {
   const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [panOffset, setPanOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
+  const [isPinching, setIsPinching] = useState(false);
   const [panStart, setPanStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const initialPinchDist = useRef<number | null>(null);
   const initialPinchZoom = useRef<number>(1);
+  const initialPinchCenter = useRef<{ x: number; y: number } | null>(null);
+  const initialPinchPan = useRef<{ x: number; y: number } | null>(null);
+  const lastTapTime = useRef<number>(0);
 
   // Lightbox Zoom & Pan state
   const lightboxContainerRef = useRef<HTMLDivElement>(null);
   const [lightboxZoom, setLightboxZoom] = useState<number>(1);
   const [lightboxPan, setLightboxPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [isLightboxPanning, setIsLightboxPanning] = useState(false);
+  const [isLightboxPinching, setIsLightboxPinching] = useState(false);
   const [lightboxPanStart, setLightboxPanStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const lightboxPinchDist = useRef<number | null>(null);
   const lightboxPinchZoom = useRef<number>(1);
+  const lightboxPinchCenter = useRef<{ x: number; y: number } | null>(null);
+  const lightboxPinchPan = useRef<{ x: number; y: number } | null>(null);
+  const lightboxLastTapTime = useRef<number>(0);
   const [lightboxTouchStartX, setLightboxTouchStartX] = useState<number | null>(null);
   const [lightboxTouchStartY, setLightboxTouchStartY] = useState<number | null>(null);
   const [isLightboxDragging, setIsLightboxDragging] = useState(false);
@@ -140,37 +148,6 @@ export const ProductDetails: React.FC = () => {
     };
   };
 
-  const resetZoom = () => {
-    setZoomLevel(1);
-    setPanOffset({ x: 0, y: 0 });
-    setIsPanning(false);
-  };
-
-  const updateZoom = (updater: (prev: number) => number) => {
-    setZoomLevel((prevZoom) => {
-      const nextZoom = updater(prevZoom);
-      if (nextZoom <= 1) {
-        setPanOffset({ x: 0, y: 0 });
-        return 1;
-      }
-      const clampedZoom = Math.min(MAX_ZOOM, Math.max(1, nextZoom));
-      setPanOffset((prevPan) => clampPan(prevPan.x, prevPan.y, clampedZoom));
-      return clampedZoom;
-    });
-  };
-
-  const handleZoomIn = () => updateZoom((prev) => Math.min(MAX_ZOOM, +(prev + 0.5).toFixed(1)));
-  const handleZoomOut = () => updateZoom((prev) => Math.max(1, +(prev - 0.5).toFixed(1)));
-
-  const handleDoubleClick = () => {
-    if (zoomLevel > 1) {
-      resetZoom();
-    } else {
-      updateZoom(() => 2.5);
-    }
-  };
-
-  // Lightbox Zoom Helpers
   const clampLightboxPan = (x: number, y: number, zoom: number) => {
     if (!lightboxContainerRef.current || zoom <= 1) return { x: 0, y: 0 };
     const rect = lightboxContainerRef.current.getBoundingClientRect();
@@ -182,10 +159,94 @@ export const ProductDetails: React.FC = () => {
     };
   };
 
+  // Helper: Zoom to focal coordinate (cursor on desktop, pinch center on mobile)
+  const zoomToFocalPoint = (
+    nextZoom: number,
+    focalX: number,
+    focalY: number,
+    container: HTMLElement | null,
+    prevZoom: number,
+    prevPan: { x: number; y: number },
+    clampFn: (x: number, y: number, zoom: number) => { x: number; y: number }
+  ) => {
+    if (nextZoom <= 1 || !container) {
+      return { zoom: 1, pan: { x: 0, y: 0 } };
+    }
+    const rect = container.getBoundingClientRect();
+    const mouseX = focalX - (rect.left + rect.width / 2);
+    const mouseY = focalY - (rect.top + rect.height / 2);
+
+    const imgX = (mouseX - prevPan.x) / prevZoom;
+    const imgY = (mouseY - prevPan.y) / prevZoom;
+
+    const rawPanX = mouseX - imgX * nextZoom;
+    const rawPanY = mouseY - imgY * nextZoom;
+
+    return {
+      zoom: nextZoom,
+      pan: clampFn(rawPanX, rawPanY, nextZoom),
+    };
+  };
+
+  const resetZoom = () => {
+    setZoomLevel(1);
+    setPanOffset({ x: 0, y: 0 });
+    setIsPanning(false);
+    setIsPinching(false);
+  };
+
+  const handleZoomIn = () => {
+    setZoomLevel((prevZoom) => {
+      const nextZoom = Math.min(MAX_ZOOM, +(prevZoom + 0.5).toFixed(1));
+      setPanOffset((prevPan) => {
+        const ratio = nextZoom / prevZoom;
+        return clampPan(prevPan.x * ratio, prevPan.y * ratio, nextZoom);
+      });
+      return nextZoom;
+    });
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel((prevZoom) => {
+      const nextZoom = Math.max(1, +(prevZoom - 0.5).toFixed(1));
+      if (nextZoom <= 1) {
+        setPanOffset({ x: 0, y: 0 });
+        return 1;
+      }
+      setPanOffset((prevPan) => {
+        const ratio = nextZoom / prevZoom;
+        return clampPan(prevPan.x * ratio, prevPan.y * ratio, nextZoom);
+      });
+      return nextZoom;
+    });
+  };
+
+  const handleHeroDoubleAction = (clientX: number, clientY: number) => {
+    if (zoomLevel > 1) {
+      resetZoom();
+      return;
+    }
+    const container = imageContainerRef.current;
+    if (!container) return;
+    const targetZoom = 2.5;
+    const res = zoomToFocalPoint(
+      targetZoom,
+      clientX,
+      clientY,
+      container,
+      1,
+      { x: 0, y: 0 },
+      clampPan
+    );
+    setZoomLevel(res.zoom);
+    setPanOffset(res.pan);
+  };
+
   const resetLightboxZoom = () => {
     setLightboxZoom(1);
     setLightboxPan({ x: 0, y: 0 });
     setIsLightboxPanning(false);
+    setIsLightboxPinching(false);
   };
 
   const openLightbox = () => {
@@ -201,32 +262,54 @@ export const ProductDetails: React.FC = () => {
     }
   };
 
-  const updateLightboxZoom = (updater: (prev: number) => number) => {
+  const handleLightboxZoomIn = () => {
     setLightboxZoom((prevZoom) => {
-      const nextZoom = updater(prevZoom);
+      const nextZoom = Math.min(MAX_ZOOM, +(prevZoom + 0.5).toFixed(1));
+      setLightboxPan((prevPan) => {
+        const ratio = nextZoom / prevZoom;
+        return clampLightboxPan(prevPan.x * ratio, prevPan.y * ratio, nextZoom);
+      });
+      return nextZoom;
+    });
+  };
+
+  const handleLightboxZoomOut = () => {
+    setLightboxZoom((prevZoom) => {
+      const nextZoom = Math.max(1, +(prevZoom - 0.5).toFixed(1));
       if (nextZoom <= 1) {
         setLightboxPan({ x: 0, y: 0 });
         return 1;
       }
-      const clampedZoom = Math.min(MAX_ZOOM, Math.max(1, nextZoom));
-      setLightboxPan((prevPan) => clampLightboxPan(prevPan.x, prevPan.y, clampedZoom));
-      return clampedZoom;
+      setLightboxPan((prevPan) => {
+        const ratio = nextZoom / prevZoom;
+        return clampLightboxPan(prevPan.x * ratio, prevPan.y * ratio, nextZoom);
+      });
+      return nextZoom;
     });
   };
 
-  const handleLightboxZoomIn = () => updateLightboxZoom((prev) => Math.min(MAX_ZOOM, +(prev + 0.5).toFixed(1)));
-  const handleLightboxZoomOut = () => updateLightboxZoom((prev) => Math.max(1, +(prev - 0.5).toFixed(1)));
-
-  const handleLightboxDoubleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleLightboxDoubleAction = (clientX: number, clientY: number) => {
     if (lightboxZoom > 1) {
       resetLightboxZoom();
-    } else {
-      updateLightboxZoom(() => 2.5);
+      return;
     }
+    const container = lightboxContainerRef.current;
+    if (!container) return;
+    const targetZoom = 2.5;
+    const res = zoomToFocalPoint(
+      targetZoom,
+      clientX,
+      clientY,
+      container,
+      1,
+      { x: 0, y: 0 },
+      clampLightboxPan
+    );
+    setLightboxZoom(res.zoom);
+    setLightboxPan(res.pan);
   };
 
-  // Non-passive wheel event listener on image container for smooth zoom
+  // Non-passive wheel event listener on image container for focal zoom to cursor
   useEffect(() => {
     const container = imageContainerRef.current;
     if (!container) return;
@@ -234,7 +317,27 @@ export const ProductDetails: React.FC = () => {
     const onWheelHandler = (e: WheelEvent) => {
       e.preventDefault();
       const zoomStep = e.deltaY < 0 ? 0.35 : -0.35;
-      updateZoom((prev) => Math.max(1, Math.min(MAX_ZOOM, +(prev + zoomStep).toFixed(1))));
+
+      setZoomLevel((prevZoom) => {
+        const nextZoom = Math.max(1, Math.min(MAX_ZOOM, +(prevZoom + zoomStep).toFixed(2)));
+        if (nextZoom <= 1) {
+          setPanOffset({ x: 0, y: 0 });
+          return 1;
+        }
+        setPanOffset((prevPan) => {
+          const res = zoomToFocalPoint(
+            nextZoom,
+            e.clientX,
+            e.clientY,
+            container,
+            prevZoom,
+            prevPan,
+            clampPan
+          );
+          return res.pan;
+        });
+        return nextZoom;
+      });
     };
 
     container.addEventListener('wheel', onWheelHandler, { passive: false });
@@ -243,7 +346,7 @@ export const ProductDetails: React.FC = () => {
     };
   }, []);
 
-  // Non-passive wheel listener on lightbox modal
+  // Non-passive wheel listener on lightbox modal for focal zoom to cursor
   useEffect(() => {
     if (!isLightboxOpen) return;
     const container = lightboxContainerRef.current;
@@ -253,7 +356,27 @@ export const ProductDetails: React.FC = () => {
       e.preventDefault();
       e.stopPropagation();
       const zoomStep = e.deltaY < 0 ? 0.35 : -0.35;
-      updateLightboxZoom((prev) => Math.max(1, Math.min(MAX_ZOOM, +(prev + zoomStep).toFixed(1))));
+
+      setLightboxZoom((prevZoom) => {
+        const nextZoom = Math.max(1, Math.min(MAX_ZOOM, +(prevZoom + zoomStep).toFixed(2)));
+        if (nextZoom <= 1) {
+          setLightboxPan({ x: 0, y: 0 });
+          return 1;
+        }
+        setLightboxPan((prevPan) => {
+          const res = zoomToFocalPoint(
+            nextZoom,
+            e.clientX,
+            e.clientY,
+            container,
+            prevZoom,
+            prevPan,
+            clampLightboxPan
+          );
+          return res.pan;
+        });
+        return nextZoom;
+      });
     };
 
     container.addEventListener('wheel', onWheelHandler, { passive: false });
@@ -292,6 +415,8 @@ export const ProductDetails: React.FC = () => {
       setIsLightboxPanning(false);
       setIsLightboxDragging(false);
       setLightboxDragStartX(null);
+      setIsPinching(false);
+      setIsLightboxPinching(false);
     };
     window.addEventListener('mouseup', handleGlobalMouseUp);
     return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
@@ -433,9 +558,18 @@ export const ProductDetails: React.FC = () => {
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length === 2) {
+    if (e.touches.length === 2 && imageContainerRef.current) {
+      setIsPinching(true);
+      const rect = imageContainerRef.current.getBoundingClientRect();
+      const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      initialPinchCenter.current = { x: midX - centerX, y: midY - centerY };
       initialPinchDist.current = getTouchDistance(e.touches[0], e.touches[1]);
       initialPinchZoom.current = zoomLevel;
+      initialPinchPan.current = { ...panOffset };
       return;
     }
 
@@ -454,11 +588,38 @@ export const ProductDetails: React.FC = () => {
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (e.touches.length === 2 && initialPinchDist.current) {
+    if (
+      e.touches.length === 2 &&
+      initialPinchDist.current &&
+      initialPinchCenter.current &&
+      initialPinchPan.current &&
+      imageContainerRef.current
+    ) {
       const dist = getTouchDistance(e.touches[0], e.touches[1]);
       const scale = dist / initialPinchDist.current;
       const newZoom = Math.max(1, Math.min(MAX_ZOOM, +(initialPinchZoom.current * scale).toFixed(2)));
-      updateZoom(() => newZoom);
+
+      if (newZoom <= 1) {
+        setZoomLevel(1);
+        setPanOffset({ x: 0, y: 0 });
+        return;
+      }
+
+      const rect = imageContainerRef.current.getBoundingClientRect();
+      const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const currentMid = { x: midX - centerX, y: midY - centerY };
+
+      const imgX = (initialPinchCenter.current.x - initialPinchPan.current.x) / initialPinchZoom.current;
+      const imgY = (initialPinchCenter.current.y - initialPinchPan.current.y) / initialPinchZoom.current;
+
+      const rawPanX = currentMid.x - imgX * newZoom;
+      const rawPanY = currentMid.y - imgY * newZoom;
+
+      setZoomLevel(newZoom);
+      setPanOffset(clampPan(rawPanX, rawPanY, newZoom));
       return;
     }
 
@@ -472,6 +633,9 @@ export const ProductDetails: React.FC = () => {
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (e.touches.length < 2) {
       initialPinchDist.current = null;
+      initialPinchCenter.current = null;
+      initialPinchPan.current = null;
+      setIsPinching(false);
     }
 
     if (zoomLevel > 1) {
@@ -484,6 +648,21 @@ export const ProductDetails: React.FC = () => {
     const touchEndY = e.changedTouches[0].clientY;
     const diffX = touchEndX - touchStartX;
     const diffY = touchEndY - (touchStartY ?? 0);
+
+    // Double-tap focal zoom detection on mobile:
+    if (Math.hypot(diffX, diffY) < 15) {
+      const now = Date.now();
+      if (lastTapTime.current && now - lastTapTime.current < 320) {
+        handleHeroDoubleAction(touchEndX, touchEndY);
+        lastTapTime.current = 0;
+        setTouchStartX(null);
+        setTouchStartY(null);
+        return;
+      }
+      lastTapTime.current = now;
+    } else {
+      lastTapTime.current = 0;
+    }
 
     // Swipe threshold: > 35px horizontal movement
     if (Math.abs(diffX) > 35 && Math.abs(diffX) > Math.abs(diffY)) {
@@ -584,9 +763,18 @@ export const ProductDetails: React.FC = () => {
   };
 
   const handleLightboxTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length === 2) {
+    if (e.touches.length === 2 && lightboxContainerRef.current) {
+      setIsLightboxPinching(true);
+      const rect = lightboxContainerRef.current.getBoundingClientRect();
+      const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      lightboxPinchCenter.current = { x: midX - centerX, y: midY - centerY };
       lightboxPinchDist.current = getTouchDistance(e.touches[0], e.touches[1]);
       lightboxPinchZoom.current = lightboxZoom;
+      lightboxPinchPan.current = { ...lightboxPan };
       return;
     }
 
@@ -605,11 +793,38 @@ export const ProductDetails: React.FC = () => {
   };
 
   const handleLightboxTouchMove = (e: React.TouchEvent) => {
-    if (e.touches.length === 2 && lightboxPinchDist.current) {
+    if (
+      e.touches.length === 2 &&
+      lightboxPinchDist.current &&
+      lightboxPinchCenter.current &&
+      lightboxPinchPan.current &&
+      lightboxContainerRef.current
+    ) {
       const dist = getTouchDistance(e.touches[0], e.touches[1]);
       const scale = dist / lightboxPinchDist.current;
       const newZoom = Math.max(1, Math.min(MAX_ZOOM, +(lightboxPinchZoom.current * scale).toFixed(2)));
-      updateLightboxZoom(() => newZoom);
+
+      if (newZoom <= 1) {
+        setLightboxZoom(1);
+        setLightboxPan({ x: 0, y: 0 });
+        return;
+      }
+
+      const rect = lightboxContainerRef.current.getBoundingClientRect();
+      const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const currentMid = { x: midX - centerX, y: midY - centerY };
+
+      const imgX = (lightboxPinchCenter.current.x - lightboxPinchPan.current.x) / lightboxPinchZoom.current;
+      const imgY = (lightboxPinchCenter.current.y - lightboxPinchPan.current.y) / lightboxPinchZoom.current;
+
+      const rawPanX = currentMid.x - imgX * newZoom;
+      const rawPanY = currentMid.y - imgY * newZoom;
+
+      setLightboxZoom(newZoom);
+      setLightboxPan(clampLightboxPan(rawPanX, rawPanY, newZoom));
       return;
     }
 
@@ -623,6 +838,9 @@ export const ProductDetails: React.FC = () => {
   const handleLightboxTouchEnd = (e: React.TouchEvent) => {
     if (e.touches.length < 2) {
       lightboxPinchDist.current = null;
+      lightboxPinchCenter.current = null;
+      lightboxPinchPan.current = null;
+      setIsLightboxPinching(false);
     }
 
     if (lightboxZoom > 1) {
@@ -635,6 +853,21 @@ export const ProductDetails: React.FC = () => {
     const touchEndY = e.changedTouches[0].clientY;
     const diffX = touchEndX - lightboxTouchStartX;
     const diffY = touchEndY - (lightboxTouchStartY ?? 0);
+
+    // Double-tap focal zoom detection on mobile in Lightbox:
+    if (Math.hypot(diffX, diffY) < 15) {
+      const now = Date.now();
+      if (lightboxLastTapTime.current && now - lightboxLastTapTime.current < 320) {
+        handleLightboxDoubleAction(touchEndX, touchEndY);
+        lightboxLastTapTime.current = 0;
+        setLightboxTouchStartX(null);
+        setLightboxTouchStartY(null);
+        return;
+      }
+      lightboxLastTapTime.current = now;
+    } else {
+      lightboxLastTapTime.current = 0;
+    }
 
     if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY)) {
       if (diffX < 0) {
@@ -675,10 +908,10 @@ export const ProductDetails: React.FC = () => {
             ref={imageContainerRef}
             className={`relative bg-white border border-[#EFE2DE] rounded-3xl p-3 flex items-center justify-center aspect-square max-h-[520px] overflow-hidden group shadow-xs select-none ${
               zoomLevel > 1
-                ? (isPanning ? 'cursor-grabbing touch-none' : 'cursor-grab touch-none')
+                ? (isPanning || isPinching ? 'cursor-grabbing touch-none' : 'cursor-grab touch-none')
                 : 'cursor-grab active:cursor-grabbing touch-pan-y'
             }`}
-            onDoubleClick={handleDoubleClick}
+            onDoubleClick={(e) => handleHeroDoubleAction(e.clientX, e.clientY)}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
@@ -709,7 +942,7 @@ export const ProductDetails: React.FC = () => {
                           ? {
                               transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoomLevel})`,
                               transformOrigin: 'center center',
-                              transition: isPanning ? 'none' : 'transform 0.15s ease-out',
+                              transition: isPanning || isPinching ? 'none' : 'transform 0.18s cubic-bezier(0.2, 0, 0.2, 1)',
                               willChange: 'transform',
                             }
                           : undefined
@@ -1276,11 +1509,14 @@ export const ProductDetails: React.FC = () => {
             ref={lightboxContainerRef}
             className={`relative flex-1 w-full max-w-7xl mx-auto flex items-center justify-center overflow-hidden rounded-2xl select-none ${
               lightboxZoom > 1
-                ? (isLightboxPanning ? 'cursor-grabbing touch-none' : 'cursor-grab touch-none')
+                ? (isLightboxPanning || isLightboxPinching ? 'cursor-grabbing touch-none' : 'cursor-grab touch-none')
                 : 'cursor-zoom-in touch-pan-y'
             }`}
             onClick={(e) => e.stopPropagation()}
-            onDoubleClick={handleLightboxDoubleClick}
+            onDoubleClick={(e) => {
+              e.stopPropagation();
+              handleLightboxDoubleAction(e.clientX, e.clientY);
+            }}
             onMouseDown={handleLightboxMouseDown}
             onMouseMove={handleLightboxMouseMove}
             onMouseUp={handleLightboxMouseUp}
@@ -1297,7 +1533,7 @@ export const ProductDetails: React.FC = () => {
                   ? {
                       transform: `translate(${lightboxPan.x}px, ${lightboxPan.y}px) scale(${lightboxZoom})`,
                       transformOrigin: 'center center',
-                      transition: isLightboxPanning ? 'none' : 'transform 0.15s ease-out',
+                      transition: isLightboxPanning || isLightboxPinching ? 'none' : 'transform 0.18s cubic-bezier(0.2, 0, 0.2, 1)',
                       willChange: 'transform',
                     }
                   : undefined
