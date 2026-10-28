@@ -39,6 +39,8 @@ export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, curr
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeftVal, setScrollLeftVal] = useState(0);
+  const dragDistanceRef = useRef(0);
+  const touchStartPos = useRef({ x: 0, y: 0 });
 
   // Auto-center root node on data or view mode changes
   useEffect(() => {
@@ -55,6 +57,7 @@ export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, curr
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
     setIsDragging(true);
+    dragDistanceRef.current = 0;
     setStartX(e.pageX - containerRef.current.offsetLeft);
     setScrollLeftVal(containerRef.current.scrollLeft);
   };
@@ -65,14 +68,48 @@ export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, curr
 
   const handleMouseUp = () => {
     setIsDragging(false);
+    setTimeout(() => {
+      dragDistanceRef.current = 0;
+    }, 50);
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isDragging || !containerRef.current) return;
     e.preventDefault();
     const x = e.pageX - containerRef.current.offsetLeft;
-    const walk = (x - startX) * 1.5; // Scroll speed multiplier
+    const diff = x - startX;
+    dragDistanceRef.current += Math.abs(diff);
+    const walk = diff * 1.5; // Scroll speed multiplier
     containerRef.current.scrollLeft = scrollLeftVal - walk;
+  };
+
+  // Touch event handlers for mobile finger scrolling and panning
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    dragDistanceRef.current = 0;
+    touchStartPos.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+    };
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    const deltaX = Math.abs(e.touches[0].clientX - touchStartPos.current.x);
+    const deltaY = Math.abs(e.touches[0].clientY - touchStartPos.current.y);
+    dragDistanceRef.current = Math.max(dragDistanceRef.current, deltaX, deltaY);
+  };
+
+  const handleTouchEnd = () => {
+    setTimeout(() => {
+      dragDistanceRef.current = 0;
+    }, 100);
+  };
+
+  const handleCardClick = (username: string) => {
+    if (dragDistanceRef.current > 8) {
+      // Swiping or dragging with finger, ignore accidental click
+      return;
+    }
+    onSelectNode(username);
   };
 
   // Helper to render a node card
@@ -82,7 +119,7 @@ export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, curr
 
     return (
       <div 
-        onClick={() => onSelectNode(node.username)}
+        onClick={() => handleCardClick(node.username)}
         className={`w-52 p-3 bg-slate-900 border rounded-lg shadow-md cursor-pointer transition-all hover:scale-105 select-none relative ${
           isActive 
             ? 'border-emerald-500/50 hover:border-emerald-400 hover:shadow-emerald-950/20' 
@@ -418,9 +455,13 @@ export const BinaryTree: React.FC<BinaryTreeProps> = ({ data, onSelectNode, curr
             onMouseLeave={handleMouseLeave}
             onMouseUp={handleMouseUp}
             onMouseMove={handleMouseMove}
-            className={`w-full overflow-x-auto flex justify-start p-3 sm:p-4 touch-pan-x scrollbar-thin ${
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            className={`w-full overflow-x-auto flex justify-start p-3 sm:p-4 touch-auto overscroll-x-contain scrollbar-thin ${
               isDragging ? 'cursor-grabbing select-none' : 'cursor-grab'
             }`}
+            style={{ WebkitOverflowScrolling: 'touch' }}
           >
             <div className="min-w-[800px] flex justify-center py-2 mx-auto">
               {renderTree(data)}

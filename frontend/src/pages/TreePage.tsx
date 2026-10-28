@@ -196,7 +196,7 @@ export const TreePage: React.FC = () => {
           <p className="text-slate-400 text-xs font-bold font-mono">Fetching tree downlines...</p>
         </div>
       ) : treeData && !error ? (
-        <div className="bg-slate-950 border border-slate-900 rounded-xl overflow-hidden shadow-inner">
+        <div className="bg-slate-950 border border-slate-900 rounded-xl overflow-hidden shadow-inner touch-auto">
           <BinaryTree 
             data={treeData} 
             onSelectNode={handleSelectNode} 
