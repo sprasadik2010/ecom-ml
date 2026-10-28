@@ -322,11 +322,11 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
-      {/* Top Banner: Welcome, Rank & Status */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 sm:p-6 bg-slate-900 border border-slate-800 rounded-xl mb-8 shadow-md">
+      {/* Top Banner: Welcome Card */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 sm:p-6 bg-slate-900 border border-slate-800 rounded-xl mb-4 sm:mb-6 shadow-md">
         <div>
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-xl md:text-2xl font-black text-white">Hello, {user.full_name}!</h1>
+            <h1 className="text-xl md:text-2xl font-black text-white">Welcome {user.full_name || user.username}</h1>
             {user.current_level > 0 && (
               <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-gradient-to-r ${getLevelBadgeColor(user.current_level)} border shadow-sm flex items-center gap-1.5`}>
                 <Star size={13} className="fill-current" />
@@ -363,6 +363,88 @@ export const Dashboard: React.FC = () => {
             <LogOut size={14} />
             <span>Sign Out</span>
           </button>
+        </div>
+      </div>
+
+      {/* Referral Links Card: Next to Welcome Card */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 sm:p-6 shadow-md mb-8">
+        <div className="flex items-center justify-between gap-3 mb-3 sm:mb-4">
+          <h3 className="font-extrabold text-xs sm:text-sm text-slate-100 uppercase tracking-wider flex items-center gap-2">
+            <Share2 size={16} className="text-amber-500" />
+            Referral Links
+          </h3>
+          <Link
+            to="/tree"
+            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-colors shrink-0"
+          >
+            <Users size={14} />
+            <span className="hidden sm:inline">View Business Tree</span>
+            <span className="sm:hidden">Tree</span>
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+          {/* Left Side Link */}
+          <div className="p-3 sm:p-4 bg-slate-950/60 border border-slate-850 rounded-xl flex flex-col justify-between">
+            <label className="text-[11px] sm:text-xs text-slate-300 font-bold block mb-1.5 text-left truncate">
+              Left Side Link
+            </label>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <input
+                type="text"
+                readOnly
+                className="bg-slate-900 border border-slate-800 rounded-lg text-[11px] sm:text-xs font-mono text-slate-300 px-2 sm:px-3 py-1.5 sm:py-2 flex-1 min-w-0 focus:outline-none select-all text-left"
+                value={leftReferralLink}
+                onClick={(e) => (e.target as HTMLInputElement).select()}
+              />
+              <button
+                onClick={handleCopyLeft}
+                className={`p-1.5 sm:p-2.5 rounded-lg font-bold transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1 shrink-0 ${
+                  copiedLeft ? 'bg-emerald-500 text-slate-950' : 'bg-amber-500 hover:bg-amber-600 text-slate-950'
+                }`}
+                title="Copy Left Side Link"
+              >
+                {copiedLeft ? <CheckCircle2 size={14} /> : <Clipboard size={14} />}
+                <span className="text-xs hidden sm:inline">{copiedLeft ? 'Copied!' : 'Copy'}</span>
+              </button>
+            </div>
+            {copiedLeft && (
+              <span className="text-[10px] sm:text-[11px] text-emerald-400 font-bold block mt-1.5 text-left">
+                ✓ Copied!
+              </span>
+            )}
+          </div>
+
+          {/* Right Side Link */}
+          <div className="p-3 sm:p-4 bg-slate-950/60 border border-slate-850 rounded-xl flex flex-col justify-between">
+            <label className="text-[11px] sm:text-xs text-slate-300 font-bold block mb-1.5 text-right truncate">
+              Right Side Link
+            </label>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <input
+                type="text"
+                readOnly
+                className="bg-slate-900 border border-slate-800 rounded-lg text-[11px] sm:text-xs font-mono text-slate-300 px-2 sm:px-3 py-1.5 sm:py-2 flex-1 min-w-0 focus:outline-none select-all text-left"
+                value={rightReferralLink}
+                onClick={(e) => (e.target as HTMLInputElement).select()}
+              />
+              <button
+                onClick={handleCopyRight}
+                className={`p-1.5 sm:p-2.5 rounded-lg font-bold transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1 shrink-0 ${
+                  copiedRight ? 'bg-emerald-500 text-slate-950' : 'bg-amber-500 hover:bg-amber-600 text-slate-950'
+                }`}
+                title="Copy Right Side Link"
+              >
+                {copiedRight ? <CheckCircle2 size={14} /> : <Clipboard size={14} />}
+                <span className="text-xs hidden sm:inline">{copiedRight ? 'Copied!' : 'Copy'}</span>
+              </button>
+            </div>
+            {copiedRight && (
+              <span className="text-[10px] sm:text-[11px] text-emerald-400 font-bold block mt-1.5 text-right">
+                ✓ Copied!
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -476,81 +558,7 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* 1. Referral Links */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-md mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-          <div>
-            <h3 className="font-extrabold text-sm text-slate-100 uppercase tracking-wider flex items-center gap-2">
-              <Share2 size={16} className="text-amber-500" />
-              Referral Links
-            </h3>
-            <p className="text-xs text-slate-400 leading-normal mt-1 font-normal">
-              Share your signed referral links. Placement side is secured and verified by the system tree.
-            </p>
-          </div>
-          <Link
-            to="/tree"
-            className="px-3.5 py-2 bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 rounded-lg font-bold text-xs flex items-center gap-1.5 transition-colors shrink-0 self-start sm:self-center"
-          >
-            <Users size={14} />
-            View Business Tree
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Left Link */}
-          <div className="p-4 bg-slate-950/60 border border-slate-850 rounded-lg">
-            <label className="text-[10px] text-slate-400 uppercase font-black block mb-1.5 flex items-center justify-between">
-              <span>Left Leg Placement Link</span>
-              <span className="text-[10px] text-amber-500 font-mono font-normal">Left Team Placement</span>
-            </label>
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                readOnly
-                className="bg-slate-900 border border-slate-800 rounded text-xs font-mono text-slate-300 px-3 py-2 flex-1 min-w-0 focus:outline-none select-all"
-                value={leftReferralLink}
-              />
-              <button
-                onClick={handleCopyLeft}
-                className="p-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-md font-bold transition-all active:scale-95 cursor-pointer flex items-center gap-1 shrink-0"
-                title="Copy Left link"
-              >
-                <Clipboard size={15} />
-                <span className="text-xs hidden sm:inline">{copiedLeft ? 'Copied!' : 'Copy'}</span>
-              </button>
-            </div>
-            {copiedLeft && <span className="text-[11px] text-emerald-400 font-bold block mt-1.5">✓ Left referral link copied to clipboard!</span>}
-          </div>
-
-          {/* Right Link */}
-          <div className="p-4 bg-slate-950/60 border border-slate-850 rounded-lg">
-            <label className="text-[10px] text-slate-400 uppercase font-black block mb-1.5 flex items-center justify-between">
-              <span>Right Leg Placement Link</span>
-              <span className="text-[10px] text-amber-500 font-mono font-normal">Right Team Placement</span>
-            </label>
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                readOnly
-                className="bg-slate-900 border border-slate-800 rounded text-xs font-mono text-slate-300 px-3 py-2 flex-1 min-w-0 focus:outline-none select-all"
-                value={rightReferralLink}
-              />
-              <button
-                onClick={handleCopyRight}
-                className="p-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-md font-bold transition-all active:scale-95 cursor-pointer flex items-center gap-1 shrink-0"
-                title="Copy Right link"
-              >
-                <Clipboard size={15} />
-                <span className="text-xs hidden sm:inline">{copiedRight ? 'Copied!' : 'Copy'}</span>
-              </button>
-            </div>
-            {copiedRight && <span className="text-[11px] text-emerald-400 font-bold block mt-1.5">✓ Right referral link copied to clipboard!</span>}
-          </div>
-        </div>
-      </div>
-
-      {/* 2. Recent E-commerce Orders */}
+      {/* Recent E-commerce Orders */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-md mb-8">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-extrabold text-sm text-slate-100 uppercase tracking-wider flex items-center gap-2">

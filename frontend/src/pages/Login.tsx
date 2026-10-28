@@ -15,16 +15,16 @@ export const Login: React.FC = () => {
   const [searchParams] = useSearchParams();
   const redirect = searchParams.get('redirect');
 
-  // If already authenticated, redirect
+  // If already authenticated, redirect to dashboard (or /admin for admin)
   useEffect(() => {
     if (user) {
       if (user.is_admin) {
         navigate('/admin', { replace: true });
       } else {
-        navigate(`/${redirect && redirect !== 'dashboard' ? redirect : 'dashboard'}`, { replace: true });
+        navigate('/dashboard', { replace: true });
       }
     }
-  }, [user, navigate, redirect]);
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,7 +36,7 @@ export const Login: React.FC = () => {
       if (loggedInUser?.is_admin) {
         navigate('/admin', { replace: true });
       } else {
-        navigate(`/${redirect && redirect !== 'dashboard' ? redirect : 'dashboard'}`, { replace: true });
+        navigate('/dashboard', { replace: true });
       }
     } catch (err: any) {
       console.error('Login error:', err);
