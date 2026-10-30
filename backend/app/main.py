@@ -72,6 +72,31 @@ def on_startup():
     except Exception as e:
         db.rollback()
 
+    # Migration for users table bank & payout fields
+    for col, col_type in [
+        ("bank_account_holder", "VARCHAR"),
+        ("bank_name", "VARCHAR"),
+        ("bank_account_number", "VARCHAR"),
+        ("bank_ifsc", "VARCHAR"),
+        ("bank_branch", "VARCHAR"),
+        ("upi_id", "VARCHAR"),
+        ("pan_number", "VARCHAR"),
+        ("activated_at", "TIMESTAMP"),
+    ]:
+        try:
+            db.execute(text(f"ALTER TABLE users ADD COLUMN {col} {col_type}"))
+            db.commit()
+            logger.info(f"Added {col} column to users table.")
+        except Exception:
+            db.rollback()
+
+    try:
+        db.execute(text("UPDATE users SET activated_at = created_at WHERE status = 'active' AND activated_at IS NULL"))
+        db.commit()
+        logger.info("Backfilled activated_at for existing active members.")
+    except Exception:
+        db.rollback()
+
     # Migration for orders table payment fields
     try:
         db.execute(text("ALTER TABLE orders ADD COLUMN payment_method VARCHAR DEFAULT 'upi_qr'"))
@@ -450,6 +475,43 @@ def get_current_user_profile(
     return user
 
 
+@app.put("/users/me/profile", response_model=schemas.UserResponse)
+def update_current_user_profile(
+    profile_data: schemas.UserProfileUpdate,
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(get_db)
+):
+    user = crud.get_user_by_id(db, current_user.id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    if profile_data.full_name is not None:
+        clean_name = profile_data.full_name.strip()
+        if clean_name:
+            user.full_name = clean_name
+    if profile_data.phone_number is not None:
+        user.phone_number = profile_data.phone_number.strip()
+    if profile_data.bank_account_holder is not None:
+        user.bank_account_holder = profile_data.bank_account_holder.strip()
+    if profile_data.bank_name is not None:
+        user.bank_name = profile_data.bank_name.strip()
+    if profile_data.bank_account_number is not None:
+        user.bank_account_number = profile_data.bank_account_number.strip()
+    if profile_data.bank_ifsc is not None:
+        user.bank_ifsc = profile_data.bank_ifsc.strip().upper()
+    if profile_data.bank_branch is not None:
+        user.bank_branch = profile_data.bank_branch.strip()
+    if profile_data.upi_id is not None:
+        user.upi_id = profile_data.upi_id.strip().lower()
+    if profile_data.pan_number is not None:
+        user.pan_number = profile_data.pan_number.strip().upper()
+
+    db.commit()
+    db.refresh(user)
+    logger.info(f"Updated profile & bank details for user {user.username} (id: {user.id})")
+    return user
+
+
 # Helper to verify if target is in current user's downline tree
 def is_user_in_downline(db: Session, current_user_id: int, target_user_id: int) -> bool:
     if current_user_id == target_user_id:
@@ -800,7 +862,13 @@ def admin_update_user_status(
     if status_data.status not in ["active", "inactive"]:
         raise HTTPException(status_code=400, detail="Invalid status. Must be 'active' or 'inactive'.")
         
-    user.status = status_data.status
+    import datetime
+    if status_data.status == "active":
+        if user.status != "active":
+            user.activated_at = datetime.datetime.utcnow()
+        user.status = "active"
+    else:
+        user.status = "inactive"
     db.commit()
     db.refresh(user)
     return user

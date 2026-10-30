@@ -38,6 +38,17 @@ class User(Base):
     current_level = Column(Integer, default=0) # 0: Member, 1: Level 1, 2: Level 2, etc.
     level_name = Column(String, default="Member")
     
+    # Bank & Payout Details (for payouts/commissions)
+    bank_account_holder = Column(String, nullable=True)
+    bank_name = Column(String, nullable=True)
+    bank_account_number = Column(String, nullable=True)
+    bank_ifsc = Column(String, nullable=True)
+    bank_branch = Column(String, nullable=True)
+    upi_id = Column(String, nullable=True)
+    pan_number = Column(String, nullable=True)
+
+    activated_at = Column(DateTime, nullable=True)
+    
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     # Relationships

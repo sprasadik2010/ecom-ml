@@ -19,7 +19,9 @@ import {
   Info,
   BookOpen,
   LogIn,
-  UserPlus
+  UserPlus,
+  Landmark,
+  UserCog
 } from 'lucide-react';
 import bwLogo from '../assets/bwLogo.jpeg';
 
@@ -442,6 +444,14 @@ export const Navbar: React.FC = () => {
                               <span>Member Dashboard</span>
                             </Link>
                             <Link
+                              to="/dashboard"
+                              onClick={() => setIsUserMenuOpen(false)}
+                              className="flex items-center gap-2.5 px-4 py-2 text-xs text-[#331B21] hover:bg-[#FDF4F6] hover:text-[#A8435D] font-medium"
+                            >
+                              <Landmark size={14} className="text-[#C07718]" />
+                              <span>Bank & Payout Profile</span>
+                            </Link>
+                            <Link
                               to="/tree"
                               onClick={() => setIsUserMenuOpen(false)}
                               className="flex items-center gap-2.5 px-4 py-2 text-xs text-[#331B21] hover:bg-[#FDF4F6] hover:text-[#A8435D] font-medium"
@@ -669,6 +679,14 @@ export const Navbar: React.FC = () => {
                     >
                       <IndianRupee size={14} />
                       <span>Commissions</span>
+                    </Link>
+                    <Link
+                      to="/dashboard"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="col-span-2 py-2.5 px-3 bg-[#FAF7F2] border border-[#EFE2DE] rounded-xl text-center font-bold text-[#331B21] hover:bg-[#FDF4F6] hover:text-[#A8435D] flex items-center justify-center gap-1.5 transition-colors"
+                    >
+                      <Landmark size={14} className="text-[#C07718]" />
+                      <span>Bank Account & Payout Details</span>
                     </Link>
                   </div>
                 )}

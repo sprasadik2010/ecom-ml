@@ -34,8 +34,28 @@ export interface User {
   current_level: number;
   level_name: string;
   created_at: string;
+  activated_at?: string | null;
   ref_token_left?: string;
   ref_token_right?: string;
+  bank_account_holder?: string | null;
+  bank_name?: string | null;
+  bank_account_number?: string | null;
+  bank_ifsc?: string | null;
+  bank_branch?: string | null;
+  upi_id?: string | null;
+  pan_number?: string | null;
+}
+
+export interface UserProfileUpdateData {
+  full_name?: string;
+  phone_number?: string;
+  bank_account_holder?: string;
+  bank_name?: string;
+  bank_account_number?: string;
+  bank_ifsc?: string;
+  bank_branch?: string;
+  upi_id?: string;
+  pan_number?: string;
 }
 
 interface AuthContextType {
@@ -54,6 +74,7 @@ interface AuthContextType {
     position: 'left' | 'right',
     token?: string
   ) => Promise<User>;
+  updateProfile: (profileData: UserProfileUpdateData) => Promise<User>;
   refreshUser: () => Promise<User | null>;
 }
 
@@ -177,13 +198,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return response.json();
   };
 
+  const updateProfile = async (profileData: UserProfileUpdateData): Promise<User> => {
+    if (!token) throw new Error('Not authenticated');
+
+    const response = await fetch(`${API_BASE_URL}/users/me/profile`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(profileData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      let message = 'Failed to update profile';
+      if (typeof errorData.detail === 'string') {
+        message = errorData.detail;
+      } else if (Array.isArray(errorData.detail)) {
+        message = errorData.detail.map((e: any) => e.msg || e.message).join(', ');
+      }
+      throw new Error(message);
+    }
+
+    const updatedUser: User = await response.json();
+    setUser(updatedUser);
+    return updatedUser;
+  };
+
   const refreshUser = async (): Promise<User | null> => {
     if (!token) return null;
     return fetchUserProfile(token);
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout, register, refreshUser }}>
+    <AuthContext.Provider value={{ user, token, loading, login, logout, register, updateProfile, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

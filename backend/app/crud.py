@@ -1,4 +1,5 @@
 import logging
+import datetime
 from typing import Optional, List
 from sqlalchemy.orm import Session
 from .models import User, Product, Order, OrderItem, Commission, UserRankReward
@@ -180,6 +181,7 @@ def complete_checkout(db: Session, order: Order) -> Order:
     # Activate user if personal SW meets threshold
     if buyer.status == "inactive" and buyer.personal_sw >= settings.MIN_PURCHASE_FOR_ACTIVATION:
         buyer.status = "active"
+        buyer.activated_at = datetime.datetime.utcnow()
         logger.info(f"User {buyer.username} has reached {buyer.personal_sw} SW and is now an ACTIVE member.")
     
     db.add(buyer)

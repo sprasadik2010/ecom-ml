@@ -80,9 +80,76 @@ class UserResponse(UserBase):
     created_at: datetime
     ref_token_left: Optional[str] = None
     ref_token_right: Optional[str] = None
+    activated_at: Optional[datetime] = None
+    
+    # Bank & Payout Details
+    bank_account_holder: Optional[str] = None
+    bank_name: Optional[str] = None
+    bank_account_number: Optional[str] = None
+    bank_ifsc: Optional[str] = None
+    bank_branch: Optional[str] = None
+    upi_id: Optional[str] = None
+    pan_number: Optional[str] = None
 
     class Config:
         from_attributes = True
+
+
+class UserProfileUpdate(BaseModel):
+    full_name: Optional[str] = None
+    phone_number: Optional[str] = None
+    bank_account_holder: Optional[str] = None
+    bank_name: Optional[str] = None
+    bank_account_number: Optional[str] = None
+    bank_ifsc: Optional[str] = None
+    bank_branch: Optional[str] = None
+    upi_id: Optional[str] = None
+    pan_number: Optional[str] = None
+
+    @field_validator('full_name')
+    @classmethod
+    def validate_full_name(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            v = v.strip()
+            if not v:
+                raise ValueError("Full name cannot be empty.")
+            if len(v) < 2:
+                raise ValueError("Full name must be at least 2 characters.")
+        return v
+
+    @field_validator('phone_number')
+    @classmethod
+    def validate_phone(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            v = v.strip()
+        return v
+
+    @field_validator('bank_ifsc')
+    @classmethod
+    def validate_ifsc(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            v = v.strip().upper()
+            if v and not re.match(r'^[A-Z0-9]{4,15}$', v):
+                raise ValueError("IFSC code format is invalid.")
+        return v
+
+    @field_validator('bank_account_number')
+    @classmethod
+    def validate_acc_no(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            v = v.strip()
+            if v and not re.match(r'^[0-9A-Za-z\-]{6,34}$', v):
+                raise ValueError("Account number should be between 6 and 34 characters.")
+        return v
+
+    @field_validator('upi_id')
+    @classmethod
+    def validate_upi(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            v = v.strip().lower()
+            if v and '@' not in v:
+                raise ValueError("Invalid UPI ID (e.g. name@okhdfcbank or phone@upi).")
+        return v
 
 
 # --- Tree Node Schema (Self-referential) ---

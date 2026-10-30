@@ -47,6 +47,11 @@ import {
   Cloud,
   UploadCloud,
   Key,
+  Landmark,
+  CreditCard,
+  Calendar,
+  UserCheck,
+  User as UserIcon,
   Image as ImageIcon,
   LogOut
 } from 'lucide-react';
@@ -99,6 +104,14 @@ interface UserListItem {
   current_level?: number;
   level_name?: string;
   wallet_balance: number;
+  activated_at?: string | null;
+  bank_account_holder?: string | null;
+  bank_name?: string | null;
+  bank_account_number?: string | null;
+  bank_ifsc?: string | null;
+  bank_branch?: string | null;
+  upi_id?: string | null;
+  pan_number?: string | null;
   created_at: string;
 }
 
@@ -638,6 +651,39 @@ export const AdminPanel: React.FC = () => {
   });
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [isSubmittingCredentials, setIsSubmittingCredentials] = useState(false);
+
+  // Full User Details Modal (Phone, Signup Time, Activation Time, Bank Details, etc.)
+  const [isUserDetailsModalOpen, setIsUserDetailsModalOpen] = useState(false);
+  const [selectedDetailsUser, setSelectedDetailsUser] = useState<UserListItem | null>(null);
+  const [copiedDetailField, setCopiedDetailField] = useState<string | null>(null);
+
+  const handleOpenUserDetailsModal = (user: UserListItem) => {
+    setSelectedDetailsUser(user);
+    setIsUserDetailsModalOpen(true);
+  };
+
+  const copyToClipboard = (text: string, fieldName: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedDetailField(fieldName);
+    setTimeout(() => setCopiedDetailField(null), 2000);
+  };
+
+  const formatDateFull = (dateStr?: string | null) => {
+    if (!dateStr) return '—';
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      });
+    } catch {
+      return dateStr;
+    }
+  };
 
   // Show status alerts temporarily
   const triggerSuccess = (msg: string) => {
@@ -2026,6 +2072,11 @@ export const AdminPanel: React.FC = () => {
                                 )}
                               </div>
                               <div className="text-[10px] text-slate-400 font-normal">@{u.username} ({u.email})</div>
+                              <div className="text-[10px] text-slate-350 flex items-center gap-2 mt-0.5 font-mono">
+                                <span>📞 {u.phone_number || u.phone || 'No phone'}</span>
+                                <span>•</span>
+                                <span title="Signup Date">📅 {new Date(u.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                              </div>
                             </td>
                             <td className="py-3 px-4 font-normal">
                               <div className="text-[10px] text-slate-350 space-y-0.5 font-sans">
@@ -2078,6 +2129,14 @@ export const AdminPanel: React.FC = () => {
                             </td>
                             <td className="py-3 px-4 text-center">
                               <div className="flex items-center justify-center gap-1.5">
+                                <button
+                                  onClick={() => handleOpenUserDetailsModal(u)}
+                                  className="px-2 py-1 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 text-[10px] font-bold text-sky-400 rounded cursor-pointer transition-colors flex items-center gap-1"
+                                  title="View Full Profile, Phone, Timestamps & Bank Details"
+                                >
+                                  <Eye size={11} />
+                                  Details
+                                </button>
                                 <button
                                   onClick={() => handleToggleUserStatus(u)}
                                   className="px-2 py-1 bg-slate-955 hover:bg-slate-850 border border-slate-800 text-[10px] font-bold rounded cursor-pointer transition-colors"
@@ -2135,7 +2194,13 @@ export const AdminPanel: React.FC = () => {
                                 <span className="bg-rose-500/10 text-rose-550 text-[8px] font-black px-1.5 py-0.5 rounded uppercase border border-rose-500/25">Admin</span>
                               )}
                             </div>
-                            <div className="text-[10px] text-slate-450 font-normal">@{u.username}</div>
+                            <div className="text-[10px] text-slate-450 font-normal">@{u.username} ({u.email})</div>
+                            <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                              📞 {u.phone_number || u.phone || 'No phone'} • 📅 {new Date(u.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit' })}
+                              {u.status === 'active' && u.activated_at && (
+                                <span className="text-emerald-400 ml-1.5">• Act: {new Date(u.activated_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</span>
+                              )}
+                            </div>
                           </div>
                           <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${u.status === 'active' ? 'bg-emerald-500/10 text-emerald-555 border border-emerald-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}>
                             {u.status.toUpperCase()}
@@ -2177,6 +2242,10 @@ export const AdminPanel: React.FC = () => {
                         </div>
 
                         <div className="flex gap-2 pt-2 border-t border-slate-850/60 font-sans">
+                          <button onClick={() => handleOpenUserDetailsModal(u)} className="flex-1 py-1.5 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 text-[10px] font-bold text-sky-400 rounded cursor-pointer transition-colors text-center flex items-center justify-center gap-1">
+                            <Eye size={11} />
+                            Details
+                          </button>
                           <button onClick={() => handleToggleUserStatus(u)} className="flex-1 py-1.5 bg-slate-950 hover:bg-slate-850 border border-slate-800 text-[10px] font-bold rounded cursor-pointer transition-colors text-center text-slate-355 hover:text-white">
                             Toggle Status
                           </button>
@@ -4321,6 +4390,406 @@ export const AdminPanel: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* COMPREHENSIVE USER PROFILE & DETAILS MODAL (FOR ADMIN) */}
+      {isUserDetailsModalOpen && selectedDetailsUser && (() => {
+        const sponsor = getUserById(selectedDetailsUser.sponsor_id);
+        const parent = getUserById(selectedDetailsUser.parent_id);
+        const hasBank = !!(selectedDetailsUser.bank_account_number || selectedDetailsUser.upi_id);
+
+        return (
+          <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-50 animate-fade-in font-sans overflow-y-auto">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col animate-in zoom-in-95 duration-200">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-800 bg-slate-950/60 shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 text-slate-950 font-black text-lg flex items-center justify-center shadow-md border border-amber-400/30 shrink-0">
+                    {(selectedDetailsUser.full_name?.trim() || selectedDetailsUser.username || 'U')[0].toUpperCase()}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-extrabold text-white text-base sm:text-lg">
+                        {selectedDetailsUser.full_name}
+                      </h3>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        selectedDetailsUser.status === 'active'
+                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                          : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                      }`}>
+                        {selectedDetailsUser.status.toUpperCase()} MEMBER
+                      </span>
+                      {selectedDetailsUser.is_admin && (
+                        <span className="bg-rose-500/10 text-rose-400 text-[9px] font-bold px-1.5 py-0.5 rounded border border-rose-500/20">
+                          ADMIN
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-slate-400 flex items-center gap-2 mt-0.5 font-mono">
+                      <span className="text-amber-400">@{selectedDetailsUser.username}</span>
+                      <span>•</span>
+                      <span>ID #{selectedDetailsUser.id}</span>
+                      {selectedDetailsUser.level_name && (
+                        <>
+                          <span>•</span>
+                          <span className="text-slate-300 font-sans">{selectedDetailsUser.level_name}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsUserDetailsModalOpen(false)}
+                  className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                  title="Close Modal"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Scrollable Modal Body */}
+              <div className="overflow-y-auto p-4 sm:p-6 space-y-5 text-xs">
+                {/* 1. Contact & Timestamp Overview (4 Cards) */}
+                <div>
+                  <div className="text-[11px] font-black uppercase tracking-wider text-slate-400 mb-2.5 flex items-center gap-1.5">
+                    <UserCheck size={14} className="text-sky-400" />
+                    <span>Contact Info & Timestamps</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Phone Number */}
+                    <div className="bg-slate-950 p-3 rounded-xl border border-slate-850 flex items-center justify-between">
+                      <div className="min-w-0">
+                        <div className="text-[10px] text-slate-500 uppercase font-mono font-bold flex items-center gap-1">
+                          <Phone size={11} className="text-emerald-400" />
+                          <span>Phone Number</span>
+                        </div>
+                        <div className="font-bold text-slate-100 text-sm mt-0.5 truncate">
+                          {selectedDetailsUser.phone_number || selectedDetailsUser.phone ? (
+                            <a
+                              href={`tel:${selectedDetailsUser.phone_number || selectedDetailsUser.phone}`}
+                              className="text-emerald-400 hover:underline"
+                            >
+                              {selectedDetailsUser.phone_number || selectedDetailsUser.phone}
+                            </a>
+                          ) : (
+                            <span className="text-slate-500 font-normal">Not provided</span>
+                          )}
+                        </div>
+                      </div>
+                      {(selectedDetailsUser.phone_number || selectedDetailsUser.phone) && (
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard(selectedDetailsUser.phone_number || selectedDetailsUser.phone || '', 'phone')}
+                          className="px-2 py-1 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded text-[10px] font-bold border border-slate-800 transition-colors ml-2 cursor-pointer shrink-0"
+                          title="Copy Phone"
+                        >
+                          {copiedDetailField === 'phone' ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Email */}
+                    <div className="bg-slate-950 p-3 rounded-xl border border-slate-850 flex items-center justify-between">
+                      <div className="min-w-0">
+                        <div className="text-[10px] text-slate-500 uppercase font-mono font-bold flex items-center gap-1">
+                          <Mail size={11} className="text-blue-400" />
+                          <span>Email Address</span>
+                        </div>
+                        <div className="font-bold text-slate-100 text-xs mt-0.5 truncate" title={selectedDetailsUser.email}>
+                          <a href={`mailto:${selectedDetailsUser.email}`} className="hover:underline text-slate-200">
+                            {selectedDetailsUser.email}
+                          </a>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => copyToClipboard(selectedDetailsUser.email, 'email')}
+                        className="px-2 py-1 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded text-[10px] font-bold border border-slate-800 transition-colors ml-2 cursor-pointer shrink-0"
+                        title="Copy Email"
+                      >
+                        {copiedDetailField === 'email' ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+                      </button>
+                    </div>
+
+                    {/* Signup Time */}
+                    <div className="bg-slate-950 p-3 rounded-xl border border-slate-850">
+                      <div className="text-[10px] text-slate-500 uppercase font-mono font-bold flex items-center gap-1">
+                        <Calendar size={11} className="text-amber-400" />
+                        <span>Signup Time (Registered)</span>
+                      </div>
+                      <div className="font-bold text-amber-300 text-xs mt-0.5 font-mono">
+                        {formatDateFull(selectedDetailsUser.created_at)}
+                      </div>
+                    </div>
+
+                    {/* Activation Time */}
+                    <div className="bg-slate-950 p-3 rounded-xl border border-slate-850">
+                      <div className="text-[10px] text-slate-500 uppercase font-mono font-bold flex items-center gap-1">
+                        <Zap size={11} className={selectedDetailsUser.status === 'active' ? 'text-emerald-400' : 'text-slate-500'} />
+                        <span>Activation Time</span>
+                      </div>
+                      {selectedDetailsUser.status === 'active' ? (
+                        <div className="font-bold text-emerald-400 text-xs mt-0.5 font-mono flex items-center gap-1.5">
+                          <CheckCircle2 size={13} className="shrink-0" />
+                          <span>{selectedDetailsUser.activated_at ? formatDateFull(selectedDetailsUser.activated_at) : 'Active Member'}</span>
+                        </div>
+                      ) : (
+                        <div className="text-red-400 text-xs mt-0.5 flex items-center gap-1.5 font-medium">
+                          <AlertCircle size={13} className="shrink-0" />
+                          <span>Inactive (Needs 1 SW or Admin Activation)</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. MLM Tree & Volume Summary */}
+                <div>
+                  <div className="text-[11px] font-black uppercase tracking-wider text-slate-400 mb-2.5 flex items-center gap-1.5">
+                    <TrendingUp size={14} className="text-amber-400" />
+                    <span>Business Placement & SW Volumes</span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-850">
+                      <div className="text-[9px] text-slate-500 uppercase font-bold">Sponsor</div>
+                      <div className="font-bold font-mono text-slate-200 mt-0.5 truncate">
+                        {sponsor ? `@${sponsor.username}` : selectedDetailsUser.sponsor_id ? `ID ${selectedDetailsUser.sponsor_id}` : 'Root'}
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-850">
+                      <div className="text-[9px] text-slate-500 uppercase font-bold">Parent Node</div>
+                      <div className="font-bold font-mono text-slate-200 mt-0.5 truncate">
+                        {parent ? `@${parent.username} (${selectedDetailsUser.position})` : 'None'}
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-850">
+                      <div className="text-[9px] text-slate-500 uppercase font-bold">Personal Volume</div>
+                      <div className="font-bold font-mono text-slate-100 mt-0.5">
+                        {selectedDetailsUser.personal_sw} SW
+                        {selectedDetailsUser.pending_sw && selectedDetailsUser.pending_sw > 0 ? (
+                          <span className="text-amber-400 text-[10px] ml-1">(+{selectedDetailsUser.pending_sw} pend)</span>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-850">
+                      <div className="text-[9px] text-slate-500 uppercase font-bold">Wallet Balance</div>
+                      <div className="font-bold font-mono text-amber-400 text-sm mt-0.5">
+                        ₹{selectedDetailsUser.wallet_balance.toFixed(2)}
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-850">
+                      <div className="text-[9px] text-slate-500 uppercase font-bold">Left Leg SW</div>
+                      <div className="font-bold font-mono text-slate-200 mt-0.5">
+                        {selectedDetailsUser.left_leg_sw} / {selectedDetailsUser.total_left_sw}
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-850">
+                      <div className="text-[9px] text-slate-500 uppercase font-bold">Right Leg SW</div>
+                      <div className="font-bold font-mono text-slate-200 mt-0.5">
+                        {selectedDetailsUser.right_leg_sw} / {selectedDetailsUser.total_right_sw}
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-850">
+                      <div className="text-[9px] text-slate-500 uppercase font-bold">Total Matched SW</div>
+                      <div className="font-bold font-mono text-emerald-400 mt-0.5">
+                        {selectedDetailsUser.total_matched_sw || 0} SW
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-850">
+                      <div className="text-[9px] text-slate-500 uppercase font-bold">Rank / Royalty</div>
+                      <div className="font-bold text-amber-300 mt-0.5 truncate">
+                        {selectedDetailsUser.level_name || 'Member'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Bank & Payout Details */}
+                <div>
+                  <div className="text-[11px] font-black uppercase tracking-wider text-slate-400 mb-2.5 flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <Landmark size={14} className="text-emerald-400" />
+                      <span>Bank & Payout Details (For Payments)</span>
+                    </div>
+                    {hasBank ? (
+                      <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
+                        <CheckCircle2 size={12} /> Ready for Payouts
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-amber-400 font-bold flex items-center gap-1">
+                        <AlertCircle size={12} /> Details Pending
+                      </span>
+                    )}
+                  </div>
+
+                  {!hasBank ? (
+                    <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-start gap-3">
+                      <AlertCircle size={18} className="text-amber-400 shrink-0 mt-0.5" />
+                      <div>
+                        <div className="font-bold text-amber-300 text-xs">No Bank Account Added Yet</div>
+                        <p className="text-slate-400 text-[11px] mt-0.5 leading-relaxed">
+                          This member has not yet added their bank account number or UPI ID on their dashboard. Payouts cannot be processed until they provide details.
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {/* Bank Name & Branch */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="bg-slate-950 p-3 rounded-xl border border-slate-850">
+                          <div className="text-[10px] text-slate-500 uppercase font-mono font-bold">Bank Name</div>
+                          <div className="font-bold text-slate-100 text-sm mt-0.5">
+                            {selectedDetailsUser.bank_name || '—'}
+                          </div>
+                        </div>
+
+                        <div className="bg-slate-950 p-3 rounded-xl border border-slate-850">
+                          <div className="text-[10px] text-slate-500 uppercase font-mono font-bold">Branch Location</div>
+                          <div className="font-bold text-slate-200 text-sm mt-0.5">
+                            {selectedDetailsUser.bank_branch || 'Not specified'}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Account Holder Name */}
+                      <div className="bg-slate-950 p-3 rounded-xl border border-slate-850">
+                        <div className="text-[10px] text-slate-500 uppercase font-mono font-bold">Account Holder Name</div>
+                        <div className="font-bold text-slate-100 text-sm mt-0.5">
+                          {selectedDetailsUser.bank_account_holder || selectedDetailsUser.full_name}
+                        </div>
+                      </div>
+
+                      {/* Account Number */}
+                      <div className="bg-slate-950 p-3 rounded-xl border border-slate-850 flex items-center justify-between">
+                        <div className="min-w-0">
+                          <div className="text-[10px] text-slate-500 uppercase font-mono font-bold">Bank Account Number</div>
+                          <div className="font-bold font-mono text-amber-400 text-sm sm:text-base mt-0.5 tracking-wider truncate">
+                            {selectedDetailsUser.bank_account_number || '—'}
+                          </div>
+                        </div>
+                        {selectedDetailsUser.bank_account_number && (
+                          <button
+                            type="button"
+                            onClick={() => copyToClipboard(selectedDetailsUser.bank_account_number!, 'bank_acc')}
+                            className="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer shrink-0 ml-2"
+                            title="Copy Account Number"
+                          >
+                            {copiedDetailField === 'bank_acc' ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+                            <span>{copiedDetailField === 'bank_acc' ? 'Copied' : 'Copy'}</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {/* IFSC Code */}
+                      <div className="bg-slate-950 p-3 rounded-xl border border-slate-850 flex items-center justify-between">
+                        <div className="min-w-0">
+                          <div className="text-[10px] text-slate-500 uppercase font-mono font-bold">IFSC Code</div>
+                          <div className="font-bold font-mono text-emerald-400 text-sm mt-0.5 truncate">
+                            {selectedDetailsUser.bank_ifsc || '—'}
+                          </div>
+                        </div>
+                        {selectedDetailsUser.bank_ifsc && (
+                          <button
+                            type="button"
+                            onClick={() => copyToClipboard(selectedDetailsUser.bank_ifsc!, 'bank_ifsc')}
+                            className="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer shrink-0 ml-2"
+                            title="Copy IFSC Code"
+                          >
+                            {copiedDetailField === 'bank_ifsc' ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+                            <span>{copiedDetailField === 'bank_ifsc' ? 'Copied' : 'Copy'}</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {/* UPI ID & PAN */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="bg-slate-950 p-3 rounded-xl border border-slate-850 flex items-center justify-between">
+                          <div className="min-w-0">
+                            <div className="text-[10px] text-slate-500 uppercase font-mono font-bold">UPI ID (VPA)</div>
+                            <div className="font-bold font-mono text-slate-200 text-xs mt-0.5 truncate" title={selectedDetailsUser.upi_id || ''}>
+                              {selectedDetailsUser.upi_id || '—'}
+                            </div>
+                          </div>
+                          {selectedDetailsUser.upi_id && (
+                            <button
+                              type="button"
+                              onClick={() => copyToClipboard(selectedDetailsUser.upi_id!, 'upi_id')}
+                              className="p-1.5 text-slate-400 hover:text-white rounded cursor-pointer shrink-0 ml-1"
+                              title="Copy UPI ID"
+                            >
+                              {copiedDetailField === 'upi_id' ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="bg-slate-950 p-3 rounded-xl border border-slate-850">
+                          <div className="text-[10px] text-slate-500 uppercase font-mono font-bold">PAN Number</div>
+                          <div className="font-bold font-mono text-slate-200 text-xs mt-0.5">
+                            {selectedDetailsUser.pan_number || '—'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Modal Footer with Actions */}
+              <div className="p-4 bg-slate-950 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleToggleUserStatus(selectedDetailsUser);
+                      setIsUserDetailsModalOpen(false);
+                    }}
+                    className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-750 text-slate-300 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    Toggle Status
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsUserDetailsModalOpen(false);
+                      handleOpenWalletModal(selectedDetailsUser);
+                    }}
+                    className="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    Adjust Balance
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsUserDetailsModalOpen(false);
+                      handleOpenCredentialsModal(selectedDetailsUser);
+                    }}
+                    className="px-3 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-400 rounded-lg text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
+                  >
+                    <Key size={12} />
+                    Credentials
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsUserDetailsModalOpen(false)}
+                  className="px-4 py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-200 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* POSTAL DISPATCH & TRACKING MANAGEMENT MODAL */}
       {isDispatchModalOpen && selectedDispatchOrder && (

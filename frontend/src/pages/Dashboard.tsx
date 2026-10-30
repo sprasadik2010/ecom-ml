@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { IndianRupee, Award, Users, Share2, Clipboard, ShieldCheck, ShieldAlert, ShoppingBag, Landmark, ArrowRight, Star, Zap, Calendar, CheckCircle2, TrendingUp, Sparkles, Clock, LogOut } from 'lucide-react';
+import { IndianRupee, Award, Users, Share2, Clipboard, ShieldCheck, ShieldAlert, ShoppingBag, Landmark, ArrowRight, Star, Zap, Calendar, CheckCircle2, TrendingUp, Sparkles, Clock, LogOut, UserCog, CreditCard, Eye, EyeOff, Check, AlertCircle, X, Lock, Edit3, Mail, User as UserIcon } from 'lucide-react';
 import { API_BASE_URL } from '../context/AuthContext';
 
 interface Order {
@@ -141,8 +141,35 @@ const DEFAULT_LEVELS: LevelDefinition[] = [
   }
 ];
 
+const POPULAR_BANKS = [
+  "State Bank of India (SBI)",
+  "HDFC Bank",
+  "ICICI Bank",
+  "Axis Bank",
+  "Punjab National Bank (PNB)",
+  "Bank of Baroda",
+  "Kotak Mahindra Bank",
+  "Canara Bank",
+  "Union Bank of India",
+  "Bank of India",
+  "IndusInd Bank",
+  "Federal Bank",
+  "IDFC FIRST Bank",
+  "Yes Bank",
+  "Indian Bank",
+  "Central Bank of India"
+];
+
+const maskAccountNumber = (acc?: string | null) => {
+  if (!acc) return '—';
+  if (acc.length <= 4) return acc;
+  const last4 = acc.slice(-4);
+  const maskedLength = Math.max(acc.length - 4, 4);
+  return `${'•'.repeat(maskedLength)} ${last4}`;
+};
+
 export const Dashboard: React.FC = () => {
-  const { user, token, logout } = useAuth();
+  const { user, token, logout, updateProfile } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -158,6 +185,133 @@ export const Dashboard: React.FC = () => {
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [loadingRewards, setLoadingRewards] = useState(true);
   const [loadingCommissions, setLoadingCommissions] = useState(true);
+
+  // Profile & Bank Details State
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const [showAccountNumber, setShowAccountNumber] = useState(false);
+  const [formFullName, setFormFullName] = useState('');
+  const [formPhoneNumber, setFormPhoneNumber] = useState('');
+  const [formBankName, setFormBankName] = useState('');
+  const [formAccountHolder, setFormAccountHolder] = useState('');
+  const [formAccountNumber, setFormAccountNumber] = useState('');
+  const [formConfirmAccountNumber, setFormConfirmAccountNumber] = useState('');
+  const [formIfsc, setFormIfsc] = useState('');
+  const [formBranch, setFormBranch] = useState('');
+  const [formUpiId, setFormUpiId] = useState('');
+  const [formPanNumber, setFormPanNumber] = useState('');
+  const [formSaving, setFormSaving] = useState(false);
+  const [formError, setFormError] = useState('');
+  const [formSuccess, setFormSuccess] = useState('');
+  const [copiedBankIfsc, setCopiedBankIfsc] = useState(false);
+  const [copiedBankUpi, setCopiedBankUpi] = useState(false);
+  const [copiedBankAcc, setCopiedBankAcc] = useState(false);
+
+  const openEditProfile = () => {
+    if (!user) return;
+    setFormFullName(user.full_name || '');
+    setFormPhoneNumber(user.phone_number || '');
+    setFormBankName(user.bank_name || '');
+    setFormAccountHolder(user.bank_account_holder || user.full_name || '');
+    setFormAccountNumber(user.bank_account_number || '');
+    setFormConfirmAccountNumber(user.bank_account_number || '');
+    setFormIfsc(user.bank_ifsc || '');
+    setFormBranch(user.bank_branch || '');
+    setFormUpiId(user.upi_id || '');
+    setFormPanNumber(user.pan_number || '');
+    setFormError('');
+    setFormSuccess('');
+    setIsEditProfileOpen(true);
+  };
+
+  const handleCopyIfsc = () => {
+    if (user?.bank_ifsc) {
+      navigator.clipboard.writeText(user.bank_ifsc);
+      setCopiedBankIfsc(true);
+      setTimeout(() => setCopiedBankIfsc(false), 2000);
+    }
+  };
+
+  const handleCopyUpi = () => {
+    if (user?.upi_id) {
+      navigator.clipboard.writeText(user.upi_id);
+      setCopiedBankUpi(true);
+      setTimeout(() => setCopiedBankUpi(false), 2000);
+    }
+  };
+
+  const handleCopyAcc = () => {
+    if (user?.bank_account_number) {
+      navigator.clipboard.writeText(user.bank_account_number);
+      setCopiedBankAcc(true);
+      setTimeout(() => setCopiedBankAcc(false), 2000);
+    }
+  };
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError('');
+    setFormSuccess('');
+
+    if (!formFullName.trim()) {
+      setFormError('Full Name is required.');
+      return;
+    }
+
+    // If bank account is entered, validate
+    if (formAccountNumber.trim() || formConfirmAccountNumber.trim()) {
+      if (formAccountNumber.trim() !== formConfirmAccountNumber.trim()) {
+        setFormError('Bank Account Number and Confirm Account Number do not match.');
+        return;
+      }
+      if (!formBankName.trim()) {
+        setFormError('Please select or enter your Bank Name.');
+        return;
+      }
+      if (!formIfsc.trim()) {
+        setFormError('Please enter the Bank IFSC Code.');
+        return;
+      }
+    }
+
+    if (formIfsc.trim() && !/^[A-Z0-9]{4,15}$/i.test(formIfsc.trim())) {
+      setFormError('Invalid IFSC Code format. Please enter a valid IFSC code (e.g. HDFC0001234).');
+      return;
+    }
+
+    if (formUpiId.trim() && !formUpiId.includes('@')) {
+      setFormError('Invalid UPI ID. UPI ID must be in format username@bank (e.g. name@okhdfcbank).');
+      return;
+    }
+
+    if (formPanNumber.trim() && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i.test(formPanNumber.trim())) {
+      setFormError('Invalid PAN format. PAN should be 10 characters (e.g. ABCDE1234F).');
+      return;
+    }
+
+    try {
+      setFormSaving(true);
+      await updateProfile({
+        full_name: formFullName.trim(),
+        phone_number: formPhoneNumber.trim(),
+        bank_name: formBankName.trim(),
+        bank_account_holder: formAccountHolder.trim() || formFullName.trim(),
+        bank_account_number: formAccountNumber.trim(),
+        bank_ifsc: formIfsc.trim().toUpperCase(),
+        bank_branch: formBranch.trim(),
+        upi_id: formUpiId.trim().toLowerCase(),
+        pan_number: formPanNumber.trim().toUpperCase(),
+      });
+      setFormSuccess('Profile and bank payout details saved successfully!');
+      setTimeout(() => {
+        setIsEditProfileOpen(false);
+        setFormSuccess('');
+      }, 1200);
+    } catch (err: any) {
+      setFormError(err.message || 'Failed to update profile. Please try again.');
+    } finally {
+      setFormSaving(false);
+    }
+  };
 
   useEffect(() => {
     if (user?.is_admin) {
@@ -323,35 +477,61 @@ export const Dashboard: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
       {/* Top Banner: Welcome Card */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 sm:p-6 bg-slate-900 border border-slate-800 rounded-xl mb-4 sm:mb-6 shadow-md">
-        <div>
-          <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-xl md:text-2xl font-black text-white">Welcome {user.full_name || user.username}</h1>
-            {user.current_level > 0 && (
-              <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-gradient-to-r ${getLevelBadgeColor(user.current_level)} border shadow-sm flex items-center gap-1.5`}>
-                <Star size={13} className="fill-current" />
-                {user.level_name || `Level ${user.current_level}`}
-              </span>
-            )}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 p-4 sm:p-6 bg-slate-900 border border-slate-800 rounded-xl mb-4 sm:mb-6 shadow-md">
+        <div className="flex items-center gap-3.5 flex-1 min-w-0">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 text-slate-950 font-black text-xl flex items-center justify-center shadow-lg border border-amber-400/30 shrink-0">
+            {(user.full_name?.trim() || user.username?.trim() || 'U')[0].toUpperCase()}
           </div>
-          <p className="text-slate-400 text-xs mt-1">Welcome to your BuyWay dashboard. Track 1:1 business matching pairs, 5-level sponsor overrides, and progressive monthly royalties.</p>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h1 className="text-xl md:text-2xl font-black text-white truncate">
+                Welcome, {user.full_name?.trim() ? user.full_name : user.username}
+              </h1>
+              {user.current_level > 0 && (
+                <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-gradient-to-r ${getLevelBadgeColor(user.current_level)} border shadow-sm flex items-center gap-1.5 shrink-0`}>
+                  <Star size={13} className="fill-current" />
+                  {user.level_name || `Level ${user.current_level}`}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 text-xs text-slate-400 mt-1 flex-wrap">
+              <span className="font-mono text-amber-400 font-semibold">@{user.username}</span>
+              <span className="text-slate-600">•</span>
+              <span className="text-slate-300">{user.email}</span>
+              {user.phone_number && (
+                <>
+                  <span className="text-slate-600">•</span>
+                  <span className="text-slate-300">{user.phone_number}</span>
+                </>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* Member Status Pill & Sign Out */}
-        <div className="flex items-center gap-3 self-stretch sm:self-auto justify-between sm:justify-end flex-wrap">
-          <div className="flex items-center gap-2.5">
+        {/* Action Buttons, Member Status Pill & Sign Out */}
+        <div className="flex items-center gap-2.5 self-stretch sm:self-auto justify-between sm:justify-end flex-wrap shrink-0">
+          <button
+            onClick={openEditProfile}
+            className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 rounded-lg text-xs font-bold shadow-md transition-all cursor-pointer active:scale-95 shrink-0"
+            title="Edit Profile & Bank Details"
+          >
+            <UserCog size={15} />
+            <span>Edit Profile & Bank</span>
+          </button>
+
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-950/60 border border-slate-800 rounded-lg">
             <div className="flex flex-col items-end">
-              <span className="text-[10px] text-slate-500 uppercase font-black tracking-wider leading-none">Membership</span>
-              <span className={`text-sm font-black mt-1 leading-none ${isActive ? 'text-emerald-400 animate-pulse' : 'text-red-400'}`}>
-                {user.status.toUpperCase()} MEMBER
+              <span className="text-[9px] text-slate-500 uppercase font-black tracking-wider leading-none">Membership</span>
+              <span className={`text-xs font-black mt-0.5 leading-none ${isActive ? 'text-emerald-400' : 'text-red-400'}`}>
+                {user.status.toUpperCase()}
               </span>
             </div>
-            <div className={`p-2 rounded-lg border ${
+            <div className={`p-1.5 rounded-md border ${
               isActive 
                 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
                 : 'bg-red-500/10 text-red-400 border-red-500/20'
             }`}>
-              {isActive ? <ShieldCheck size={20} /> : <ShieldAlert size={20} />}
+              {isActive ? <ShieldCheck size={16} /> : <ShieldAlert size={16} />}
             </div>
           </div>
 
@@ -446,6 +626,154 @@ export const Dashboard: React.FC = () => {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Bank Account & Payout Details Card */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 sm:p-6 shadow-md mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-800">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400">
+              <Landmark size={18} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-extrabold text-sm sm:text-base text-white tracking-wide">
+                  Bank Account & Payout Details
+                </h3>
+                {user.bank_account_number ? (
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                    <CheckCircle2 size={11} /> Ready for Payouts
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center gap-1">
+                    <AlertCircle size={11} /> Action Needed
+                  </span>
+                )}
+              </div>
+              <p className="text-slate-400 text-xs mt-0.5">
+                Registered bank account and UPI details used for commission payouts, binary matching bonuses, and monthly royalties.
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={openEditProfile}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 rounded-lg text-xs font-bold transition-all cursor-pointer shrink-0"
+          >
+            <Edit3 size={13} className="text-amber-400" />
+            <span>{user.bank_account_number ? 'Update Bank Details' : 'Add Bank Details'}</span>
+          </button>
+        </div>
+
+        {!user.bank_account_number ? (
+          <div className="bg-gradient-to-r from-amber-950/30 via-slate-900 to-slate-900 border border-amber-900/40 rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-400 shrink-0 mt-0.5">
+                <CreditCard size={20} />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-amber-200">No Bank Account Linked Yet</h4>
+                <p className="text-xs text-slate-400 mt-1 max-w-2xl leading-relaxed">
+                  Please link your bank account (Account Number, IFSC, UPI ID) so your wallet balance, binary matching commissions, and monthly rank royalties can be disbursed directly without delays.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={openEditProfile}
+              className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg text-xs font-bold shrink-0 shadow-md cursor-pointer transition-colors active:scale-95"
+            >
+              Add Bank Details Now
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            {/* Bank Name & Branch */}
+            <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3.5">
+              <div className="text-[10px] text-slate-400 uppercase font-black tracking-wider font-mono">Bank & Branch</div>
+              <div className="text-sm font-bold text-white mt-1 truncate" title={user.bank_name || ''}>
+                {user.bank_name || '—'}
+              </div>
+              <div className="text-xs text-slate-400 mt-0.5 truncate" title={user.bank_branch || ''}>
+                {user.bank_branch ? `Branch: ${user.bank_branch}` : 'Branch: Not specified'}
+              </div>
+            </div>
+
+            {/* Account Holder Name */}
+            <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3.5">
+              <div className="text-[10px] text-slate-400 uppercase font-black tracking-wider font-mono">Account Holder</div>
+              <div className="text-sm font-bold text-slate-100 mt-1 truncate" title={user.bank_account_holder || user.full_name}>
+                {user.bank_account_holder || user.full_name}
+              </div>
+              <div className="text-xs text-slate-400 mt-0.5">
+                {user.pan_number ? `PAN: ${user.pan_number}` : 'PAN: Not added'}
+              </div>
+            </div>
+
+            {/* Account Number */}
+            <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-slate-400 uppercase font-black tracking-wider font-mono">Account Number</span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => setShowAccountNumber(!showAccountNumber)}
+                    className="text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                    title={showAccountNumber ? 'Hide Account Number' : 'Show Account Number'}
+                  >
+                    {showAccountNumber ? <EyeOff size={13} /> : <Eye size={13} />}
+                  </button>
+                  <button
+                    onClick={handleCopyAcc}
+                    className="text-slate-400 hover:text-amber-400 transition-colors cursor-pointer"
+                    title="Copy Account Number"
+                  >
+                    {copiedBankAcc ? <Check size={13} className="text-emerald-400" /> : <Clipboard size={13} />}
+                  </button>
+                </div>
+              </div>
+              <div className="text-sm font-bold font-mono text-amber-400 mt-1 tracking-wider">
+                {showAccountNumber ? user.bank_account_number : maskAccountNumber(user.bank_account_number)}
+              </div>
+              <div className="text-xs text-slate-400 mt-0.5">
+                Savings / Current
+              </div>
+            </div>
+
+            {/* IFSC & UPI */}
+            <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-slate-400 uppercase font-black tracking-wider font-mono">IFSC & UPI ID</span>
+                <div className="flex items-center gap-1.5">
+                  {user.bank_ifsc && (
+                    <button
+                      onClick={handleCopyIfsc}
+                      className="text-slate-400 hover:text-amber-400 transition-colors cursor-pointer"
+                      title="Copy IFSC Code"
+                    >
+                      {copiedBankIfsc ? <Check size={13} className="text-emerald-400" /> : <Clipboard size={13} />}
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div className="text-xs font-mono font-bold text-white mt-1 flex items-center justify-between">
+                <span>IFSC: <span className="text-amber-300">{user.bank_ifsc || '—'}</span></span>
+              </div>
+              <div className="text-xs text-slate-400 mt-1 flex items-center justify-between">
+                <span className="truncate" title={user.upi_id || ''}>
+                  UPI: {user.upi_id ? <span className="text-slate-200 font-mono">{user.upi_id}</span> : 'Not provided'}
+                </span>
+                {user.upi_id && (
+                  <button
+                    onClick={handleCopyUpi}
+                    className="text-slate-400 hover:text-amber-400 transition-colors ml-1 cursor-pointer"
+                    title="Copy UPI ID"
+                  >
+                    {copiedBankUpi ? <Check size={12} className="text-emerald-400" /> : <Clipboard size={12} />}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Conditional Warning for Inactive Members */}
@@ -1049,6 +1377,292 @@ export const Dashboard: React.FC = () => {
           <span className="text-amber-400 font-mono font-bold">10 Progressive Ranks</span>
         </div>
       </div>
+
+      {/* Edit Profile & Bank Details Modal */}
+      {isEditProfileOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[92vh] flex flex-col shadow-2xl my-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-800 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 text-slate-950 font-bold">
+                  <UserCog size={20} />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-black text-white">Edit Profile & Bank Details</h3>
+                  <p className="text-xs text-slate-400">Update your personal profile and registered bank account for payouts.</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsEditProfileOpen(false)}
+                className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                title="Close"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Body / Form */}
+            <form onSubmit={handleSaveProfile} className="overflow-y-auto p-4 sm:p-6 space-y-6 flex-1">
+              {formError && (
+                <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-xs flex items-center gap-2">
+                  <AlertCircle size={16} className="shrink-0" />
+                  <span>{formError}</span>
+                </div>
+              )}
+
+              {formSuccess && (
+                <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400 text-xs flex items-center gap-2">
+                  <CheckCircle2 size={16} className="shrink-0" />
+                  <span>{formSuccess}</span>
+                </div>
+              )}
+
+              {/* Section 1: Personal Profile */}
+              <div>
+                <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-400 mb-3">
+                  <UserIcon size={14} />
+                  <span>Personal Profile</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">
+                      Full Name <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formFullName}
+                      onChange={(e) => setFormFullName(e.target.value)}
+                      placeholder="e.g. Sivaprasad Nair"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-500 transition-colors"
+                    />
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">Displayed on your dashboard and tree</span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      value={formPhoneNumber}
+                      onChange={(e) => setFormPhoneNumber(e.target.value)}
+                      placeholder="e.g. 9876543210"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-500 transition-colors"
+                    />
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">Primary contact mobile number</span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 mb-1 flex items-center justify-between">
+                      <span className="flex items-center gap-1">
+                        <Mail size={12} />
+                        <span>Email Address</span>
+                      </span>
+                      <span className="flex items-center gap-0.5 text-[10px] text-slate-500">
+                        <Lock size={10} /> Locked
+                      </span>
+                    </label>
+                    <input
+                      type="email"
+                      disabled
+                      value={user.email}
+                      className="w-full bg-slate-950/50 border border-slate-850 rounded-lg px-3 py-2 text-slate-400 text-xs cursor-not-allowed"
+                    />
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">Tied to your secure account login</span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 mb-1 flex items-center justify-between">
+                      <span>Username</span>
+                      <span className="flex items-center gap-0.5 text-[10px] text-slate-500">
+                        <Lock size={10} /> Locked
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      disabled
+                      value={`@${user.username}`}
+                      className="w-full bg-slate-950/50 border border-slate-850 rounded-lg px-3 py-2 text-amber-400 font-mono text-xs cursor-not-allowed"
+                    />
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">Permanent identifier in MLM tree</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 2: Bank & Payout Details */}
+              <div className="pt-4 border-t border-slate-800">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-400">
+                    <Landmark size={14} />
+                    <span>Bank Account Details (Used for Payments)</span>
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-mono">Commission & Royalty Payouts</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">
+                      Bank Name
+                    </label>
+                    <input
+                      type="text"
+                      list="banksList"
+                      value={formBankName}
+                      onChange={(e) => setFormBankName(e.target.value)}
+                      placeholder="e.g. State Bank of India, HDFC Bank"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-500 transition-colors"
+                    />
+                    <datalist id="banksList">
+                      {POPULAR_BANKS.map((b) => (
+                        <option key={b} value={b} />
+                      ))}
+                    </datalist>
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">Select or type your bank name</span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">
+                      Account Holder Name
+                    </label>
+                    <input
+                      type="text"
+                      value={formAccountHolder}
+                      onChange={(e) => setFormAccountHolder(e.target.value)}
+                      placeholder="As per bank passbook / cheque"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-500 transition-colors"
+                    />
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">Full name registered with bank</span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">
+                      Bank Account Number
+                    </label>
+                    <input
+                      type="text"
+                      value={formAccountNumber}
+                      onChange={(e) => setFormAccountNumber(e.target.value.replace(/\s+/g, ''))}
+                      placeholder="Enter account number"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-mono focus:outline-none focus:border-amber-500 transition-colors"
+                    />
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">Savings or Current account number</span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">
+                      Confirm Account Number
+                    </label>
+                    <input
+                      type="password"
+                      value={formConfirmAccountNumber}
+                      onChange={(e) => setFormConfirmAccountNumber(e.target.value.replace(/\s+/g, ''))}
+                      placeholder="Re-enter account number to verify"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-mono focus:outline-none focus:border-amber-500 transition-colors"
+                    />
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">Double check to avoid payment errors</span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">
+                      IFSC Code
+                    </label>
+                    <input
+                      type="text"
+                      value={formIfsc}
+                      onChange={(e) => setFormIfsc(e.target.value.toUpperCase().replace(/\s+/g, ''))}
+                      placeholder="e.g. SBIN0001234 or HDFC0000001"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-mono uppercase focus:outline-none focus:border-amber-500 transition-colors"
+                    />
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">11-character Indian Financial System Code</span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">
+                      Branch Name / Location
+                    </label>
+                    <input
+                      type="text"
+                      value={formBranch}
+                      onChange={(e) => setFormBranch(e.target.value)}
+                      placeholder="e.g. Indiranagar, Bangalore"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-500 transition-colors"
+                    />
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">Bank branch or city location</span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">
+                      UPI ID / VPA <span className="text-slate-500 font-normal">(Optional)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formUpiId}
+                      onChange={(e) => setFormUpiId(e.target.value.toLowerCase().replace(/\s+/g, ''))}
+                      placeholder="e.g. username@okhdfcbank or 9876543210@paytm"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-mono focus:outline-none focus:border-amber-500 transition-colors"
+                    />
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">For instant UPI payouts if supported</span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">
+                      PAN Card Number <span className="text-slate-500 font-normal">(Optional)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formPanNumber}
+                      onChange={(e) => setFormPanNumber(e.target.value.toUpperCase().replace(/\s+/g, ''))}
+                      placeholder="e.g. ABCDE1234F"
+                      maxLength={10}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-mono uppercase focus:outline-none focus:border-amber-500 transition-colors"
+                    />
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">10-character alphanumeric PAN</span>
+                  </div>
+                </div>
+
+                <div className="mt-4 p-3 bg-slate-950/70 border border-slate-850 rounded-xl flex items-start gap-2.5 text-[11px] text-slate-400">
+                  <Lock size={14} className="text-amber-400 shrink-0 mt-0.5" />
+                  <span>
+                    Your banking information is safely stored. It will be used exclusively to process your MLM commission payouts, binary matching overrides, and monthly rank royalties.
+                  </span>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setIsEditProfileOpen(false)}
+                  disabled={formSaving}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-750 text-slate-300 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={formSaving}
+                  className="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg text-xs font-bold flex items-center gap-2 shadow-md cursor-pointer transition-colors active:scale-95 disabled:opacity-50"
+                >
+                  {formSaving ? (
+                    <>
+                      <div className="h-3.5 w-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></div>
+                      <span>Saving Details...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check size={14} />
+                      <span>Save Changes</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
