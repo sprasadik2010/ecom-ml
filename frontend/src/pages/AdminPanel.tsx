@@ -2252,7 +2252,7 @@ export const AdminPanel: React.FC = () => {
                                   <UserCog size={11} />
                                   Edit
                                 </button>
-                                <button
+                                {/* <button
                                   onClick={() => handleToggleUserStatus(u)}
                                   className="px-2 py-1 bg-slate-955 hover:bg-slate-850 border border-slate-800 text-[10px] font-bold rounded cursor-pointer transition-colors"
                                   title="Toggle Active/Inactive"
@@ -2265,7 +2265,7 @@ export const AdminPanel: React.FC = () => {
                                   title="Credit/Debit Wallet"
                                 >
                                   Adjust Bal
-                                </button>
+                                </button> */}
                                 <button
                                   onClick={() => handleOpenCredentialsModal(u)}
                                   className="px-2 py-1 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-[10px] font-bold text-blue-400 rounded cursor-pointer transition-colors flex items-center gap-1"
@@ -3430,8 +3430,8 @@ export const AdminPanel: React.FC = () => {
                       <div className="flex items-center gap-2.5 flex-wrap">
                         <h2 className="text-lg font-black text-white">ImgBB Cloud Image Storage</h2>
                         <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${imgbbSettings?.api_key_configured
-                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                            : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                          : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
                           }`}>
                           {imgbbSettings?.api_key_configured ? '● Cloud Auto-Sync Active' : '○ API Key Required'}
                         </span>
@@ -4047,8 +4047,8 @@ export const AdminPanel: React.FC = () => {
                         type="button"
                         onClick={() => handleAddColor(colorPreset)}
                         className={`text-[9.5px] font-bold px-2 py-0.5 rounded-full border transition-all cursor-pointer ${productForm.colors.includes(colorPreset)
-                            ? 'bg-amber-500/20 border-amber-500 text-amber-300 opacity-60'
-                            : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-600 hover:text-white'
+                          ? 'bg-amber-500/20 border-amber-500 text-amber-300 opacity-60'
+                          : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-600 hover:text-white'
                           }`}
                       >
                         + {colorPreset}
@@ -4527,8 +4527,8 @@ export const AdminPanel: React.FC = () => {
                         {selectedDetailsUser.full_name}
                       </h3>
                       <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${selectedDetailsUser.status === 'active'
-                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                          : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                        : 'bg-red-500/10 text-red-400 border border-red-500/20'
                         }`}>
                         {selectedDetailsUser.status.toUpperCase()} MEMBER
                       </span>
