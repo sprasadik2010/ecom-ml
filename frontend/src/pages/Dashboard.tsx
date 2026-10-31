@@ -316,6 +316,8 @@ export const Dashboard: React.FC = () => {
   useEffect(() => {
     if (user?.is_admin) {
       navigate('/admin', { replace: true });
+    } else if (user) {
+      document.title = `Welcome, ${user.full_name?.trim() || user.username} | BuyWay Dashboard`;
     }
   }, [user, navigate]);
 
@@ -478,14 +480,14 @@ export const Dashboard: React.FC = () => {
     <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
       {/* Top Banner: Welcome Card */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 p-4 sm:p-6 bg-slate-900 border border-slate-800 rounded-xl mb-4 sm:mb-6 shadow-md">
-        <div className="flex items-center gap-3.5 flex-1 min-w-0">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 text-slate-950 font-black text-xl flex items-center justify-center shadow-lg border border-amber-400/30 shrink-0">
+        <div className="flex items-center gap-4 flex-1 min-w-0">
+          <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-700 text-slate-950 font-black text-2xl flex items-center justify-center shadow-lg border-2 border-amber-300/40 shrink-0">
             {(user.full_name?.trim() || user.username?.trim() || 'U')[0].toUpperCase()}
           </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className="text-xl md:text-2xl font-black text-white truncate">
-                Welcome, {user.full_name?.trim() ? user.full_name : user.username}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight">
+                Welcome, <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-200 to-amber-500">{user.full_name?.trim() || user.username}</span>!
               </h1>
               {user.current_level > 0 && (
                 <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-gradient-to-r ${getLevelBadgeColor(user.current_level)} border shadow-sm flex items-center gap-1.5 shrink-0`}>
@@ -494,14 +496,20 @@ export const Dashboard: React.FC = () => {
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-2 text-xs text-slate-400 mt-1 flex-wrap">
-              <span className="font-mono text-amber-400 font-semibold">@{user.username}</span>
+            <p className="text-xs sm:text-sm text-slate-400 mt-1 leading-relaxed">
+              Welcome to your personal BuyWay dashboard, <span className="text-slate-200 font-semibold">{user.full_name?.trim() || user.username}</span>. Track 1:1 business matching pairs, 5-level sponsor overrides, and progressive monthly royalties.
+            </p>
+            <div className="flex items-center gap-2 text-xs text-slate-400 mt-2 flex-wrap font-mono">
+              <span className="text-amber-400 font-semibold bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded">@{user.username}</span>
               <span className="text-slate-600">•</span>
-              <span className="text-slate-300">{user.email}</span>
+              <span className="text-slate-300 font-sans">{user.email}</span>
               {user.phone_number && (
                 <>
                   <span className="text-slate-600">•</span>
-                  <span className="text-slate-300">{user.phone_number}</span>
+                  <span className="text-slate-300 font-sans flex items-center gap-1">
+                    <span>📞</span>
+                    <span>{user.phone_number}</span>
+                  </span>
                 </>
               )}
             </div>
