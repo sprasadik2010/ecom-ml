@@ -206,12 +206,28 @@ export const Dashboard: React.FC = () => {
   const [copiedBankUpi, setCopiedBankUpi] = useState(false);
   const [copiedBankAcc, setCopiedBankAcc] = useState(false);
 
+  // User locking logic: once Full Name, Phone, or Bank Details exist, they are locked for regular users
+  const isUserAdmin = Boolean(user?.is_admin);
+  const hasExistingFullName = Boolean(user?.full_name && user.full_name.trim().length > 0);
+  const hasExistingPhone = Boolean(
+    (user?.phone_number || (user as any)?.phone) &&
+    String(user?.phone_number || (user as any)?.phone).trim().length > 0
+  );
+  const hasExistingBank = Boolean(user?.bank_account_number && user.bank_account_number.trim().length > 0);
+
+  const isFullNameLocked = !isUserAdmin && hasExistingFullName;
+  const isPhoneLocked = !isUserAdmin && hasExistingPhone;
+  const isBankLocked = !isUserAdmin && hasExistingBank;
+  const isEntireFormLocked = isFullNameLocked && isPhoneLocked && isBankLocked;
+
   const openEditProfile = () => {
     if (!user) return;
-    setFormFullName(user.full_name || '');
-    setFormPhoneNumber(user.phone_number || '');
+    const existingFullName = user.full_name || (user as any).fullName || (user as any).name || '';
+    const existingPhone = user.phone_number || (user as any).phone || (user as any).phoneNumber || '';
+    setFormFullName(existingFullName);
+    setFormPhoneNumber(existingPhone);
     setFormBankName(user.bank_name || '');
-    setFormAccountHolder(user.bank_account_holder || user.full_name || '');
+    setFormAccountHolder(user.bank_account_holder || existingFullName);
     setFormAccountNumber(user.bank_account_number || '');
     setFormConfirmAccountNumber(user.bank_account_number || '');
     setFormIfsc(user.bank_ifsc || '');
@@ -222,6 +238,24 @@ export const Dashboard: React.FC = () => {
     setFormSuccess('');
     setIsEditProfileOpen(true);
   };
+
+  // Keep form synchronized whenever user or modal status changes
+  useEffect(() => {
+    if (isEditProfileOpen && user) {
+      const existingFullName = user.full_name || (user as any).fullName || (user as any).name || '';
+      const existingPhone = user.phone_number || (user as any).phone || (user as any).phoneNumber || '';
+      setFormFullName(existingFullName);
+      setFormPhoneNumber(existingPhone);
+      setFormBankName(user.bank_name || '');
+      setFormAccountHolder(user.bank_account_holder || existingFullName);
+      setFormAccountNumber(user.bank_account_number || '');
+      setFormConfirmAccountNumber(user.bank_account_number || '');
+      setFormIfsc(user.bank_ifsc || '');
+      setFormBranch(user.bank_branch || '');
+      setFormUpiId(user.upi_id || '');
+      setFormPanNumber(user.pan_number || '');
+    }
+  }, [isEditProfileOpen, user]);
 
   const handleCopyIfsc = () => {
     if (user?.bank_ifsc) {
@@ -249,58 +283,75 @@ export const Dashboard: React.FC = () => {
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isEntireFormLocked) return;
     setFormError('');
     setFormSuccess('');
 
-    if (!formFullName.trim()) {
-      setFormError('Full Name is required.');
-      return;
-    }
-
-    // If bank account is entered, validate
-    if (formAccountNumber.trim() || formConfirmAccountNumber.trim()) {
-      if (formAccountNumber.trim() !== formConfirmAccountNumber.trim()) {
-        setFormError('Bank Account Number and Confirm Account Number do not match.');
+    // If Full Name is editable, validate
+    if (!isFullNameLocked) {
+      if (!formFullName.trim()) {
+        setFormError('Full Name is required.');
         return;
       }
-      if (!formBankName.trim()) {
-        setFormError('Please select or enter your Bank Name.');
-        return;
-      }
-      if (!formIfsc.trim()) {
-        setFormError('Please enter the Bank IFSC Code.');
+      if (formFullName.trim().length < 2) {
+        setFormError('Full Name must be at least 2 characters.');
         return;
       }
     }
 
-    if (formIfsc.trim() && !/^[A-Z0-9]{4,15}$/i.test(formIfsc.trim())) {
-      setFormError('Invalid IFSC Code format. Please enter a valid IFSC code (e.g. HDFC0001234).');
-      return;
-    }
+    // If Bank Account details are editable, validate
+    if (!isBankLocked) {
+      if (formAccountNumber.trim() || formConfirmAccountNumber.trim() || formBankName.trim() || formIfsc.trim()) {
+        if (!formBankName.trim()) {
+          setFormError('Please select or enter your Bank Name.');
+          return;
+        }
+        if (!formAccountNumber.trim()) {
+          setFormError('Bank Account Number is required.');
+          return;
+        }
+        if (formAccountNumber.trim() !== formConfirmAccountNumber.trim()) {
+          setFormError('Bank Account Number and Confirm Account Number do not match.');
+          return;
+        }
+        if (!formIfsc.trim()) {
+          setFormError('Please enter the Bank IFSC Code.');
+          return;
+        }
+      }
 
-    if (formUpiId.trim() && !formUpiId.includes('@')) {
-      setFormError('Invalid UPI ID. UPI ID must be in format username@bank (e.g. name@okhdfcbank).');
-      return;
-    }
+      if (formIfsc.trim() && !/^[A-Z0-9]{4,15}$/i.test(formIfsc.trim())) {
+        setFormError('Invalid IFSC Code format. Please enter a valid IFSC code (e.g. HDFC0001234).');
+        return;
+      }
 
-    if (formPanNumber.trim() && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i.test(formPanNumber.trim())) {
-      setFormError('Invalid PAN format. PAN should be 10 characters (e.g. ABCDE1234F).');
-      return;
+      if (formUpiId.trim() && !formUpiId.includes('@')) {
+        setFormError('Invalid UPI ID. UPI ID must be in format username@bank (e.g. name@okhdfcbank).');
+        return;
+      }
+
+      if (formPanNumber.trim() && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i.test(formPanNumber.trim())) {
+        setFormError('Invalid PAN format. PAN should be 10 characters (e.g. ABCDE1234F).');
+        return;
+      }
     }
 
     try {
       setFormSaving(true);
-      await updateProfile({
-        full_name: formFullName.trim(),
-        phone_number: formPhoneNumber.trim(),
-        bank_name: formBankName.trim(),
-        bank_account_holder: formAccountHolder.trim() || formFullName.trim(),
-        bank_account_number: formAccountNumber.trim(),
-        bank_ifsc: formIfsc.trim().toUpperCase(),
-        bank_branch: formBranch.trim(),
-        upi_id: formUpiId.trim().toLowerCase(),
-        pan_number: formPanNumber.trim().toUpperCase(),
-      });
+      const payload: any = {};
+      if (!isFullNameLocked) payload.full_name = formFullName.trim();
+      if (!isPhoneLocked) payload.phone_number = formPhoneNumber.trim();
+      if (!isBankLocked) {
+        payload.bank_name = formBankName.trim();
+        payload.bank_account_holder = formAccountHolder.trim() || formFullName.trim();
+        payload.bank_account_number = formAccountNumber.trim();
+        payload.bank_ifsc = formIfsc.trim().toUpperCase();
+        payload.bank_branch = formBranch.trim();
+        payload.upi_id = formUpiId.trim().toLowerCase();
+        payload.pan_number = formPanNumber.trim().toUpperCase();
+      }
+
+      await updateProfile(payload);
       setFormSuccess('Profile and bank payout details saved successfully!');
       setTimeout(() => {
         setIsEditProfileOpen(false);
@@ -1435,32 +1486,78 @@ export const Dashboard: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">
-                      Full Name <span className="text-red-400">*</span>
+                    <label className="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
+                      <span>Full Name <span className="text-red-400">*</span></span>
+                      {isFullNameLocked ? (
+                        <span className="flex items-center gap-1 text-[10px] text-amber-400 font-mono bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded">
+                          <Lock size={10} /> Locked
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-emerald-400 font-mono bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded">
+                          Editable
+                        </span>
+                      )}
                     </label>
                     <input
                       type="text"
-                      required
+                      required={!isFullNameLocked}
+                      disabled={isFullNameLocked}
                       value={formFullName}
                       onChange={(e) => setFormFullName(e.target.value)}
                       placeholder="e.g. Sivaprasad Nair"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-500 transition-colors"
+                      className={`w-full rounded-lg px-3 py-2 text-xs transition-colors ${
+                        isFullNameLocked
+                          ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
+                          : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
+                      }`}
                     />
-                    <span className="text-[10px] text-slate-500 mt-0.5 block">Displayed on your dashboard and tree</span>
+                    <span className="text-[10px] text-slate-500 mt-0.5 block flex items-center gap-1">
+                      {isFullNameLocked ? (
+                        <>
+                          <Lock size={9} className="text-amber-500/70" />
+                          <span>Verified profile name. Locked for account security.</span>
+                        </>
+                      ) : (
+                        <span>Displayed on your dashboard and tree</span>
+                      )}
+                    </span>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">
-                      Phone Number
+                    <label className="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
+                      <span>Phone Number</span>
+                      {isPhoneLocked ? (
+                        <span className="flex items-center gap-1 text-[10px] text-amber-400 font-mono bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded">
+                          <Lock size={10} /> Locked
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-emerald-400 font-mono bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded">
+                          Editable
+                        </span>
+                      )}
                     </label>
                     <input
                       type="tel"
+                      disabled={isPhoneLocked}
                       value={formPhoneNumber}
                       onChange={(e) => setFormPhoneNumber(e.target.value)}
                       placeholder="e.g. 9876543210"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-500 transition-colors"
+                      className={`w-full rounded-lg px-3 py-2 text-xs transition-colors ${
+                        isPhoneLocked
+                          ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
+                          : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
+                      }`}
                     />
-                    <span className="text-[10px] text-slate-500 mt-0.5 block">Primary contact mobile number</span>
+                    <span className="text-[10px] text-slate-500 mt-0.5 block flex items-center gap-1">
+                      {isPhoneLocked ? (
+                        <>
+                          <Lock size={9} className="text-amber-500/70" />
+                          <span>Primary contact phone. Locked for security.</span>
+                        </>
+                      ) : (
+                        <span>Primary contact mobile number</span>
+                      )}
+                    </span>
                   </div>
 
                   <div>
@@ -1507,21 +1604,57 @@ export const Dashboard: React.FC = () => {
                     <Landmark size={14} />
                     <span>Bank Account Details (Used for Payments)</span>
                   </div>
-                  <span className="text-[10px] text-slate-400 font-mono">Commission & Royalty Payouts</span>
+                  {isBankLocked ? (
+                    <span className="flex items-center gap-1 text-[10px] text-amber-400 font-mono bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded">
+                      <Lock size={10} /> Locked & Verified
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-emerald-400 font-mono bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">
+                      New Entry (Editable)
+                    </span>
+                  )}
                 </div>
+
+                {isBankLocked ? (
+                  <div className="mb-4 p-3.5 bg-amber-500/10 border border-amber-500/25 rounded-xl flex items-start gap-3 text-xs text-amber-300">
+                    <Lock size={16} className="text-amber-400 shrink-0 mt-0.5" />
+                    <div>
+                      <div className="font-bold">Bank Account Details Locked</div>
+                      <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
+                        Your bank payout details are verified and locked to protect commission disbursements. If you need to correct or update bank details, please contact system administration.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mb-4 p-3.5 bg-blue-500/10 border border-blue-500/25 rounded-xl flex items-start gap-3 text-xs text-blue-300">
+                    <AlertCircle size={16} className="text-blue-400 shrink-0 mt-0.5" />
+                    <div>
+                      <div className="font-bold">One-Time Bank Account Registration</div>
+                      <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
+                        Please carefully verify your Account Number and IFSC Code. Once saved, these details will be locked to your account for payout security.
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">
-                      Bank Name
+                    <label className="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
+                      <span>Bank Name</span>
+                      {isBankLocked && <span className="text-[10px] text-slate-500 font-mono">Locked</span>}
                     </label>
                     <input
                       type="text"
                       list="banksList"
+                      disabled={isBankLocked}
                       value={formBankName}
                       onChange={(e) => setFormBankName(e.target.value)}
                       placeholder="e.g. State Bank of India, HDFC Bank"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-500 transition-colors"
+                      className={`w-full rounded-lg px-3 py-2 text-xs transition-colors ${
+                        isBankLocked
+                          ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
+                          : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
+                      }`}
                     />
                     <datalist id="banksList">
                       {POPULAR_BANKS.map((b) => (
@@ -1532,100 +1665,151 @@ export const Dashboard: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">
-                      Account Holder Name
+                    <label className="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
+                      <span>Account Holder Name</span>
+                      {isBankLocked && <span className="text-[10px] text-slate-500 font-mono">Locked</span>}
                     </label>
                     <input
                       type="text"
+                      disabled={isBankLocked}
                       value={formAccountHolder}
                       onChange={(e) => setFormAccountHolder(e.target.value)}
                       placeholder="As per bank passbook / cheque"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-500 transition-colors"
+                      className={`w-full rounded-lg px-3 py-2 text-xs transition-colors ${
+                        isBankLocked
+                          ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
+                          : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
+                      }`}
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block">Full name registered with bank</span>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">
-                      Bank Account Number
+                    <label className="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
+                      <span>Bank Account Number</span>
+                      {isBankLocked && <span className="text-[10px] text-slate-500 font-mono">Locked</span>}
                     </label>
                     <input
                       type="text"
+                      disabled={isBankLocked}
                       value={formAccountNumber}
                       onChange={(e) => setFormAccountNumber(e.target.value.replace(/\s+/g, ''))}
                       placeholder="Enter account number"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-mono focus:outline-none focus:border-amber-500 transition-colors"
+                      className={`w-full rounded-lg px-3 py-2 text-xs font-mono transition-colors ${
+                        isBankLocked
+                          ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
+                          : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
+                      }`}
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block">Savings or Current account number</span>
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">
-                      Confirm Account Number
-                    </label>
-                    <input
-                      type="password"
-                      value={formConfirmAccountNumber}
-                      onChange={(e) => setFormConfirmAccountNumber(e.target.value.replace(/\s+/g, ''))}
-                      placeholder="Re-enter account number to verify"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-mono focus:outline-none focus:border-amber-500 transition-colors"
-                    />
-                    <span className="text-[10px] text-slate-500 mt-0.5 block">Double check to avoid payment errors</span>
-                  </div>
+                  {!isBankLocked ? (
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
+                        <span>Confirm Account Number</span>
+                        <span className="text-[10px] text-amber-400 font-mono">* Required</span>
+                      </label>
+                      <input
+                        type="password"
+                        value={formConfirmAccountNumber}
+                        onChange={(e) => setFormConfirmAccountNumber(e.target.value.replace(/\s+/g, ''))}
+                        placeholder="Re-enter account number to verify"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-mono focus:outline-none focus:border-amber-500 transition-colors"
+                      />
+                      <span className="text-[10px] text-slate-500 mt-0.5 block">Double check to avoid payment errors</span>
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
+                        <span>Account Status</span>
+                        <span className="text-[10px] text-emerald-400 font-mono">Active</span>
+                      </label>
+                      <div className="w-full bg-slate-950/60 border border-slate-850 rounded-lg px-3 py-2 text-emerald-400 text-xs font-medium flex items-center gap-1.5">
+                        <CheckCircle2 size={13} />
+                        <span>Ready for Direct Commission Payouts</span>
+                      </div>
+                      <span className="text-[10px] text-slate-500 mt-0.5 block">Disbursements sent to verified account</span>
+                    </div>
+                  )}
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">
-                      IFSC Code
+                    <label className="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
+                      <span>IFSC Code</span>
+                      {isBankLocked && <span className="text-[10px] text-slate-500 font-mono">Locked</span>}
                     </label>
                     <input
                       type="text"
+                      disabled={isBankLocked}
                       value={formIfsc}
                       onChange={(e) => setFormIfsc(e.target.value.toUpperCase().replace(/\s+/g, ''))}
                       placeholder="e.g. SBIN0001234 or HDFC0000001"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-mono uppercase focus:outline-none focus:border-amber-500 transition-colors"
+                      className={`w-full rounded-lg px-3 py-2 text-xs font-mono uppercase transition-colors ${
+                        isBankLocked
+                          ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
+                          : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
+                      }`}
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block">11-character Indian Financial System Code</span>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">
-                      Branch Name / Location
+                    <label className="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
+                      <span>Branch Name / Location</span>
+                      {isBankLocked && <span className="text-[10px] text-slate-500 font-mono">Locked</span>}
                     </label>
                     <input
                       type="text"
+                      disabled={isBankLocked}
                       value={formBranch}
                       onChange={(e) => setFormBranch(e.target.value)}
                       placeholder="e.g. Indiranagar, Bangalore"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-500 transition-colors"
+                      className={`w-full rounded-lg px-3 py-2 text-xs transition-colors ${
+                        isBankLocked
+                          ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
+                          : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
+                      }`}
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block">Bank branch or city location</span>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">
-                      UPI ID / VPA <span className="text-slate-500 font-normal">(Optional)</span>
+                    <label className="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
+                      <span>UPI ID / VPA <span className="text-slate-500 font-normal">(Optional)</span></span>
+                      {isBankLocked && <span className="text-[10px] text-slate-500 font-mono">Locked</span>}
                     </label>
                     <input
                       type="text"
+                      disabled={isBankLocked}
                       value={formUpiId}
                       onChange={(e) => setFormUpiId(e.target.value.toLowerCase().replace(/\s+/g, ''))}
                       placeholder="e.g. username@okhdfcbank or 9876543210@paytm"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-mono focus:outline-none focus:border-amber-500 transition-colors"
+                      className={`w-full rounded-lg px-3 py-2 text-xs font-mono transition-colors ${
+                        isBankLocked
+                          ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
+                          : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
+                      }`}
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block">For instant UPI payouts if supported</span>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">
-                      PAN Card Number <span className="text-slate-500 font-normal">(Optional)</span>
+                    <label className="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
+                      <span>PAN Card Number <span className="text-slate-500 font-normal">(Optional)</span></span>
+                      {isBankLocked && <span className="text-[10px] text-slate-500 font-mono">Locked</span>}
                     </label>
                     <input
                       type="text"
+                      disabled={isBankLocked}
                       value={formPanNumber}
                       onChange={(e) => setFormPanNumber(e.target.value.toUpperCase().replace(/\s+/g, ''))}
                       placeholder="e.g. ABCDE1234F"
                       maxLength={10}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-mono uppercase focus:outline-none focus:border-amber-500 transition-colors"
+                      className={`w-full rounded-lg px-3 py-2 text-xs font-mono uppercase transition-colors ${
+                        isBankLocked
+                          ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
+                          : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
+                      }`}
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block">10-character alphanumeric PAN</span>
                   </div>
@@ -1640,32 +1824,50 @@ export const Dashboard: React.FC = () => {
               </div>
 
               {/* Modal Footer */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setIsEditProfileOpen(false)}
-                  disabled={formSaving}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-750 text-slate-300 rounded-lg text-xs font-bold transition-colors cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={formSaving}
-                  className="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg text-xs font-bold flex items-center gap-2 shadow-md cursor-pointer transition-colors active:scale-95 disabled:opacity-50"
-                >
-                  {formSaving ? (
-                    <>
-                      <div className="h-3.5 w-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></div>
-                      <span>Saving Details...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Check size={14} />
-                      <span>Save Changes</span>
-                    </>
-                  )}
-                </button>
+              <div className="flex items-center justify-between gap-3 pt-4 border-t border-slate-800">
+                {isEntireFormLocked ? (
+                  <div className="flex items-center justify-between w-full">
+                    <span className="text-xs text-amber-400/90 flex items-center gap-1.5">
+                      <Lock size={13} className="shrink-0" />
+                      <span>All profile & bank details are locked. Contact Admin to request updates.</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditProfileOpen(false)}
+                      className="px-5 py-2 bg-slate-800 hover:bg-slate-750 text-slate-200 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                    >
+                      Close
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-end gap-3 w-full">
+                    <button
+                      type="button"
+                      onClick={() => setIsEditProfileOpen(false)}
+                      disabled={formSaving}
+                      className="px-4 py-2 bg-slate-800 hover:bg-slate-750 text-slate-300 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={formSaving}
+                      className="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg text-xs font-bold flex items-center gap-2 shadow-md cursor-pointer transition-colors active:scale-95 disabled:opacity-50"
+                    >
+                      {formSaving ? (
+                        <>
+                          <div className="h-3.5 w-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></div>
+                          <span>Saving Details...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Check size={14} />
+                          <span>Save Changes</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
             </form>
           </div>

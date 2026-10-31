@@ -485,26 +485,59 @@ def update_current_user_profile(
     if not user:
         raise HTTPException(status_code=404, detail="User not found.")
 
+    is_admin = bool(user.is_admin)
+
+    # 1. Full Name lock rule: If regular user already has full_name set, prevent alteration
     if profile_data.full_name is not None:
         clean_name = profile_data.full_name.strip()
         if clean_name:
+            if not is_admin and user.full_name and user.full_name.strip() and user.full_name.strip().lower() != clean_name.lower():
+                raise HTTPException(
+                    status_code=400,
+                    detail="Full Name is locked once registered. Please contact Admin to change your name."
+                )
             user.full_name = clean_name
+
+    # 2. Phone Number lock rule: If regular user already has phone_number set, prevent alteration
     if profile_data.phone_number is not None:
-        user.phone_number = profile_data.phone_number.strip()
-    if profile_data.bank_account_holder is not None:
-        user.bank_account_holder = profile_data.bank_account_holder.strip()
-    if profile_data.bank_name is not None:
-        user.bank_name = profile_data.bank_name.strip()
-    if profile_data.bank_account_number is not None:
-        user.bank_account_number = profile_data.bank_account_number.strip()
-    if profile_data.bank_ifsc is not None:
-        user.bank_ifsc = profile_data.bank_ifsc.strip().upper()
-    if profile_data.bank_branch is not None:
-        user.bank_branch = profile_data.bank_branch.strip()
-    if profile_data.upi_id is not None:
-        user.upi_id = profile_data.upi_id.strip().lower()
-    if profile_data.pan_number is not None:
-        user.pan_number = profile_data.pan_number.strip().upper()
+        clean_phone = profile_data.phone_number.strip()
+        if clean_phone:
+            if not is_admin and user.phone_number and user.phone_number.strip() and user.phone_number.strip() != clean_phone:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Phone Number is locked once registered. Please contact Admin to change your mobile number."
+                )
+            user.phone_number = clean_phone
+
+    # 3. Bank Account details lock rule: If regular user already has bank account set, prevent changes
+    has_existing_bank = bool(user.bank_account_number and user.bank_account_number.strip())
+    if not is_admin and has_existing_bank:
+        if profile_data.bank_account_number and profile_data.bank_account_number.strip() != (user.bank_account_number or '').strip():
+            raise HTTPException(
+                status_code=400,
+                detail="Bank Account details are locked once saved. Please contact Admin to request changes."
+            )
+        if profile_data.bank_ifsc and profile_data.bank_ifsc.strip().upper() != (user.bank_ifsc or '').strip().upper():
+            raise HTTPException(
+                status_code=400,
+                detail="Bank Account details are locked once saved. Please contact Admin to request changes."
+            )
+    else:
+        # User is either Admin or setting bank details for the first time
+        if profile_data.bank_account_holder is not None:
+            user.bank_account_holder = profile_data.bank_account_holder.strip()
+        if profile_data.bank_name is not None:
+            user.bank_name = profile_data.bank_name.strip()
+        if profile_data.bank_account_number is not None:
+            user.bank_account_number = profile_data.bank_account_number.strip()
+        if profile_data.bank_ifsc is not None:
+            user.bank_ifsc = profile_data.bank_ifsc.strip().upper()
+        if profile_data.bank_branch is not None:
+            user.bank_branch = profile_data.bank_branch.strip()
+        if profile_data.upi_id is not None:
+            user.upi_id = profile_data.upi_id.strip().lower()
+        if profile_data.pan_number is not None:
+            user.pan_number = profile_data.pan_number.strip().upper()
 
     db.commit()
     db.refresh(user)
@@ -951,6 +984,77 @@ def admin_update_user_credentials(
     db.commit()
     db.refresh(user)
     return user
+
+@app.put("/admin/users/{user_id}/profile", response_model=schemas.UserResponse)
+def admin_update_user_profile(
+    user_id: int,
+    profile_data: schemas.AdminUserUpdate,
+    current_admin: models.User = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+):
+    from datetime import datetime
+
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    # 1. Full name
+    if profile_data.full_name is not None:
+        clean_name = profile_data.full_name.strip()
+        if clean_name:
+            user.full_name = clean_name
+
+    # 2. Phone number
+    if profile_data.phone_number is not None:
+        user.phone_number = profile_data.phone_number.strip()
+
+    # 3. Email
+    if profile_data.email is not None:
+        clean_email = profile_data.email.strip().lower()
+        if clean_email != user.email:
+            existing_email = db.query(models.User).filter(
+                models.User.email == clean_email,
+                models.User.id != user.id
+            ).first()
+            if existing_email:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Email '{clean_email}' is already registered to another user."
+                )
+            user.email = clean_email
+
+    # 4. Bank details
+    if profile_data.bank_name is not None:
+        user.bank_name = profile_data.bank_name.strip()
+    if profile_data.bank_account_holder is not None:
+        user.bank_account_holder = profile_data.bank_account_holder.strip()
+    if profile_data.bank_account_number is not None:
+        user.bank_account_number = profile_data.bank_account_number.strip()
+    if profile_data.bank_ifsc is not None:
+        user.bank_ifsc = profile_data.bank_ifsc.strip().upper()
+    if profile_data.bank_branch is not None:
+        user.bank_branch = profile_data.bank_branch.strip()
+    if profile_data.upi_id is not None:
+        user.upi_id = profile_data.upi_id.strip().lower()
+    if profile_data.pan_number is not None:
+        user.pan_number = profile_data.pan_number.strip().upper()
+
+    # 5. Status
+    if profile_data.status is not None:
+        clean_status = profile_data.status.strip().lower()
+        if clean_status in ["active", "inactive"]:
+            if clean_status == "active" and user.status != "active":
+                user.activated_at = datetime.utcnow()
+            user.status = clean_status
+
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    logger.info(
+        f"Admin @{current_admin.username} updated profile & bank details for User #{user.id} (@{user.username})"
+    )
+    return user
+
 
 @app.get("/admin/orders", response_model=List[schemas.OrderResponse])
 def admin_get_orders(

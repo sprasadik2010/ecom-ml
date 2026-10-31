@@ -152,6 +152,21 @@ class UserProfileUpdate(BaseModel):
         return v
 
 
+class AdminUserUpdate(BaseModel):
+    full_name: Optional[str] = None
+    phone_number: Optional[str] = None
+    email: Optional[EmailStr] = None
+    bank_account_holder: Optional[str] = None
+    bank_name: Optional[str] = None
+    bank_account_number: Optional[str] = None
+    bank_ifsc: Optional[str] = None
+    bank_branch: Optional[str] = None
+    upi_id: Optional[str] = None
+    pan_number: Optional[str] = None
+    status: Optional[str] = None
+
+
+
 # --- Tree Node Schema (Self-referential) ---
 class TreeNodeResponse(BaseModel):
     id: int

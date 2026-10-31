@@ -51,11 +51,31 @@ import {
   CreditCard,
   Calendar,
   UserCheck,
+  UserCog,
   User as UserIcon,
   Image as ImageIcon,
   LogOut
 } from 'lucide-react';
 import { API_BASE_URL } from '../context/AuthContext';
+
+const POPULAR_BANKS = [
+  "State Bank of India (SBI)",
+  "HDFC Bank",
+  "ICICI Bank",
+  "Axis Bank",
+  "Punjab National Bank (PNB)",
+  "Bank of Baroda",
+  "Kotak Mahindra Bank",
+  "Canara Bank",
+  "Union Bank of India",
+  "Bank of India",
+  "IndusInd Bank",
+  "Federal Bank",
+  "IDFC FIRST Bank",
+  "Yes Bank",
+  "Indian Bank",
+  "Central Bank of India"
+];
 
 // Types matched to backend models/schemas
 interface Product {
@@ -666,6 +686,93 @@ export const AdminPanel: React.FC = () => {
     navigator.clipboard.writeText(text);
     setCopiedDetailField(fieldName);
     setTimeout(() => setCopiedDetailField(null), 2000);
+  };
+
+  // Admin Edit User Modal (Full Edit: Profile & Bank Details)
+  const [isEditUserModalOpen, setIsEditUserModalOpen] = useState(false);
+  const [editUserTarget, setEditUserTarget] = useState<UserListItem | null>(null);
+  const [editUserForm, setEditUserForm] = useState({
+    full_name: '',
+    phone_number: '',
+    email: '',
+    bank_name: '',
+    bank_account_holder: '',
+    bank_account_number: '',
+    bank_ifsc: '',
+    bank_branch: '',
+    upi_id: '',
+    pan_number: '',
+    status: 'inactive' as 'active' | 'inactive',
+  });
+  const [isSubmittingEditUser, setIsSubmittingEditUser] = useState(false);
+
+  const handleOpenEditUserModal = (targetUser: UserListItem) => {
+    setEditUserTarget(targetUser);
+    setEditUserForm({
+      full_name: targetUser.full_name || '',
+      phone_number: targetUser.phone_number || targetUser.phone || '',
+      email: targetUser.email || '',
+      bank_name: targetUser.bank_name || '',
+      bank_account_holder: targetUser.bank_account_holder || targetUser.full_name || '',
+      bank_account_number: targetUser.bank_account_number || '',
+      bank_ifsc: targetUser.bank_ifsc || '',
+      bank_branch: targetUser.bank_branch || '',
+      upi_id: targetUser.upi_id || '',
+      pan_number: targetUser.pan_number || '',
+      status: targetUser.status || 'inactive',
+    });
+    setIsEditUserModalOpen(true);
+  };
+
+  const handleSaveEditUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editUserTarget) return;
+
+    if (!editUserForm.full_name.trim()) {
+      triggerError('Full Name is required.');
+      return;
+    }
+
+    setIsSubmittingEditUser(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/users/${editUserTarget.id}/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          full_name: editUserForm.full_name.trim(),
+          phone_number: editUserForm.phone_number.trim(),
+          email: editUserForm.email.trim(),
+          bank_name: editUserForm.bank_name.trim(),
+          bank_account_holder: editUserForm.bank_account_holder.trim(),
+          bank_account_number: editUserForm.bank_account_number.trim(),
+          bank_ifsc: editUserForm.bank_ifsc.trim().toUpperCase(),
+          bank_branch: editUserForm.bank_branch.trim(),
+          upi_id: editUserForm.upi_id.trim().toLowerCase(),
+          pan_number: editUserForm.pan_number.trim().toUpperCase(),
+          status: editUserForm.status,
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || 'Failed to update user profile and bank details.');
+      }
+
+      setUsers(prev => prev.map(u => u.id === data.id ? { ...u, ...data } : u));
+      if (selectedDetailsUser?.id === data.id) {
+        setSelectedDetailsUser(prev => prev ? { ...prev, ...data } : null);
+      }
+
+      triggerSuccess(`Profile and bank details updated successfully for @${data.username || editUserTarget.username}!`);
+      setIsEditUserModalOpen(false);
+    } catch (err: any) {
+      triggerError(err.message || 'Update failed.');
+    } finally {
+      setIsSubmittingEditUser(false);
+    }
   };
 
   const formatDateFull = (dateStr?: string | null) => {
@@ -2138,6 +2245,14 @@ export const AdminPanel: React.FC = () => {
                                   Details
                                 </button>
                                 <button
+                                  onClick={() => handleOpenEditUserModal(u)}
+                                  className="px-2 py-1 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-[10px] font-bold text-amber-400 rounded cursor-pointer transition-colors flex items-center gap-1"
+                                  title="Edit Full Profile, Phone & Bank Details"
+                                >
+                                  <UserCog size={11} />
+                                  Edit
+                                </button>
+                                <button
                                   onClick={() => handleToggleUserStatus(u)}
                                   className="px-2 py-1 bg-slate-955 hover:bg-slate-850 border border-slate-800 text-[10px] font-bold rounded cursor-pointer transition-colors"
                                   title="Toggle Active/Inactive"
@@ -2245,6 +2360,10 @@ export const AdminPanel: React.FC = () => {
                           <button onClick={() => handleOpenUserDetailsModal(u)} className="flex-1 py-1.5 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 text-[10px] font-bold text-sky-400 rounded cursor-pointer transition-colors text-center flex items-center justify-center gap-1">
                             <Eye size={11} />
                             Details
+                          </button>
+                          <button onClick={() => handleOpenEditUserModal(u)} className="flex-1 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-[10px] font-bold text-amber-400 rounded cursor-pointer transition-colors text-center flex items-center justify-center gap-1">
+                            <UserCog size={11} />
+                            Edit
                           </button>
                           <button onClick={() => handleToggleUserStatus(u)} className="flex-1 py-1.5 bg-slate-950 hover:bg-slate-850 border border-slate-800 text-[10px] font-bold rounded cursor-pointer transition-colors text-center text-slate-355 hover:text-white">
                             Toggle Status
@@ -4776,6 +4895,18 @@ export const AdminPanel: React.FC = () => {
                     <Key size={12} />
                     Credentials
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsUserDetailsModalOpen(false);
+                      handleOpenEditUserModal(selectedDetailsUser);
+                    }}
+                    className="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 rounded-lg text-xs font-bold transition-all shadow-md cursor-pointer flex items-center gap-1.5 active:scale-95"
+                    title="Edit User Profile and Bank Details"
+                  >
+                    <UserCog size={13} />
+                    <span>Edit Profile & Bank</span>
+                  </button>
                 </div>
 
                 <button
@@ -4790,6 +4921,269 @@ export const AdminPanel: React.FC = () => {
           </div>
         );
       })()}
+
+      {/* COMPREHENSIVE USER EDIT (PROFILE & BANK DETAILS) MODAL FOR ADMIN */}
+      {isEditUserModalOpen && editUserTarget && (
+        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-50 animate-fade-in font-sans overflow-y-auto">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl animate-scale-up max-h-[92vh] flex flex-col my-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-800 bg-slate-950/70 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 text-slate-950 font-bold shadow-md shrink-0">
+                  <UserCog size={20} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-base sm:text-lg font-black text-white">Edit User Profile & Bank Details</h3>
+                    <span className="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-mono px-2 py-0.5 rounded font-bold">
+                      Full Admin Rights
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Modifying account for <span className="text-amber-400 font-mono font-semibold">@{editUserTarget.username}</span> (User #{editUserTarget.id})
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsEditUserModalOpen(false)}
+                className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                title="Close"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handleSaveEditUser} className="overflow-y-auto p-4 sm:p-6 space-y-6 flex-1">
+              {/* Section 1: Profile & Contact Details */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-400">
+                    <UserIcon size={14} />
+                    <span>Personal Profile & Contact</span>
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-mono">Member ID #{editUserTarget.id}</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">
+                      Full Name <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editUserForm.full_name}
+                      onChange={(e) => setEditUserForm({ ...editUserForm, full_name: e.target.value })}
+                      placeholder="e.g. Sivaprasad Nair"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-500 transition-colors"
+                    />
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">User full legal or display name</span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      value={editUserForm.phone_number}
+                      onChange={(e) => setEditUserForm({ ...editUserForm, phone_number: e.target.value })}
+                      placeholder="e.g. 9876543210"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-500 transition-colors"
+                    />
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">Primary mobile contact number</span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      value={editUserForm.email}
+                      onChange={(e) => setEditUserForm({ ...editUserForm, email: e.target.value })}
+                      placeholder="e.g. user@example.com"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-500 transition-colors"
+                    />
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">Account email for login & reset</span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">
+                      Account Status
+                    </label>
+                    <select
+                      value={editUserForm.status}
+                      onChange={(e) => setEditUserForm({ ...editUserForm, status: e.target.value as 'active' | 'inactive' })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-500 transition-colors cursor-pointer"
+                    >
+                      <option value="active">Active (Qualified Member)</option>
+                      <option value="inactive">Inactive (Pending SW)</option>
+                    </select>
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">Tree qualification state</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 2: Bank Account & Payout Details */}
+              <div className="pt-4 border-t border-slate-800">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-400">
+                    <Landmark size={14} />
+                    <span>Bank Account Details (Payouts & Royalties)</span>
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-mono">Commission Destination</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">
+                      Bank Name
+                    </label>
+                    <input
+                      type="text"
+                      list="adminBanksList"
+                      value={editUserForm.bank_name}
+                      onChange={(e) => setEditUserForm({ ...editUserForm, bank_name: e.target.value })}
+                      placeholder="e.g. State Bank of India, HDFC Bank"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-500 transition-colors"
+                    />
+                    <datalist id="adminBanksList">
+                      {POPULAR_BANKS.map((b) => (
+                        <option key={b} value={b} />
+                      ))}
+                    </datalist>
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">Select or type the bank name</span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">
+                      Account Holder Name
+                    </label>
+                    <input
+                      type="text"
+                      value={editUserForm.bank_account_holder}
+                      onChange={(e) => setEditUserForm({ ...editUserForm, bank_account_holder: e.target.value })}
+                      placeholder="As per bank passbook / records"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-500 transition-colors"
+                    />
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">Beneficiary name for bank transfers</span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">
+                      Bank Account Number
+                    </label>
+                    <input
+                      type="text"
+                      value={editUserForm.bank_account_number}
+                      onChange={(e) => setEditUserForm({ ...editUserForm, bank_account_number: e.target.value.replace(/\s+/g, '') })}
+                      placeholder="Enter account number"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-mono focus:outline-none focus:border-amber-500 transition-colors"
+                    />
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">Savings / Current account number</span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">
+                      IFSC Code
+                    </label>
+                    <input
+                      type="text"
+                      value={editUserForm.bank_ifsc}
+                      onChange={(e) => setEditUserForm({ ...editUserForm, bank_ifsc: e.target.value.toUpperCase().replace(/\s+/g, '') })}
+                      placeholder="e.g. SBIN0001234 or HDFC0000001"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-mono uppercase focus:outline-none focus:border-amber-500 transition-colors"
+                    />
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">11-character Indian Financial System Code</span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">
+                      Branch Name / Location
+                    </label>
+                    <input
+                      type="text"
+                      value={editUserForm.bank_branch}
+                      onChange={(e) => setEditUserForm({ ...editUserForm, bank_branch: e.target.value })}
+                      placeholder="e.g. Indiranagar, Bangalore"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-500 transition-colors"
+                    />
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">Bank branch or branch city location</span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">
+                      UPI ID / VPA <span className="text-slate-500 font-normal">(Optional)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={editUserForm.upi_id}
+                      onChange={(e) => setEditUserForm({ ...editUserForm, upi_id: e.target.value.toLowerCase().replace(/\s+/g, '') })}
+                      placeholder="e.g. username@okhdfcbank"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-mono focus:outline-none focus:border-amber-500 transition-colors"
+                    />
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">Instant UPI payment handle</span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">
+                      PAN Card Number <span className="text-slate-500 font-normal">(Optional)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={editUserForm.pan_number}
+                      onChange={(e) => setEditUserForm({ ...editUserForm, pan_number: e.target.value.toUpperCase().replace(/\s+/g, '') })}
+                      placeholder="e.g. ABCDE1234F"
+                      maxLength={10}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-mono uppercase focus:outline-none focus:border-amber-500 transition-colors"
+                    />
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">10-character alphanumeric PAN</span>
+                  </div>
+                </div>
+
+                <div className="mt-4 p-3 bg-slate-950/70 border border-slate-850 rounded-xl flex items-start gap-2.5 text-[11px] text-slate-400">
+                  <ShieldCheck size={14} className="text-amber-400 shrink-0 mt-0.5" />
+                  <span>
+                    As an administrator, updates saved here will immediately synchronize with the user's dashboard and will be used for all future payout disbursements.
+                  </span>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setIsEditUserModalOpen(false)}
+                  disabled={isSubmittingEditUser}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-750 text-slate-300 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingEditUser}
+                  className="px-5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 rounded-lg text-xs font-bold flex items-center gap-2 shadow-md cursor-pointer transition-all active:scale-95 disabled:opacity-50"
+                >
+                  {isSubmittingEditUser ? (
+                    <>
+                      <RefreshCw size={13} className="animate-spin" />
+                      <span>Saving Changes...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save size={13} />
+                      <span>Save All Changes</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* POSTAL DISPATCH & TRACKING MANAGEMENT MODAL */}
       {isDispatchModalOpen && selectedDispatchOrder && (
