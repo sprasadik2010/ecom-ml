@@ -1577,8 +1577,8 @@ export const AdminPanel: React.FC = () => {
             key={t.id}
             onClick={() => setActiveTab(t.id)}
             className={`px-5 py-2.5 rounded-t-lg font-bold text-xs cursor-pointer tracking-wide transition-all shrink-0 ${activeTab === t.id
-                ? 'bg-slate-900 border border-slate-850 text-rose-500 shadow-sm relative -bottom-px'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/40'
+              ? 'bg-slate-900 border border-slate-850 text-rose-500 shadow-sm relative -bottom-px'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/40'
               }`}
           >
             <div className="flex items-center gap-2">
@@ -1698,8 +1698,8 @@ export const AdminPanel: React.FC = () => {
                           </div>
                           <span
                             className={`px-2 py-0.5 rounded text-[9px] font-bold ${u.status === 'active'
-                                ? 'bg-emerald-500/10 text-emerald-550 border border-emerald-500/20'
-                                : 'bg-red-500/10 text-red-550 border border-red-500/20'
+                              ? 'bg-emerald-500/10 text-emerald-550 border border-emerald-500/20'
+                              : 'bg-red-500/10 text-red-550 border border-red-500/20'
                               }`}
                           >
                             {u.status.toUpperCase()}
@@ -1742,10 +1742,10 @@ export const AdminPanel: React.FC = () => {
                             <div className="font-mono text-xs text-slate-200 font-bold">₹{o.total_amount.toFixed(2)}</div>
                             <span
                               className={`text-[9px] font-bold ${o.status === 'completed'
-                                  ? 'text-emerald-550'
-                                  : o.status === 'pending'
-                                    ? 'text-amber-400'
-                                    : 'text-red-550'
+                                ? 'text-emerald-550'
+                                : o.status === 'pending'
+                                  ? 'text-amber-400'
+                                  : 'text-red-550'
                                 }`}
                             >
                               {o.status.toUpperCase()}
@@ -1869,8 +1869,8 @@ export const AdminPanel: React.FC = () => {
                           <td className="py-3 px-4 text-center">
                             <span
                               className={`px-2 py-0.5 rounded font-mono font-bold text-[10px] ${p.stock <= 5
-                                  ? 'bg-red-500/10 text-red-555 border border-red-500/25'
-                                  : 'bg-slate-950 text-slate-400'
+                                ? 'bg-red-500/10 text-red-555 border border-red-500/25'
+                                : 'bg-slate-950 text-slate-400'
                                 }`}
                             >
                               {p.stock} units
@@ -2227,8 +2227,8 @@ export const AdminPanel: React.FC = () => {
                             <td className="py-3 px-4 text-center">
                               <span
                                 className={`px-2 py-0.5 rounded text-[9px] font-bold ${u.status === 'active'
-                                    ? 'bg-emerald-500/10 text-emerald-555 border border-emerald-500/20'
-                                    : 'bg-red-500/10 text-red-550 border border-red-500/20'
+                                  ? 'bg-emerald-500/10 text-emerald-555 border border-emerald-500/20'
+                                  : 'bg-red-500/10 text-red-550 border border-red-500/20'
                                   }`}
                               >
                                 {u.status.toUpperCase()}
@@ -2365,12 +2365,12 @@ export const AdminPanel: React.FC = () => {
                             <UserCog size={11} />
                             Edit
                           </button>
-                          <button onClick={() => handleToggleUserStatus(u)} className="flex-1 py-1.5 bg-slate-950 hover:bg-slate-850 border border-slate-800 text-[10px] font-bold rounded cursor-pointer transition-colors text-center text-slate-355 hover:text-white">
+                          {/* <button onClick={() => handleToggleUserStatus(u)} className="flex-1 py-1.5 bg-slate-950 hover:bg-slate-850 border border-slate-800 text-[10px] font-bold rounded cursor-pointer transition-colors text-center text-slate-355 hover:text-white">
                             Toggle Status
                           </button>
                           <button onClick={() => handleOpenWalletModal(u)} className="flex-1 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-[10px] font-bold text-amber-500 rounded cursor-pointer transition-colors text-center">
                             Adjust Balance
-                          </button>
+                          </button> */}
                           <button onClick={() => handleOpenCredentialsModal(u)} className="flex-1 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-[10px] font-bold text-blue-400 rounded cursor-pointer transition-colors text-center flex items-center justify-center gap-1">
                             <Key size={11} />
                             Credentials
@@ -2411,8 +2411,8 @@ export const AdminPanel: React.FC = () => {
                 <div
                   onClick={() => setDispatchFilter('all')}
                   className={`p-3.5 rounded-xl border transition-all cursor-pointer ${dispatchFilter === 'all'
-                      ? 'bg-slate-850 border-amber-500/50 shadow-md'
-                      : 'bg-slate-950/60 border-slate-850 hover:border-slate-800'
+                    ? 'bg-slate-850 border-amber-500/50 shadow-md'
+                    : 'bg-slate-950/60 border-slate-850 hover:border-slate-800'
                     }`}
                 >
                   <span className="text-slate-500 text-[9px] uppercase font-bold tracking-wider block">Total Orders</span>
@@ -2423,8 +2423,8 @@ export const AdminPanel: React.FC = () => {
                 <div
                   onClick={() => setDispatchFilter('pending')}
                   className={`p-3.5 rounded-xl border transition-all cursor-pointer ${dispatchFilter === 'pending'
-                      ? 'bg-amber-950/30 border-amber-500 shadow-md'
-                      : 'bg-slate-950/60 border-slate-850 hover:border-slate-800'
+                    ? 'bg-amber-950/30 border-amber-500 shadow-md'
+                    : 'bg-slate-950/60 border-slate-850 hover:border-slate-800'
                     }`}
                 >
                   <span className="text-amber-400 text-[9px] uppercase font-bold tracking-wider block">Awaiting Verification</span>
@@ -2437,8 +2437,8 @@ export const AdminPanel: React.FC = () => {
                 <div
                   onClick={() => setDispatchFilter('ready_dispatch')}
                   className={`p-3.5 rounded-xl border transition-all cursor-pointer ${dispatchFilter === 'ready_dispatch'
-                      ? 'bg-blue-950/40 border-blue-500 shadow-md ring-1 ring-blue-500/30'
-                      : 'bg-slate-950/60 border-slate-850 hover:border-slate-800'
+                    ? 'bg-blue-950/40 border-blue-500 shadow-md ring-1 ring-blue-500/30'
+                    : 'bg-slate-950/60 border-slate-850 hover:border-slate-800'
                     }`}
                 >
                   <span className="text-blue-400 text-[9px] uppercase font-bold tracking-wider block flex items-center gap-1">
@@ -2454,8 +2454,8 @@ export const AdminPanel: React.FC = () => {
                 <div
                   onClick={() => setDispatchFilter('dispatched')}
                   className={`p-3.5 rounded-xl border transition-all cursor-pointer ${dispatchFilter === 'dispatched'
-                      ? 'bg-sky-950/40 border-sky-500 shadow-md'
-                      : 'bg-slate-950/60 border-slate-850 hover:border-slate-800'
+                    ? 'bg-sky-950/40 border-sky-500 shadow-md'
+                    : 'bg-slate-950/60 border-slate-850 hover:border-slate-800'
                     }`}
                 >
                   <span className="text-sky-400 text-[9px] uppercase font-bold tracking-wider block flex items-center gap-1">
@@ -2471,8 +2471,8 @@ export const AdminPanel: React.FC = () => {
                 <div
                   onClick={() => setDispatchFilter('delivered')}
                   className={`p-3.5 rounded-xl border transition-all cursor-pointer ${dispatchFilter === 'delivered'
-                      ? 'bg-emerald-950/30 border-emerald-500 shadow-md'
-                      : 'bg-slate-950/60 border-slate-850 hover:border-slate-800'
+                    ? 'bg-emerald-950/30 border-emerald-500 shadow-md'
+                    : 'bg-slate-950/60 border-slate-850 hover:border-slate-800'
                     }`}
                 >
                   <span className="text-emerald-400 text-[9px] uppercase font-bold tracking-wider block flex items-center gap-1">
@@ -2502,8 +2502,8 @@ export const AdminPanel: React.FC = () => {
                       key={f.id}
                       onClick={() => setDispatchFilter(f.id as any)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer shrink-0 ${dispatchFilter === f.id
-                          ? 'bg-amber-500 text-slate-950 shadow-sm'
-                          : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
+                        ? 'bg-amber-500 text-slate-950 shadow-sm'
+                        : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
                         }`}
                     >
                       <span>{f.label}</span>
@@ -2675,10 +2675,10 @@ export const AdminPanel: React.FC = () => {
                               <div>
                                 <span
                                   className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold ${isApproved
-                                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                      : isPending
-                                        ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                                        : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                    : isPending
+                                      ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                      : 'bg-red-500/10 text-red-400 border border-red-500/20'
                                     }`}
                                 >
                                   {isApproved && <Check size={10} />}
@@ -2950,10 +2950,10 @@ export const AdminPanel: React.FC = () => {
 
                           <div className="text-right">
                             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[9px] font-bold ${isApproved
-                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                : isPending
-                                  ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                                  : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                              : isPending
+                                ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                : 'bg-red-500/10 text-red-400 border border-red-500/20'
                               }`}>
                               {isApproved ? 'VERIFIED' : isPending ? 'PENDING' : 'CANCELLED'}
                             </span>
@@ -3160,14 +3160,14 @@ export const AdminPanel: React.FC = () => {
                             <td className="py-3 px-4 font-bold">
                               <span
                                 className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase ${c.type === 'binary_matching'
-                                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                    : c.type === 'sponsor_matching_bonus'
-                                      ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
-                                      : c.type === 'rank_level_reward'
-                                        ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                                        : c.type === 'direct_referral'
-                                          ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20'
-                                          : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
+                                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                  : c.type === 'sponsor_matching_bonus'
+                                    ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+                                    : c.type === 'rank_level_reward'
+                                      ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                      : c.type === 'direct_referral'
+                                        ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20'
+                                        : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
                                   }`}
                               >
                                 {c.type === 'binary_matching' ? 'Business Match' : c.type === 'sponsor_matching_bonus' ? '5-Level Sponsor' : c.type === 'rank_level_reward' ? 'Rank Royalty' : c.type.replace('_', ' ')}
@@ -3216,14 +3216,14 @@ export const AdminPanel: React.FC = () => {
                           <div className="flex items-center gap-1.5">
                             <span className="text-slate-500 text-[8px] uppercase font-bold">Reward Type:</span>
                             <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${c.type === 'binary_matching'
-                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                : c.type === 'sponsor_matching_bonus'
-                                  ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
-                                  : c.type === 'rank_level_reward'
-                                    ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                                    : c.type === 'direct_referral'
-                                      ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20'
-                                      : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
+                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                              : c.type === 'sponsor_matching_bonus'
+                                ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+                                : c.type === 'rank_level_reward'
+                                  ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                  : c.type === 'direct_referral'
+                                    ? 'bg-blue-500/10 text-blue-500 border border-blue-500/20'
+                                    : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
                               }`}>
                               {c.type === 'binary_matching' ? 'Business Match' : c.type === 'sponsor_matching_bonus' ? '5-Level Sponsor' : c.type === 'rank_level_reward' ? 'Rank Royalty' : c.type.replace('_', ' ')}
                             </span>
@@ -3361,8 +3361,8 @@ export const AdminPanel: React.FC = () => {
                               </td>
                               <td className="py-3 px-3 text-right">
                                 <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${r.status === 'active'
-                                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                    : 'bg-slate-800 text-slate-400'
+                                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                  : 'bg-slate-800 text-slate-400'
                                   }`}>
                                   {r.status}
                                 </span>
@@ -3429,11 +3429,10 @@ export const AdminPanel: React.FC = () => {
                     <div>
                       <div className="flex items-center gap-2.5 flex-wrap">
                         <h2 className="text-lg font-black text-white">ImgBB Cloud Image Storage</h2>
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                          imgbbSettings?.api_key_configured
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${imgbbSettings?.api_key_configured
                             ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
                             : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-                        }`}>
+                          }`}>
                           {imgbbSettings?.api_key_configured ? '● Cloud Auto-Sync Active' : '○ API Key Required'}
                         </span>
                       </div>
@@ -3903,17 +3902,15 @@ export const AdminPanel: React.FC = () => {
                         return (
                           <div
                             key={idx}
-                            className={`relative bg-slate-900 rounded-xl border p-2 flex flex-col gap-1.5 transition-all ${
-                              isCover ? 'border-amber-500/80 ring-1 ring-amber-500/30' : 'border-slate-800'
-                            }`}
+                            className={`relative bg-slate-900 rounded-xl border p-2 flex flex-col gap-1.5 transition-all ${isCover ? 'border-amber-500/80 ring-1 ring-amber-500/30' : 'border-slate-800'
+                              }`}
                           >
                             {/* Image Thumbnail */}
                             <div className="aspect-square w-full rounded-lg overflow-hidden bg-slate-950 relative">
                               <img src={imgUrl} alt={`View ${idx + 1}`} className="w-full h-full object-cover" />
                               <span
-                                className={`absolute top-1 left-1 px-1.5 py-0.2 rounded text-[8px] font-black uppercase ${
-                                  isCover ? 'bg-amber-500 text-slate-950' : 'bg-slate-900/90 text-slate-300'
-                                }`}
+                                className={`absolute top-1 left-1 px-1.5 py-0.2 rounded text-[8px] font-black uppercase ${isCover ? 'bg-amber-500 text-slate-950' : 'bg-slate-900/90 text-slate-300'
+                                  }`}
                               >
                                 {isCover ? 'Cover' : `View #${idx + 1}`}
                               </span>
@@ -4049,11 +4046,10 @@ export const AdminPanel: React.FC = () => {
                         key={colorPreset}
                         type="button"
                         onClick={() => handleAddColor(colorPreset)}
-                        className={`text-[9.5px] font-bold px-2 py-0.5 rounded-full border transition-all cursor-pointer ${
-                          productForm.colors.includes(colorPreset)
+                        className={`text-[9.5px] font-bold px-2 py-0.5 rounded-full border transition-all cursor-pointer ${productForm.colors.includes(colorPreset)
                             ? 'bg-amber-500/20 border-amber-500 text-amber-300 opacity-60'
                             : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-600 hover:text-white'
-                        }`}
+                          }`}
                       >
                         + {colorPreset}
                       </button>
@@ -4530,11 +4526,10 @@ export const AdminPanel: React.FC = () => {
                       <h3 className="font-extrabold text-white text-base sm:text-lg">
                         {selectedDetailsUser.full_name}
                       </h3>
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                        selectedDetailsUser.status === 'active'
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${selectedDetailsUser.status === 'active'
                           ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                           : 'bg-red-500/10 text-red-400 border border-red-500/20'
-                      }`}>
+                        }`}>
                         {selectedDetailsUser.status.toUpperCase()} MEMBER
                       </span>
                       {selectedDetailsUser.is_admin && (
@@ -4864,7 +4859,7 @@ export const AdminPanel: React.FC = () => {
               {/* Modal Footer with Actions */}
               <div className="p-4 bg-slate-950 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2.5 shrink-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <button
+                  {/* <button
                     type="button"
                     onClick={() => {
                       handleToggleUserStatus(selectedDetailsUser);
@@ -4883,7 +4878,7 @@ export const AdminPanel: React.FC = () => {
                     className="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-400 rounded-lg text-xs font-bold transition-colors cursor-pointer"
                   >
                     Adjust Balance
-                  </button>
+                  </button> */}
                   <button
                     type="button"
                     onClick={() => {
