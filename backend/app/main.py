@@ -881,6 +881,17 @@ def admin_get_users(
 ):
     return db.query(models.User).filter(models.User.is_admin == False).order_by(models.User.id.asc()).all()
 
+@app.get("/admin/users/{user_id}", response_model=schemas.UserResponse)
+def admin_get_user_by_id(
+    user_id: int,
+    current_admin: models.User = Depends(auth.get_current_admin),
+    db: Session = Depends(get_db)
+):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+    return user
+
 @app.put("/admin/users/{user_id}/status", response_model=schemas.UserResponse)
 def admin_update_user_status(
     user_id: int,

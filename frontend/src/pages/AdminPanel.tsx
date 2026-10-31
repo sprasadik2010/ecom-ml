@@ -677,9 +677,37 @@ export const AdminPanel: React.FC = () => {
   const [selectedDetailsUser, setSelectedDetailsUser] = useState<UserListItem | null>(null);
   const [copiedDetailField, setCopiedDetailField] = useState<string | null>(null);
 
-  const handleOpenUserDetailsModal = (user: UserListItem) => {
+  const buildUserFormData = (u: any) => ({
+    full_name: u?.full_name || u?.fullName || u?.name || '',
+    phone_number: u?.phone_number || u?.phone || u?.phoneNumber || u?.mobile || '',
+    email: u?.email || '',
+    bank_name: u?.bank_name || u?.bankName || '',
+    bank_account_holder: u?.bank_account_holder || u?.bankAccountHolder || u?.account_holder || u?.full_name || u?.fullName || '',
+    bank_account_number: u?.bank_account_number || u?.bankAccountNumber || u?.account_number || u?.accountNo || '',
+    bank_ifsc: u?.bank_ifsc || u?.bankIfsc || u?.ifsc || u?.ifsc_code || '',
+    bank_branch: u?.bank_branch || u?.bankBranch || u?.branch || '',
+    upi_id: u?.upi_id || u?.upiId || u?.upi || '',
+    pan_number: u?.pan_number || u?.panNumber || u?.pan || '',
+    status: (u?.status as 'active' | 'inactive') || 'inactive',
+  });
+
+  const handleOpenUserDetailsModal = async (user: UserListItem) => {
+    if (!user) return;
     setSelectedDetailsUser(user);
     setIsUserDetailsModalOpen(true);
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/users/${user.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const freshUser: UserListItem = await res.json();
+        setSelectedDetailsUser(freshUser);
+        setUsers(prev => prev.map(item => item.id === freshUser.id ? { ...item, ...freshUser } : item));
+      }
+    } catch (err) {
+      console.error('Error fetching live user details:', err);
+    }
   };
 
   const copyToClipboard = (text: string, fieldName: string) => {
@@ -691,6 +719,7 @@ export const AdminPanel: React.FC = () => {
   // Admin Edit User Modal (Full Edit: Profile & Bank Details)
   const [isEditUserModalOpen, setIsEditUserModalOpen] = useState(false);
   const [editUserTarget, setEditUserTarget] = useState<UserListItem | null>(null);
+  const [isLoadingEditUser, setIsLoadingEditUser] = useState(false);
   const [editUserForm, setEditUserForm] = useState({
     full_name: '',
     phone_number: '',
@@ -706,22 +735,31 @@ export const AdminPanel: React.FC = () => {
   });
   const [isSubmittingEditUser, setIsSubmittingEditUser] = useState(false);
 
-  const handleOpenEditUserModal = (targetUser: UserListItem) => {
+  const handleOpenEditUserModal = async (targetUser: UserListItem) => {
+    if (!targetUser) return;
     setEditUserTarget(targetUser);
-    setEditUserForm({
-      full_name: targetUser.full_name || '',
-      phone_number: targetUser.phone_number || targetUser.phone || '',
-      email: targetUser.email || '',
-      bank_name: targetUser.bank_name || '',
-      bank_account_holder: targetUser.bank_account_holder || targetUser.full_name || '',
-      bank_account_number: targetUser.bank_account_number || '',
-      bank_ifsc: targetUser.bank_ifsc || '',
-      bank_branch: targetUser.bank_branch || '',
-      upi_id: targetUser.upi_id || '',
-      pan_number: targetUser.pan_number || '',
-      status: targetUser.status || 'inactive',
-    });
+    setEditUserForm(buildUserFormData(targetUser));
     setIsEditUserModalOpen(true);
+    setIsLoadingEditUser(true);
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/users/${targetUser.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const freshUser: UserListItem = await res.json();
+        setEditUserTarget(freshUser);
+        setEditUserForm(buildUserFormData(freshUser));
+        setUsers(prev => prev.map(item => item.id === freshUser.id ? { ...item, ...freshUser } : item));
+        if (selectedDetailsUser?.id === freshUser.id) {
+          setSelectedDetailsUser(prev => prev ? { ...prev, ...freshUser } : null);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching live user details for edit:', err);
+    } finally {
+      setIsLoadingEditUser(false);
+    }
   };
 
   const handleSaveEditUser = async (e: React.FormEvent) => {
@@ -4951,6 +4989,12 @@ export const AdminPanel: React.FC = () => {
 
             {/* Modal Form */}
             <form onSubmit={handleSaveEditUser} className="overflow-y-auto p-4 sm:p-6 space-y-6 flex-1">
+              {isLoadingEditUser && (
+                <div className="p-3 bg-amber-500/10 border border-amber-500/25 rounded-xl text-amber-300 text-xs flex items-center gap-2">
+                  <RefreshCw size={14} className="animate-spin text-amber-400 shrink-0" />
+                  <span>Fetching latest member details & bank account data from server...</span>
+                </div>
+              )}
               {/* Section 1: Profile & Contact Details */}
               <div>
                 <div className="flex items-center justify-between mb-3">

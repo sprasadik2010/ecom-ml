@@ -537,7 +537,7 @@ export const Dashboard: React.FC = () => {
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-maroon tracking-tight">
                 Welcome, <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-200 to-amber-500">{user.full_name?.trim() || user.username}</span>!
               </h1>
               {user.current_level > 0 && (
@@ -572,10 +572,10 @@ export const Dashboard: React.FC = () => {
           <button
             onClick={openEditProfile}
             className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 rounded-lg text-xs font-bold shadow-md transition-all cursor-pointer active:scale-95 shrink-0"
-            title="Edit Profile & Bank Details"
+            title="View Profile & Bank Details"
           >
             <UserCog size={15} />
-            <span>Edit Profile & Bank</span>
+            <span>View Profile & Bank</span>
           </button>
 
           <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-950/60 border border-slate-800 rounded-lg">
@@ -585,11 +585,10 @@ export const Dashboard: React.FC = () => {
                 {user.status.toUpperCase()}
               </span>
             </div>
-            <div className={`p-1.5 rounded-md border ${
-              isActive 
-                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
-                : 'bg-red-500/10 text-red-400 border-red-500/20'
-            }`}>
+            <div className={`p-1.5 rounded-md border ${isActive
+              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+              : 'bg-red-500/10 text-red-400 border-red-500/20'
+              }`}>
               {isActive ? <ShieldCheck size={16} /> : <ShieldAlert size={16} />}
             </div>
           </div>
@@ -638,9 +637,8 @@ export const Dashboard: React.FC = () => {
               />
               <button
                 onClick={handleCopyLeft}
-                className={`p-1.5 sm:p-2.5 rounded-lg font-bold transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1 shrink-0 ${
-                  copiedLeft ? 'bg-emerald-500 text-slate-950' : 'bg-amber-500 hover:bg-amber-600 text-slate-950'
-                }`}
+                className={`p-1.5 sm:p-2.5 rounded-lg font-bold transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1 shrink-0 ${copiedLeft ? 'bg-emerald-500 text-slate-950' : 'bg-amber-500 hover:bg-amber-600 text-slate-950'
+                  }`}
                 title="Copy Left Side Link"
               >
                 {copiedLeft ? <CheckCircle2 size={14} /> : <Clipboard size={14} />}
@@ -669,9 +667,8 @@ export const Dashboard: React.FC = () => {
               />
               <button
                 onClick={handleCopyRight}
-                className={`p-1.5 sm:p-2.5 rounded-lg font-bold transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1 shrink-0 ${
-                  copiedRight ? 'bg-emerald-500 text-slate-950' : 'bg-amber-500 hover:bg-amber-600 text-slate-950'
-                }`}
+                className={`p-1.5 sm:p-2.5 rounded-lg font-bold transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1 shrink-0 ${copiedRight ? 'bg-emerald-500 text-slate-950' : 'bg-amber-500 hover:bg-amber-600 text-slate-950'
+                  }`}
                 title="Copy Right Side Link"
               >
                 {copiedRight ? <CheckCircle2 size={14} /> : <Clipboard size={14} />}
@@ -952,8 +949,8 @@ export const Dashboard: React.FC = () => {
             <ShoppingBag size={18} className="text-amber-500" />
             Recent E-commerce Orders
           </h3>
-          <Link 
-            to="/orders" 
+          <Link
+            to="/orders"
             className="text-xs text-amber-500 hover:text-amber-400 font-bold flex items-center gap-1 transition-colors"
           >
             <span>View All Orders</span>
@@ -992,13 +989,12 @@ export const Dashboard: React.FC = () => {
                       <td className="py-3 font-bold font-mono text-white">₹{ord.total_amount.toFixed(2)}</td>
                       <td className="py-3 text-amber-400 font-bold font-mono">{ord.total_sw} SW</td>
                       <td className="py-3 text-right">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                          ord.status === 'completed' 
-                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
-                            : ord.status === 'pending'
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${ord.status === 'completed'
+                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                          : ord.status === 'pending'
                             ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                             : 'bg-red-500/10 text-red-400 border border-red-500/20'
-                        }`}>
+                          }`}>
                           {ord.status === 'completed' && <CheckCircle2 size={10} />}
                           {ord.status === 'pending' && <Clock size={10} />}
                           {ord.status === 'completed' ? 'APPROVED' : ord.status === 'pending' ? 'PENDING APPROVAL' : ord.status.toUpperCase()}
@@ -1013,25 +1009,24 @@ export const Dashboard: React.FC = () => {
             {/* Mobile Cards View */}
             <div className="block md:hidden space-y-3">
               {orders.map((ord) => (
-                <div 
-                  key={ord.id} 
+                <div
+                  key={ord.id}
                   className="bg-slate-950/20 border border-slate-850 rounded-xl p-4 shadow-sm hover:border-slate-800 transition-colors"
                 >
                   <div className="flex justify-between items-center mb-3">
                     <span className="font-mono font-bold text-slate-200 text-xs">#00{ord.id}</span>
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-bold ${
-                      ord.status === 'completed' 
-                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
-                        : ord.status === 'pending'
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-bold ${ord.status === 'completed'
+                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                      : ord.status === 'pending'
                         ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                         : 'bg-red-500/10 text-red-400 border border-red-500/20'
-                    }`}>
+                      }`}>
                       {ord.status === 'completed' && <CheckCircle2 size={9} />}
                       {ord.status === 'pending' && <Clock size={9} />}
                       {ord.status === 'completed' ? 'APPROVED' : ord.status === 'pending' ? 'PENDING APPROVAL' : ord.status.toUpperCase()}
                     </span>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-[11px] font-normal">
                     <div className="flex flex-col">
                       <span className="text-[9px] text-slate-500 uppercase font-black tracking-wider mb-0.5">Date</span>
@@ -1065,8 +1060,8 @@ export const Dashboard: React.FC = () => {
               1:1 Team Match Bonuses (90% Net), 5-Level Sponsor Overrides (4% Direct, 1% L2-L5), and Monthly Royalties.
             </p>
           </div>
-          <Link 
-            to="/commissions" 
+          <Link
+            to="/commissions"
             className="text-xs text-amber-500 hover:text-amber-400 font-bold flex items-center gap-1 transition-colors shrink-0 self-start sm:self-auto"
           >
             <span>Full Ledger</span>
@@ -1125,12 +1120,11 @@ export const Dashboard: React.FC = () => {
               return (
                 <div key={c.id} className="p-3 bg-slate-950/40 border border-slate-850 rounded-lg flex items-center justify-between gap-3 text-xs hover:border-slate-800 transition-colors">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <span className={`p-1.5 rounded-md shrink-0 border ${
-                      isRank ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                    <span className={`p-1.5 rounded-md shrink-0 border ${isRank ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
                       isMatching ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                      isSponsor ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
-                      'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                    }`}>
+                        isSponsor ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
+                          'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                      }`}>
                       {isRank && <Star size={13} className="fill-current" />}
                       {isMatching && <Zap size={13} />}
                       {isSponsor && <Users size={13} />}
@@ -1188,11 +1182,10 @@ export const Dashboard: React.FC = () => {
                         ₹{rew.monthly_amount.toFixed(2)} / Month
                       </div>
                     </div>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                      rew.status === 'completed'
-                        ? 'bg-slate-800 text-slate-400'
-                        : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                    }`}>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${rew.status === 'completed'
+                      ? 'bg-slate-800 text-slate-400'
+                      : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                      }`}>
                       {rew.status.toUpperCase()}
                     </span>
                   </div>
@@ -1226,7 +1219,7 @@ export const Dashboard: React.FC = () => {
           <Users size={16} className="text-amber-500" />
           Upline Placement
         </h3>
-        
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs font-normal">
           <div className="p-4 bg-slate-950/40 border border-slate-800 rounded-lg">
             <span className="text-slate-500 text-[10px] uppercase font-black tracking-wider block mb-1">Direct Sponsor</span>
@@ -1299,9 +1292,8 @@ export const Dashboard: React.FC = () => {
                   </div>
                   <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
                     <div
-                      className={`h-full rounded-full transition-all duration-500 ${
-                        left100Nodes >= targetNodes ? 'bg-emerald-400' : 'bg-amber-500'
-                      }`}
+                      className={`h-full rounded-full transition-all duration-500 ${left100Nodes >= targetNodes ? 'bg-emerald-400' : 'bg-amber-500'
+                        }`}
                       style={{ width: `${leftNodeProgress}%` }}
                     />
                   </div>
@@ -1316,9 +1308,8 @@ export const Dashboard: React.FC = () => {
                   </div>
                   <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
                     <div
-                      className={`h-full rounded-full transition-all duration-500 ${
-                        right100Nodes >= targetNodes ? 'bg-emerald-400' : 'bg-amber-500'
-                      }`}
+                      className={`h-full rounded-full transition-all duration-500 ${right100Nodes >= targetNodes ? 'bg-emerald-400' : 'bg-amber-500'
+                        }`}
                       style={{ width: `${rightNodeProgress}%` }}
                     />
                   </div>
@@ -1369,24 +1360,22 @@ export const Dashboard: React.FC = () => {
               return (
                 <div
                   key={lvl.level}
-                  className={`p-3 rounded-lg border transition-all ${
-                    isAchieved
-                      ? 'bg-amber-950/20 border-amber-800/40 text-amber-200'
-                      : isCurrentTarget
+                  className={`p-3 rounded-lg border transition-all ${isAchieved
+                    ? 'bg-amber-950/20 border-amber-800/40 text-amber-200'
+                    : isCurrentTarget
                       ? 'bg-slate-950/60 border-amber-500/50 shadow-sm shadow-amber-500/5'
                       : 'bg-slate-950/20 border-slate-850 text-slate-400'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-start gap-2.5">
                       <span
-                        className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 mt-0.5 ${
-                          isAchieved
-                            ? 'bg-emerald-400 text-slate-950'
-                            : isCurrentTarget
+                        className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 mt-0.5 ${isAchieved
+                          ? 'bg-emerald-400 text-slate-950'
+                          : isCurrentTarget
                             ? 'bg-amber-400 text-slate-950 animate-pulse'
                             : 'bg-slate-800 text-slate-400'
-                        }`}
+                          }`}
                       >
                         {lvl.level}
                       </span>
@@ -1437,7 +1426,7 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Edit Profile & Bank Details Modal */}
+      {/* View Profile & Bank Details Modal */}
       {isEditProfileOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-sm overflow-y-auto">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[92vh] flex flex-col shadow-2xl my-auto">
@@ -1448,7 +1437,7 @@ export const Dashboard: React.FC = () => {
                   <UserCog size={20} />
                 </div>
                 <div>
-                  <h3 className="text-base sm:text-lg font-black text-white">Edit Profile & Bank Details</h3>
+                  <h3 className="text-base sm:text-lg font-black text-white">View Profile & Bank Details</h3>
                   <p className="text-xs text-slate-400">Update your personal profile and registered bank account for payouts.</p>
                 </div>
               </div>
@@ -1505,11 +1494,10 @@ export const Dashboard: React.FC = () => {
                       value={formFullName}
                       onChange={(e) => setFormFullName(e.target.value)}
                       placeholder="e.g. Sivaprasad Nair"
-                      className={`w-full rounded-lg px-3 py-2 text-xs transition-colors ${
-                        isFullNameLocked
-                          ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
-                          : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
-                      }`}
+                      className={`w-full rounded-lg px-3 py-2 text-xs transition-colors ${isFullNameLocked
+                        ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
+                        : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
+                        }`}
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block flex items-center gap-1">
                       {isFullNameLocked ? (
@@ -1542,11 +1530,10 @@ export const Dashboard: React.FC = () => {
                       value={formPhoneNumber}
                       onChange={(e) => setFormPhoneNumber(e.target.value)}
                       placeholder="e.g. 9876543210"
-                      className={`w-full rounded-lg px-3 py-2 text-xs transition-colors ${
-                        isPhoneLocked
-                          ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
-                          : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
-                      }`}
+                      className={`w-full rounded-lg px-3 py-2 text-xs transition-colors ${isPhoneLocked
+                        ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
+                        : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
+                        }`}
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block flex items-center gap-1">
                       {isPhoneLocked ? (
@@ -1650,11 +1637,10 @@ export const Dashboard: React.FC = () => {
                       value={formBankName}
                       onChange={(e) => setFormBankName(e.target.value)}
                       placeholder="e.g. State Bank of India, HDFC Bank"
-                      className={`w-full rounded-lg px-3 py-2 text-xs transition-colors ${
-                        isBankLocked
-                          ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
-                          : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
-                      }`}
+                      className={`w-full rounded-lg px-3 py-2 text-xs transition-colors ${isBankLocked
+                        ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
+                        : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
+                        }`}
                     />
                     <datalist id="banksList">
                       {POPULAR_BANKS.map((b) => (
@@ -1675,11 +1661,10 @@ export const Dashboard: React.FC = () => {
                       value={formAccountHolder}
                       onChange={(e) => setFormAccountHolder(e.target.value)}
                       placeholder="As per bank passbook / cheque"
-                      className={`w-full rounded-lg px-3 py-2 text-xs transition-colors ${
-                        isBankLocked
-                          ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
-                          : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
-                      }`}
+                      className={`w-full rounded-lg px-3 py-2 text-xs transition-colors ${isBankLocked
+                        ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
+                        : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
+                        }`}
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block">Full name registered with bank</span>
                   </div>
@@ -1695,11 +1680,10 @@ export const Dashboard: React.FC = () => {
                       value={formAccountNumber}
                       onChange={(e) => setFormAccountNumber(e.target.value.replace(/\s+/g, ''))}
                       placeholder="Enter account number"
-                      className={`w-full rounded-lg px-3 py-2 text-xs font-mono transition-colors ${
-                        isBankLocked
-                          ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
-                          : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
-                      }`}
+                      className={`w-full rounded-lg px-3 py-2 text-xs font-mono transition-colors ${isBankLocked
+                        ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
+                        : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
+                        }`}
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block">Savings or Current account number</span>
                   </div>
@@ -1744,11 +1728,10 @@ export const Dashboard: React.FC = () => {
                       value={formIfsc}
                       onChange={(e) => setFormIfsc(e.target.value.toUpperCase().replace(/\s+/g, ''))}
                       placeholder="e.g. SBIN0001234 or HDFC0000001"
-                      className={`w-full rounded-lg px-3 py-2 text-xs font-mono uppercase transition-colors ${
-                        isBankLocked
-                          ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
-                          : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
-                      }`}
+                      className={`w-full rounded-lg px-3 py-2 text-xs font-mono uppercase transition-colors ${isBankLocked
+                        ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
+                        : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
+                        }`}
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block">11-character Indian Financial System Code</span>
                   </div>
@@ -1764,11 +1747,10 @@ export const Dashboard: React.FC = () => {
                       value={formBranch}
                       onChange={(e) => setFormBranch(e.target.value)}
                       placeholder="e.g. Indiranagar, Bangalore"
-                      className={`w-full rounded-lg px-3 py-2 text-xs transition-colors ${
-                        isBankLocked
-                          ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
-                          : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
-                      }`}
+                      className={`w-full rounded-lg px-3 py-2 text-xs transition-colors ${isBankLocked
+                        ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
+                        : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
+                        }`}
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block">Bank branch or city location</span>
                   </div>
@@ -1784,11 +1766,10 @@ export const Dashboard: React.FC = () => {
                       value={formUpiId}
                       onChange={(e) => setFormUpiId(e.target.value.toLowerCase().replace(/\s+/g, ''))}
                       placeholder="e.g. username@okhdfcbank or 9876543210@paytm"
-                      className={`w-full rounded-lg px-3 py-2 text-xs font-mono transition-colors ${
-                        isBankLocked
-                          ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
-                          : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
-                      }`}
+                      className={`w-full rounded-lg px-3 py-2 text-xs font-mono transition-colors ${isBankLocked
+                        ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
+                        : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
+                        }`}
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block">For instant UPI payouts if supported</span>
                   </div>
@@ -1805,11 +1786,10 @@ export const Dashboard: React.FC = () => {
                       onChange={(e) => setFormPanNumber(e.target.value.toUpperCase().replace(/\s+/g, ''))}
                       placeholder="e.g. ABCDE1234F"
                       maxLength={10}
-                      className={`w-full rounded-lg px-3 py-2 text-xs font-mono uppercase transition-colors ${
-                        isBankLocked
-                          ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
-                          : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
-                      }`}
+                      className={`w-full rounded-lg px-3 py-2 text-xs font-mono uppercase transition-colors ${isBankLocked
+                        ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
+                        : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
+                        }`}
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block">10-character alphanumeric PAN</span>
                   </div>
