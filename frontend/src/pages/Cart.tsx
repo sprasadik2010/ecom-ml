@@ -63,7 +63,7 @@ export const Cart: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
-      <h1 className="text-xl sm:text-2xl font-black text-white mb-6">Shopping Cart</h1>
+      <h1 className="text-xl sm:text-2xl font-black text-slate-100 mb-6">Shopping Cart</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Column: Cart items */}
@@ -146,7 +146,7 @@ export const Cart: React.FC = () => {
                     </div>
 
                     {/* Item Total */}
-                    <div className="col-span-2 text-right font-mono font-bold text-white">
+                    <div className="col-span-2 text-right font-mono font-bold text-slate-100">
                       ₹{(item.product.price * item.quantity).toFixed(2)}
                       <span className="block text-[8px] text-amber-500 font-bold mt-0.5">{(item.product.sw * item.quantity)} SW</span>
                     </div>
@@ -225,7 +225,7 @@ export const Cart: React.FC = () => {
                       {/* Total details */}
                       <div className="flex flex-col text-right">
                         <span className="text-[9px] text-slate-500 uppercase font-sans">Total</span>
-                        <span className="text-white font-extrabold">₹{(item.product.price * item.quantity).toFixed(2)}</span>
+                        <span className="text-slate-100 font-extrabold">₹{(item.product.price * item.quantity).toFixed(2)}</span>
                         <span className="text-[9px] text-amber-500 font-bold font-sans">{(item.product.sw * item.quantity)} SW</span>
                       </div>
                     </div>
@@ -262,7 +262,7 @@ export const Cart: React.FC = () => {
 
             <div className="border-t border-slate-850 pt-4 flex justify-between items-baseline">
               <span className="text-slate-200 font-bold">Subtotal:</span>
-              <span className="text-2xl font-black text-white font-mono">₹{totalAmount.toFixed(2)}</span>
+              <span className="text-2xl font-black text-slate-100 font-mono">₹{totalAmount.toFixed(2)}</span>
             </div>
 
             {/*  Info Blurb */}

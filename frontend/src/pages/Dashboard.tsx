@@ -693,7 +693,7 @@ export const Dashboard: React.FC = () => {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-extrabold text-sm sm:text-base text-white tracking-wide">
+                <h3 className="font-extrabold text-sm sm:text-base text-slate-100 tracking-wide">
                   Bank Account & Payout Details
                 </h3>
                 {user.bank_account_number ? (
@@ -746,7 +746,7 @@ export const Dashboard: React.FC = () => {
             {/* Bank Name & Branch */}
             <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3.5">
               <div className="text-[10px] text-slate-400 uppercase font-black tracking-wider font-mono">Bank & Branch</div>
-              <div className="text-sm font-bold text-white mt-1 truncate" title={user.bank_name || ''}>
+              <div className="text-sm font-bold text-slate-100 mt-1 truncate" title={user.bank_name || ''}>
                 {user.bank_name || '—'}
               </div>
               <div className="text-xs text-slate-400 mt-0.5 truncate" title={user.bank_branch || ''}>
@@ -810,8 +810,8 @@ export const Dashboard: React.FC = () => {
                   )}
                 </div>
               </div>
-              <div className="text-xs font-mono font-bold text-white mt-1 flex items-center justify-between">
-                <span>IFSC: <span className="text-amber-300">{user.bank_ifsc || '—'}</span></span>
+              <div className="text-xs font-mono font-bold text-slate-100 mt-1 flex items-center justify-between">
+                <span>IFSC: <span className="text-amber-500">{user.bank_ifsc || '—'}</span></span>
               </div>
               <div className="text-xs text-slate-400 mt-1 flex items-center justify-between">
                 <span className="truncate" title={user.upi_id || ''}>
@@ -876,7 +876,7 @@ export const Dashboard: React.FC = () => {
           <div className="flex justify-between items-start">
             <div className="flex flex-col">
               <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Withdrawable Wallet</span>
-              <span className="text-2xl font-black text-white font-mono mt-1.5">₹{user.wallet_balance.toFixed(2)}</span>
+              <span className="text-2xl font-black text-slate-100 font-mono mt-1.5">₹{user.wallet_balance.toFixed(2)}</span>
             </div>
             <div className="p-2 bg-slate-950 text-amber-400 rounded-lg border border-slate-800">
               <Landmark size={20} />
@@ -986,7 +986,7 @@ export const Dashboard: React.FC = () => {
                     <tr key={ord.id} className="hover:bg-slate-950/20 transition-colors">
                       <td className="py-3 font-mono font-bold text-slate-200">#00{ord.id}</td>
                       <td className="py-3 text-slate-400">{new Date(ord.created_at).toLocaleDateString()}</td>
-                      <td className="py-3 font-bold font-mono text-white">₹{ord.total_amount.toFixed(2)}</td>
+                      <td className="py-3 font-bold font-mono text-slate-100">₹{ord.total_amount.toFixed(2)}</td>
                       <td className="py-3 text-amber-400 font-bold font-mono">{ord.total_sw} SW</td>
                       <td className="py-3 text-right">
                         <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${ord.status === 'completed'
@@ -1034,7 +1034,7 @@ export const Dashboard: React.FC = () => {
                     </div>
                     <div className="flex flex-col text-right">
                       <span className="text-[9px] text-slate-500 uppercase font-black tracking-wider mb-0.5">Amount</span>
-                      <span className="font-black font-mono text-white">₹{ord.total_amount.toFixed(2)}</span>
+                      <span className="font-black font-mono text-slate-100">₹{ord.total_amount.toFixed(2)}</span>
                     </div>
                     <div className="flex flex-col">
                       <span className="text-[9px] text-slate-500 uppercase font-black tracking-wider mb-0.5">SW Volume</span>
@@ -1174,8 +1174,8 @@ export const Dashboard: React.FC = () => {
                 <div>
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <div className="font-bold text-sm text-white flex items-center gap-1.5">
-                        <Star size={14} className="text-amber-400 fill-amber-400" />
+                      <div className="font-bold text-sm text-slate-100 flex items-center gap-1.5">
+                        <Star size={14} className="text-amber-500 fill-amber-500" />
                         {rew.level_name}
                       </div>
                       <div className="text-[11px] text-emerald-400 font-mono font-bold mt-0.5">
@@ -1192,7 +1192,7 @@ export const Dashboard: React.FC = () => {
                 </div>
 
                 <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-850 mt-3">
-                  <span>Progress: <strong className="text-white font-mono">{rew.months_paid} / {rew.total_months} Mo</strong></span>
+                  <span>Progress: <strong className="text-slate-100 font-mono">{rew.months_paid} / {rew.total_months} Mo</strong></span>
                   {rew.next_payout_at && rew.status === 'active' && (
                     <span className="text-[10px] text-amber-400 flex items-center gap-1">
                       <Calendar size={11} />
@@ -1338,7 +1338,7 @@ export const Dashboard: React.FC = () => {
                   L{user.current_level}
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <div className="text-xs font-bold text-slate-100 flex items-center gap-1.5">
                     <span>{user.level_name || `Level ${user.current_level}`} Achieved!</span>
                     <CheckCircle2 size={13} className="text-emerald-400" />
                   </div>
@@ -1437,14 +1437,14 @@ export const Dashboard: React.FC = () => {
                   <UserCog size={20} />
                 </div>
                 <div>
-                  <h3 className="text-base sm:text-lg font-black text-white">View Profile & Bank Details</h3>
+                  <h3 className="text-base sm:text-lg font-black text-slate-100">View Profile & Bank Details</h3>
                   <p className="text-xs text-slate-400">Update your personal profile and registered bank account for payouts.</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsEditProfileOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                className="p-1.5 text-slate-400 hover:text-slate-100 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
                 title="Close"
               >
                 <X size={18} />
@@ -1495,8 +1495,8 @@ export const Dashboard: React.FC = () => {
                       onChange={(e) => setFormFullName(e.target.value)}
                       placeholder="e.g. Sivaprasad Nair"
                       className={`w-full rounded-lg px-3 py-2 text-xs transition-colors ${isFullNameLocked
-                        ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
-                        : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
+                        ? 'bg-slate-950/60 border border-slate-850 text-slate-200 cursor-not-allowed select-none font-semibold'
+                        : 'bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-amber-500'
                         }`}
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block flex items-center gap-1">
@@ -1531,8 +1531,8 @@ export const Dashboard: React.FC = () => {
                       onChange={(e) => setFormPhoneNumber(e.target.value)}
                       placeholder="e.g. 9876543210"
                       className={`w-full rounded-lg px-3 py-2 text-xs transition-colors ${isPhoneLocked
-                        ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
-                        : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
+                        ? 'bg-slate-950/60 border border-slate-850 text-slate-200 cursor-not-allowed select-none font-semibold'
+                        : 'bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-amber-500'
                         }`}
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block flex items-center gap-1">
@@ -1638,8 +1638,8 @@ export const Dashboard: React.FC = () => {
                       onChange={(e) => setFormBankName(e.target.value)}
                       placeholder="e.g. State Bank of India, HDFC Bank"
                       className={`w-full rounded-lg px-3 py-2 text-xs transition-colors ${isBankLocked
-                        ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
-                        : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
+                        ? 'bg-slate-950/60 border border-slate-850 text-slate-200 cursor-not-allowed select-none font-semibold'
+                        : 'bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-amber-500'
                         }`}
                     />
                     <datalist id="banksList">
@@ -1662,8 +1662,8 @@ export const Dashboard: React.FC = () => {
                       onChange={(e) => setFormAccountHolder(e.target.value)}
                       placeholder="As per bank passbook / cheque"
                       className={`w-full rounded-lg px-3 py-2 text-xs transition-colors ${isBankLocked
-                        ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
-                        : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
+                        ? 'bg-slate-950/60 border border-slate-850 text-slate-200 cursor-not-allowed select-none font-semibold'
+                        : 'bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-amber-500'
                         }`}
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block">Full name registered with bank</span>
@@ -1681,8 +1681,8 @@ export const Dashboard: React.FC = () => {
                       onChange={(e) => setFormAccountNumber(e.target.value.replace(/\s+/g, ''))}
                       placeholder="Enter account number"
                       className={`w-full rounded-lg px-3 py-2 text-xs font-mono transition-colors ${isBankLocked
-                        ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
-                        : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
+                        ? 'bg-slate-950/60 border border-slate-850 text-slate-200 cursor-not-allowed select-none font-semibold'
+                        : 'bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-amber-500'
                         }`}
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block">Savings or Current account number</span>
@@ -1699,7 +1699,7 @@ export const Dashboard: React.FC = () => {
                         value={formConfirmAccountNumber}
                         onChange={(e) => setFormConfirmAccountNumber(e.target.value.replace(/\s+/g, ''))}
                         placeholder="Re-enter account number to verify"
-                        className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-mono focus:outline-none focus:border-amber-500 transition-colors"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 text-xs font-mono focus:outline-none focus:border-amber-500 transition-colors"
                       />
                       <span className="text-[10px] text-slate-500 mt-0.5 block">Double check to avoid payment errors</span>
                     </div>
@@ -1729,8 +1729,8 @@ export const Dashboard: React.FC = () => {
                       onChange={(e) => setFormIfsc(e.target.value.toUpperCase().replace(/\s+/g, ''))}
                       placeholder="e.g. SBIN0001234 or HDFC0000001"
                       className={`w-full rounded-lg px-3 py-2 text-xs font-mono uppercase transition-colors ${isBankLocked
-                        ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
-                        : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
+                        ? 'bg-slate-950/60 border border-slate-850 text-slate-200 cursor-not-allowed select-none font-semibold'
+                        : 'bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-amber-500'
                         }`}
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block">11-character Indian Financial System Code</span>
@@ -1748,8 +1748,8 @@ export const Dashboard: React.FC = () => {
                       onChange={(e) => setFormBranch(e.target.value)}
                       placeholder="e.g. Indiranagar, Bangalore"
                       className={`w-full rounded-lg px-3 py-2 text-xs transition-colors ${isBankLocked
-                        ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
-                        : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
+                        ? 'bg-slate-950/60 border border-slate-850 text-slate-200 cursor-not-allowed select-none font-semibold'
+                        : 'bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-amber-500'
                         }`}
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block">Bank branch or city location</span>
@@ -1767,8 +1767,8 @@ export const Dashboard: React.FC = () => {
                       onChange={(e) => setFormUpiId(e.target.value.toLowerCase().replace(/\s+/g, ''))}
                       placeholder="e.g. username@okhdfcbank or 9876543210@paytm"
                       className={`w-full rounded-lg px-3 py-2 text-xs font-mono transition-colors ${isBankLocked
-                        ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
-                        : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
+                        ? 'bg-slate-950/60 border border-slate-850 text-slate-200 cursor-not-allowed select-none font-semibold'
+                        : 'bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-amber-500'
                         }`}
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block">For instant UPI payouts if supported</span>
@@ -1787,8 +1787,8 @@ export const Dashboard: React.FC = () => {
                       placeholder="e.g. ABCDE1234F"
                       maxLength={10}
                       className={`w-full rounded-lg px-3 py-2 text-xs font-mono uppercase transition-colors ${isBankLocked
-                        ? 'bg-slate-950/60 border border-slate-850 text-slate-300 cursor-not-allowed select-none font-medium'
-                        : 'bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-amber-500'
+                        ? 'bg-slate-950/60 border border-slate-850 text-slate-200 cursor-not-allowed select-none font-semibold'
+                        : 'bg-slate-950 border border-slate-800 text-slate-100 focus:outline-none focus:border-amber-500'
                         }`}
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block">10-character alphanumeric PAN</span>

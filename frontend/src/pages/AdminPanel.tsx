@@ -1566,7 +1566,7 @@ export const AdminPanel: React.FC = () => {
             </span>
             <span className="text-slate-400 font-mono text-xs">Sandbox Environment</span>
           </div>
-          <h1 className="text-2xl font-black text-white mt-1 uppercase tracking-tight font-sans">
+          <h1 className="text-2xl font-black text-slate-100 mt-1 uppercase tracking-tight font-sans">
             Administrator Center
           </h1>
           <p className="text-slate-400 text-xs mt-0.5">
@@ -1577,7 +1577,7 @@ export const AdminPanel: React.FC = () => {
         <div className="flex items-center gap-2 self-start md:self-center flex-wrap">
           <button
             onClick={handleRefresh}
-            className="flex items-center gap-1.5 px-4 py-1.5 bg-slate-950 hover:bg-slate-850 border border-slate-800 text-slate-300 hover:text-white rounded-full font-bold text-xs cursor-pointer transition-colors shadow-sm"
+            className="flex items-center gap-1.5 px-4 py-1.5 bg-slate-950 hover:bg-slate-850 border border-slate-800 text-slate-300 hover:text-slate-100 rounded-full font-bold text-xs cursor-pointer transition-colors shadow-sm"
           >
             <RefreshCw size={13} className={loading ? 'animate-spin text-amber-500' : ''} />
             <span>Refresh Data</span>
@@ -1651,7 +1651,7 @@ export const AdminPanel: React.FC = () => {
                 <div className="bg-slate-900 border border-slate-850 p-5 rounded-2xl shadow-sm flex items-center justify-between">
                   <div className="space-y-1">
                     <span className="text-[10px] uppercase font-bold text-slate-500">Total Members</span>
-                    <h3 className="text-2xl font-black text-white">{stats.total_users}</h3>
+                    <h3 className="text-2xl font-black text-slate-100">{stats.total_users}</h3>
                     <div className="text-[10px] text-slate-400 flex items-center gap-1 font-sans">
                       <span className="text-emerald-500 font-bold">{stats.active_users} Active</span>
                       <span>•</span>
@@ -1667,7 +1667,7 @@ export const AdminPanel: React.FC = () => {
                 <div className="bg-slate-900 border border-slate-850 p-5 rounded-2xl shadow-sm flex items-center justify-between">
                   <div className="space-y-1">
                     <span className="text-[10px] uppercase font-bold text-slate-500">Sales Volume</span>
-                    <h3 className="text-2xl font-black text-white font-mono">{stats.total_sales_sw} SW</h3>
+                    <h3 className="text-2xl font-black text-slate-100 font-mono">{stats.total_sales_sw} SW</h3>
                     <p className="text-[10px] text-slate-400">Total matched business volume points</p>
                   </div>
                   <div className="p-3 bg-amber-500/10 text-amber-500 rounded-xl border border-amber-500/10">
@@ -1679,7 +1679,7 @@ export const AdminPanel: React.FC = () => {
                 <div className="bg-slate-900 border border-slate-850 p-5 rounded-2xl shadow-sm flex items-center justify-between">
                   <div className="space-y-1">
                     <span className="text-[10px] uppercase font-bold text-slate-500">Gross Sales</span>
-                    <h3 className="text-2xl font-black text-white font-mono">
+                    <h3 className="text-2xl font-black text-slate-100 font-mono">
                       ₹{stats.total_sales_amount.toFixed(2)}
                     </h3>
                     <p className="text-[10px] text-slate-400">Total payments collected</p>
@@ -1693,7 +1693,7 @@ export const AdminPanel: React.FC = () => {
                 <div className="bg-slate-900 border border-slate-850 p-5 rounded-2xl shadow-sm flex items-center justify-between">
                   <div className="space-y-1">
                     <span className="text-[10px] uppercase font-bold text-slate-500">Commissions Paid</span>
-                    <h3 className="text-2xl font-black text-white font-mono">
+                    <h3 className="text-2xl font-black text-slate-100 font-mono">
                       ₹{stats.total_commissions_amount.toFixed(2)}
                     </h3>
                     <p className="text-[10px] text-slate-400">Total referral payouts</p>
@@ -1709,7 +1709,7 @@ export const AdminPanel: React.FC = () => {
                 {/* Recent Users */}
                 <div className="bg-slate-900 border border-slate-850 p-6 rounded-2xl shadow-sm space-y-4">
                   <div className="flex items-center justify-between border-b border-slate-850 pb-3">
-                    <h4 className="text-sm font-black text-white flex items-center gap-1.5 font-sans">
+                    <h4 className="text-sm font-black text-slate-100 flex items-center gap-1.5 font-sans">
                       <Activity size={15} className="text-rose-500" />
                       <span>Recent Member Registrations</span>
                     </h4>
@@ -1751,7 +1751,7 @@ export const AdminPanel: React.FC = () => {
                 {/* Recent Orders */}
                 <div className="bg-slate-900 border border-slate-850 p-6 rounded-2xl shadow-sm space-y-4">
                   <div className="flex items-center justify-between border-b border-slate-850 pb-3">
-                    <h4 className="text-sm font-black text-white flex items-center gap-1.5 font-sans">
+                    <h4 className="text-sm font-black text-slate-100 flex items-center gap-1.5 font-sans">
                       <Clock size={15} className="text-rose-500" />
                       <span>Recent Store Orders</span>
                     </h4>
@@ -1918,7 +1918,7 @@ export const AdminPanel: React.FC = () => {
                             <div className="flex items-center justify-center gap-1.5">
                               <button
                                 onClick={() => handleOpenEditProduct(p)}
-                                className="p-1 hover:bg-slate-850 text-slate-400 hover:text-white rounded transition-colors cursor-pointer"
+                                className="p-1 hover:bg-slate-850 text-slate-400 hover:text-slate-100 rounded transition-colors cursor-pointer"
                                 title="Edit"
                               >
                                 <Edit2 size={13} />
@@ -2005,7 +2005,7 @@ export const AdminPanel: React.FC = () => {
                             {p.stock} units
                           </span>
                           <div className="flex gap-1 justify-end">
-                            <button onClick={() => handleOpenEditProduct(p)} className="p-1.5 bg-slate-950 border border-slate-800 text-slate-450 hover:text-white rounded transition-colors" title="Edit">
+                            <button onClick={() => handleOpenEditProduct(p)} className="p-1.5 bg-slate-950 border border-slate-800 text-slate-450 hover:text-slate-100 rounded transition-colors" title="Edit">
                               <Edit2 size={12} />
                             </button>
                             <button onClick={() => handleDeleteProduct(p.id)} className="p-1.5 bg-red-500/5 border border-red-500/10 text-slate-450 hover:text-red-500 rounded transition-colors" title="Delete">
@@ -2027,7 +2027,7 @@ export const AdminPanel: React.FC = () => {
               {/* Controls bar */}
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <h3 className="text-sm font-black text-white font-sans">E-Commerce Categories</h3>
+                  <h3 className="text-sm font-black text-slate-100 font-sans">E-Commerce Categories</h3>
                   <p className="text-slate-500 text-xs mt-0.5">Manage store categories, filter pills, and visual cover banners.</p>
                 </div>
 
@@ -2089,7 +2089,7 @@ export const AdminPanel: React.FC = () => {
                             <div className="flex items-center justify-center gap-1.5 font-sans font-bold">
                               <button
                                 onClick={() => handleOpenEditCategory(c)}
-                                className="p-1.5 hover:bg-slate-850 text-slate-450 hover:text-white rounded transition-colors cursor-pointer"
+                                className="p-1.5 hover:bg-slate-850 text-slate-450 hover:text-slate-100 rounded transition-colors cursor-pointer"
                                 title="Edit"
                               >
                                 <Edit2 size={13} />
@@ -2138,7 +2138,7 @@ export const AdminPanel: React.FC = () => {
                       </div>
 
                       <div className="flex items-center justify-end pt-2 border-t border-slate-850 gap-2">
-                        <button onClick={() => handleOpenEditCategory(c)} className="p-1.5 bg-slate-950 border border-slate-800 text-slate-400 hover:text-white rounded transition-colors flex items-center gap-1 text-[10px]" title="Edit">
+                        <button onClick={() => handleOpenEditCategory(c)} className="p-1.5 bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-100 rounded transition-colors flex items-center gap-1 text-[10px]" title="Edit">
                           <Edit2 size={11} />
                           <span>Edit</span>
                         </button>
@@ -2435,7 +2435,7 @@ export const AdminPanel: React.FC = () => {
                     </span>
                     <span className="text-slate-400 font-mono text-xs">Logistics & Fulfillment Integration</span>
                   </div>
-                  <h2 className="text-xl font-black text-white mt-1 uppercase tracking-tight font-sans flex items-center gap-2">
+                  <h2 className="text-xl font-black text-slate-100 mt-1 uppercase tracking-tight font-sans flex items-center gap-2">
                     <span>Order Processing & Fulfillment</span>
                   </h2>
                   <p className="text-slate-400 text-xs mt-0.5">
@@ -2454,7 +2454,7 @@ export const AdminPanel: React.FC = () => {
                     }`}
                 >
                   <span className="text-slate-500 text-[9px] uppercase font-bold tracking-wider block">Total Orders</span>
-                  <div className="text-lg font-black text-white font-mono mt-0.5">{orders.length}</div>
+                  <div className="text-lg font-black text-slate-100 font-mono mt-0.5">{orders.length}</div>
                   <span className="text-[9px] text-slate-400">All placed orders</span>
                 </div>
 
@@ -2831,7 +2831,7 @@ export const AdminPanel: React.FC = () => {
                                   </div>
                                   {o.tracking_number && (
                                     <div className="text-[10px] font-mono text-slate-300">
-                                      Consignment: <strong className="text-white">{o.tracking_number}</strong>
+                                      Consignment: <strong className="text-slate-100">{o.tracking_number}</strong>
                                     </div>
                                   )}
                                   {o.delivered_at && (
@@ -2881,7 +2881,7 @@ export const AdminPanel: React.FC = () => {
                                     </button>
                                     <button
                                       onClick={() => handlePrintPostalSlip(o)}
-                                      className="w-full px-2.5 py-1 bg-slate-950 hover:bg-slate-850 text-slate-300 hover:text-white font-semibold rounded border border-slate-800 flex items-center justify-center gap-1 text-[10px] cursor-pointer transition-colors"
+                                      className="w-full px-2.5 py-1 bg-slate-950 hover:bg-slate-850 text-slate-300 hover:text-slate-100 font-semibold rounded border border-slate-800 flex items-center justify-center gap-1 text-[10px] cursor-pointer transition-colors"
                                       title="Print Postal Dispatch Slip"
                                     >
                                       <Printer size={11} />
@@ -3065,7 +3065,7 @@ export const AdminPanel: React.FC = () => {
                               <span className="font-bold text-sky-400">{o.courier_name || 'Speed Post'}</span>
                               <span className="text-sky-300 bg-sky-500/20 px-1.5 py-0.2 rounded text-[8px] font-bold uppercase">In Transit</span>
                             </div>
-                            <div className="font-mono font-bold text-white text-xs select-all">
+                            <div className="font-mono font-bold text-slate-100 text-xs select-all">
                               Tracking: {o.tracking_number}
                             </div>
                             <a
@@ -3143,7 +3143,7 @@ export const AdminPanel: React.FC = () => {
           {activeTab === 'commissions' && (
             <div className="bg-slate-900 border border-slate-855 rounded-2xl shadow-sm p-6 space-y-6">
               <div className="border-b border-slate-850 pb-3">
-                <h4 className="text-sm font-black text-white font-sans">System Commissions Ledger</h4>
+                <h4 className="text-sm font-black text-slate-100 font-sans">System Commissions Ledger</h4>
                 <p className="text-slate-500 text-xs mt-0.5">
                   Audit logs of matching volumes and referral rewards paid out automatically or adjustments made.
                 </p>
@@ -3290,7 +3290,7 @@ export const AdminPanel: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 <div className="bg-slate-900 border border-slate-850 p-5 rounded-2xl shadow-sm">
                   <span className="text-[10px] uppercase font-bold text-slate-500">Total Royalty Streams</span>
-                  <div className="text-2xl font-black text-white mt-1">{rewards.length} Streams</div>
+                  <div className="text-2xl font-black text-slate-100 mt-1">{rewards.length} Streams</div>
                   <div className="text-[10px] text-slate-400 mt-1">
                     <span className="text-emerald-400 font-bold">{rewards.filter(r => r.status === 'active').length} Active</span> • {rewards.filter(r => r.status === 'completed').length} Completed
                   </div>
@@ -3324,7 +3324,7 @@ export const AdminPanel: React.FC = () => {
               <div className="bg-slate-900 border border-slate-850 rounded-2xl p-6 shadow-sm">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                   <div>
-                    <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                    <h3 className="text-sm font-black text-slate-100 uppercase tracking-wider flex items-center gap-2">
                       <Star size={16} className="text-amber-500 fill-amber-500" />
                       Member Rank & Royalty Schedules
                     </h3>
@@ -3378,7 +3378,7 @@ export const AdminPanel: React.FC = () => {
                                   {r.level_name}
                                 </span>
                               </td>
-                              <td className="py-3 px-3 font-mono font-bold text-white">
+                              <td className="py-3 px-3 font-mono font-bold text-slate-100">
                                 ₹{r.monthly_amount.toFixed(2)} <span className="text-slate-500 font-normal">/ mo</span>
                               </td>
                               <td className="py-3 px-3 min-w-[140px]">
@@ -3428,7 +3428,7 @@ export const AdminPanel: React.FC = () => {
                     rewards.map((r) => (
                       <div key={r.id} className="bg-slate-950/40 border border-slate-850 rounded-xl p-4 space-y-2.5">
                         <div className="flex justify-between items-center">
-                          <span className="font-bold text-white text-xs">{r.user_username || `User #${r.user_id}`}</span>
+                          <span className="font-bold text-slate-100 text-xs">{r.user_username || `User #${r.user_id}`}</span>
                           <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${r.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 text-slate-400'
                             }`}>
                             {r.status}
@@ -3436,7 +3436,7 @@ export const AdminPanel: React.FC = () => {
                         </div>
                         <div className="flex justify-between items-center text-xs">
                           <span className="text-amber-400 font-bold">{r.level_name}</span>
-                          <span className="font-mono font-bold text-white">₹{r.monthly_amount.toFixed(2)}/mo</span>
+                          <span className="font-mono font-bold text-slate-100">₹{r.monthly_amount.toFixed(2)}/mo</span>
                         </div>
                         <div className="text-[10px] text-slate-400 pt-1 border-t border-slate-850 flex justify-between">
                           <span>Paid: {r.months_paid}/{r.total_months} Months</span>
@@ -3466,7 +3466,7 @@ export const AdminPanel: React.FC = () => {
                     </div>
                     <div>
                       <div className="flex items-center gap-2.5 flex-wrap">
-                        <h2 className="text-lg font-black text-white">ImgBB Cloud Image Storage</h2>
+                        <h2 className="text-lg font-black text-slate-100">ImgBB Cloud Image Storage</h2>
                         <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${imgbbSettings?.api_key_configured
                           ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
                           : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
@@ -3496,7 +3496,7 @@ export const AdminPanel: React.FC = () => {
                         fetchImgbbSettings();
                         fetchImgbbImages();
                       }}
-                      className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                      className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-slate-100 rounded-xl text-xs font-bold transition-colors cursor-pointer"
                     >
                       <RefreshCw size={13} />
                       <span>Refresh</span>
@@ -3508,7 +3508,7 @@ export const AdminPanel: React.FC = () => {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-slate-850">
                   <div className="bg-slate-950/60 border border-slate-850 rounded-xl p-3.5">
                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Total Media Files</span>
-                    <span className="text-lg font-black font-mono text-white mt-0.5 block">{imgbbSettings?.total_images ?? 0}</span>
+                    <span className="text-lg font-black font-mono text-slate-100 mt-0.5 block">{imgbbSettings?.total_images ?? 0}</span>
                   </div>
                   <div className="bg-slate-950/60 border border-slate-850 rounded-xl p-3.5">
                     <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider block">ImgBB CDN Hosted</span>
@@ -3533,7 +3533,7 @@ export const AdminPanel: React.FC = () => {
                       <Key size={18} />
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-white">ImgBB Cloud API Key</h3>
+                      <h3 className="text-sm font-bold text-slate-100">ImgBB Cloud API Key</h3>
                       <p className="text-[11px] text-slate-400">
                         Your secret API key from <a href="https://api.imgbb.com/" target="_blank" rel="noopener noreferrer" className="text-rose-400 underline hover:text-rose-300 font-semibold">api.imgbb.com</a>. Stored securely in database & .env.
                       </p>
@@ -3596,7 +3596,7 @@ export const AdminPanel: React.FC = () => {
               <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-md">
                 <div className="p-4 sm:p-5 border-b border-slate-850 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-950/40">
                   <div>
-                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
                       <ImageIcon size={16} className="text-rose-400" />
                       Uploaded Images & Background Sync Status
                     </h3>
@@ -3739,13 +3739,13 @@ export const AdminPanel: React.FC = () => {
           <div className="bg-slate-900 border border-slate-850 rounded-2xl max-w-2xl w-full max-h-[92vh] flex flex-col overflow-hidden shadow-2xl animate-scale-up">
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-slate-850 px-6 py-4 bg-slate-950/80 shrink-0">
-              <h3 className="text-sm font-black text-white flex items-center gap-2 font-sans">
+              <h3 className="text-sm font-black text-slate-100 flex items-center gap-2 font-sans">
                 <PlusCircle size={17} className="text-amber-500" />
                 <span>{editingProduct ? 'Edit Catalog Product' : 'Add Catalog Product'}</span>
               </h3>
               <button
                 onClick={() => setIsProductModalOpen(false)}
-                className="text-slate-400 hover:text-white p-1 rounded hover:bg-slate-800 transition-colors cursor-pointer"
+                className="text-slate-400 hover:text-slate-100 p-1 rounded hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 <X size={16} />
               </button>
@@ -3867,7 +3867,7 @@ export const AdminPanel: React.FC = () => {
                       <Layers size={15} />
                     </div>
                     <div>
-                      <h4 className="text-xs font-black text-white">Multiple Product Views & Photo Gallery</h4>
+                      <h4 className="text-xs font-black text-slate-100">Multiple Product Views & Photo Gallery</h4>
                       <p className="text-[10px] text-slate-400 font-normal">
                         Upload multiple photos (front, side, back, in-hand, detail view) so customers can browse angles.
                       </p>
@@ -3885,7 +3885,7 @@ export const AdminPanel: React.FC = () => {
                     <span className="text-[9.5px] text-slate-400 font-semibold block">
                       📁 Upload Photos (Select One or Multiple Files):
                     </span>
-                    <label className="relative flex items-center justify-center gap-2 px-3 py-2 bg-slate-900 hover:bg-slate-850 border border-dashed border-slate-700 hover:border-amber-500 rounded-lg text-slate-300 hover:text-white cursor-pointer transition-colors text-[11px]">
+                    <label className="relative flex items-center justify-center gap-2 px-3 py-2 bg-slate-900 hover:bg-slate-850 border border-dashed border-slate-700 hover:border-amber-500 rounded-lg text-slate-300 hover:text-slate-100 cursor-pointer transition-colors text-[11px]">
                       <input
                         type="file"
                         multiple
@@ -3976,7 +3976,7 @@ export const AdminPanel: React.FC = () => {
                                   <button
                                     type="button"
                                     onClick={() => handleMoveImage(idx, idx - 1)}
-                                    className="p-1 hover:bg-slate-800 text-slate-400 hover:text-white rounded"
+                                    className="p-1 hover:bg-slate-800 text-slate-400 hover:text-slate-100 rounded"
                                     title="Move view earlier"
                                   >
                                     <ArrowUp size={10} />
@@ -3986,7 +3986,7 @@ export const AdminPanel: React.FC = () => {
                                   <button
                                     type="button"
                                     onClick={() => handleMoveImage(idx, idx + 1)}
-                                    className="p-1 hover:bg-slate-800 text-slate-400 hover:text-white rounded"
+                                    className="p-1 hover:bg-slate-800 text-slate-400 hover:text-slate-100 rounded"
                                     title="Move view later"
                                   >
                                     <ArrowDown size={10} />
@@ -4022,7 +4022,7 @@ export const AdminPanel: React.FC = () => {
                       <Palette size={15} />
                     </div>
                     <div>
-                      <h4 className="text-xs font-black text-white">Color Options & Swatches</h4>
+                      <h4 className="text-xs font-black text-slate-100">Color Options & Swatches</h4>
                       <p className="text-[10px] text-slate-400 font-normal">
                         Customers can choose from these colors on the product page.
                       </p>
@@ -4086,7 +4086,7 @@ export const AdminPanel: React.FC = () => {
                         onClick={() => handleAddColor(colorPreset)}
                         className={`text-[9.5px] font-bold px-2 py-0.5 rounded-full border transition-all cursor-pointer ${productForm.colors.includes(colorPreset)
                           ? 'bg-amber-500/20 border-amber-500 text-amber-300 opacity-60'
-                          : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-600 hover:text-white'
+                          : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-600 hover:text-slate-100'
                           }`}
                       >
                         + {colorPreset}
@@ -4128,7 +4128,7 @@ export const AdminPanel: React.FC = () => {
                       <Tag size={15} />
                     </div>
                     <div>
-                      <h4 className="text-xs font-black text-white">Size Variants & Options</h4>
+                      <h4 className="text-xs font-black text-slate-100">Size Variants & Options</h4>
                       <p className="text-[10px] text-slate-400 font-normal">
                         Customers can choose from these size pills or option bundles.
                       </p>
@@ -4260,13 +4260,13 @@ export const AdminPanel: React.FC = () => {
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-slate-900 border border-slate-850 rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl animate-scale-up">
             <div className="flex items-center justify-between border-b border-slate-850 px-6 py-4 bg-slate-950/60">
-              <h3 className="text-sm font-black text-white flex items-center gap-1.5 font-sans">
+              <h3 className="text-sm font-black text-slate-100 flex items-center gap-1.5 font-sans">
                 <PlusCircle size={16} className="text-amber-500" />
                 <span>{editingCategory ? 'Edit Category' : 'Add Category'}</span>
               </h3>
               <button
                 onClick={() => setIsCategoryModalOpen(false)}
-                className="text-slate-400 hover:text-white p-1 rounded hover:bg-slate-800 transition-colors cursor-pointer"
+                className="text-slate-400 hover:text-slate-100 p-1 rounded hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 <X size={16} />
               </button>
@@ -4351,13 +4351,13 @@ export const AdminPanel: React.FC = () => {
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-slate-900 border border-slate-850 rounded-2xl max-w-sm w-full overflow-hidden shadow-2xl animate-scale-up">
             <div className="flex items-center justify-between border-b border-slate-850 px-6 py-4 bg-slate-950/60 font-sans">
-              <h3 className="text-sm font-black text-white flex items-center gap-1.5">
+              <h3 className="text-sm font-black text-slate-100 flex items-center gap-1.5">
                 <IndianRupee size={16} className="text-amber-500" />
                 <span>Adjust Wallet Balance</span>
               </h3>
               <button
                 onClick={() => setIsWalletModalOpen(false)}
-                className="text-slate-400 hover:text-white p-1 rounded hover:bg-slate-800 transition-colors cursor-pointer"
+                className="text-slate-400 hover:text-slate-100 p-1 rounded hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 <X size={16} />
               </button>
@@ -4432,7 +4432,7 @@ export const AdminPanel: React.FC = () => {
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in font-sans">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full overflow-hidden shadow-2xl animate-scale-up">
             <div className="flex items-center justify-between border-b border-slate-800 px-6 py-4 bg-slate-950/60 font-sans">
-              <h3 className="text-sm font-black text-white flex items-center gap-2">
+              <h3 className="text-sm font-black text-slate-100 flex items-center gap-2">
                 <div className="p-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-lg">
                   <Key size={16} />
                 </div>
@@ -4440,7 +4440,7 @@ export const AdminPanel: React.FC = () => {
               </h3>
               <button
                 onClick={() => setIsCredentialsModalOpen(false)}
-                className="text-slate-400 hover:text-white p-1 rounded hover:bg-slate-800 transition-colors cursor-pointer"
+                className="text-slate-400 hover:text-slate-100 p-1 rounded hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 <X size={16} />
               </button>
@@ -4561,7 +4561,7 @@ export const AdminPanel: React.FC = () => {
                   </div>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-extrabold text-white text-base sm:text-lg">
+                      <h3 className="font-extrabold text-slate-100 text-base sm:text-lg">
                         {selectedDetailsUser.full_name}
                       </h3>
                       <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${selectedDetailsUser.status === 'active'
@@ -4593,7 +4593,7 @@ export const AdminPanel: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsUserDetailsModalOpen(false)}
-                  className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                  className="p-1.5 text-slate-400 hover:text-slate-100 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
                   title="Close Modal"
                 >
                   <X size={18} />
@@ -4874,7 +4874,7 @@ export const AdminPanel: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => copyToClipboard(selectedDetailsUser.upi_id!, 'upi_id')}
-                              className="p-1.5 text-slate-400 hover:text-white rounded cursor-pointer shrink-0 ml-1"
+                              className="p-1.5 text-slate-400 hover:text-slate-100 rounded cursor-pointer shrink-0 ml-1"
                               title="Copy UPI ID"
                             >
                               {copiedDetailField === 'upi_id' ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
@@ -4967,7 +4967,7 @@ export const AdminPanel: React.FC = () => {
                 </div>
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="text-base sm:text-lg font-black text-white">Edit User Profile & Bank Details</h3>
+                    <h3 className="text-base sm:text-lg font-black text-slate-100">Edit User Profile & Bank Details</h3>
                     <span className="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[10px] font-mono px-2 py-0.5 rounded font-bold">
                       Full Admin Rights
                     </span>
@@ -4980,7 +4980,7 @@ export const AdminPanel: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsEditUserModalOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                className="p-1.5 text-slate-400 hover:text-slate-100 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
                 title="Close"
               >
                 <X size={18} />
@@ -5016,7 +5016,7 @@ export const AdminPanel: React.FC = () => {
                       value={editUserForm.full_name}
                       onChange={(e) => setEditUserForm({ ...editUserForm, full_name: e.target.value })}
                       placeholder="e.g. Sivaprasad Nair"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-500 transition-colors"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 text-xs focus:outline-none focus:border-amber-500 transition-colors"
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block">User full legal or display name</span>
                   </div>
@@ -5030,7 +5030,7 @@ export const AdminPanel: React.FC = () => {
                       value={editUserForm.phone_number}
                       onChange={(e) => setEditUserForm({ ...editUserForm, phone_number: e.target.value })}
                       placeholder="e.g. 9876543210"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-500 transition-colors"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 text-xs focus:outline-none focus:border-amber-500 transition-colors"
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block">Primary mobile contact number</span>
                   </div>
@@ -5044,7 +5044,7 @@ export const AdminPanel: React.FC = () => {
                       value={editUserForm.email}
                       onChange={(e) => setEditUserForm({ ...editUserForm, email: e.target.value })}
                       placeholder="e.g. user@example.com"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-500 transition-colors"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 text-xs focus:outline-none focus:border-amber-500 transition-colors"
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block">Account email for login & reset</span>
                   </div>
@@ -5056,7 +5056,7 @@ export const AdminPanel: React.FC = () => {
                     <select
                       value={editUserForm.status}
                       onChange={(e) => setEditUserForm({ ...editUserForm, status: e.target.value as 'active' | 'inactive' })}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-500 transition-colors cursor-pointer"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 text-xs focus:outline-none focus:border-amber-500 transition-colors cursor-pointer"
                     >
                       <option value="active">Active (Qualified Member)</option>
                       <option value="inactive">Inactive (Pending SW)</option>
@@ -5087,7 +5087,7 @@ export const AdminPanel: React.FC = () => {
                       value={editUserForm.bank_name}
                       onChange={(e) => setEditUserForm({ ...editUserForm, bank_name: e.target.value })}
                       placeholder="e.g. State Bank of India, HDFC Bank"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-500 transition-colors"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 text-xs focus:outline-none focus:border-amber-500 transition-colors"
                     />
                     <datalist id="adminBanksList">
                       {POPULAR_BANKS.map((b) => (
@@ -5106,7 +5106,7 @@ export const AdminPanel: React.FC = () => {
                       value={editUserForm.bank_account_holder}
                       onChange={(e) => setEditUserForm({ ...editUserForm, bank_account_holder: e.target.value })}
                       placeholder="As per bank passbook / records"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-500 transition-colors"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 text-xs focus:outline-none focus:border-amber-500 transition-colors"
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block">Beneficiary name for bank transfers</span>
                   </div>
@@ -5120,7 +5120,7 @@ export const AdminPanel: React.FC = () => {
                       value={editUserForm.bank_account_number}
                       onChange={(e) => setEditUserForm({ ...editUserForm, bank_account_number: e.target.value.replace(/\s+/g, '') })}
                       placeholder="Enter account number"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-mono focus:outline-none focus:border-amber-500 transition-colors"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 text-xs font-mono focus:outline-none focus:border-amber-500 transition-colors"
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block">Savings / Current account number</span>
                   </div>
@@ -5134,7 +5134,7 @@ export const AdminPanel: React.FC = () => {
                       value={editUserForm.bank_ifsc}
                       onChange={(e) => setEditUserForm({ ...editUserForm, bank_ifsc: e.target.value.toUpperCase().replace(/\s+/g, '') })}
                       placeholder="e.g. SBIN0001234 or HDFC0000001"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-mono uppercase focus:outline-none focus:border-amber-500 transition-colors"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 text-xs font-mono uppercase focus:outline-none focus:border-amber-500 transition-colors"
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block">11-character Indian Financial System Code</span>
                   </div>
@@ -5148,7 +5148,7 @@ export const AdminPanel: React.FC = () => {
                       value={editUserForm.bank_branch}
                       onChange={(e) => setEditUserForm({ ...editUserForm, bank_branch: e.target.value })}
                       placeholder="e.g. Indiranagar, Bangalore"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-amber-500 transition-colors"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 text-xs focus:outline-none focus:border-amber-500 transition-colors"
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block">Bank branch or branch city location</span>
                   </div>
@@ -5162,7 +5162,7 @@ export const AdminPanel: React.FC = () => {
                       value={editUserForm.upi_id}
                       onChange={(e) => setEditUserForm({ ...editUserForm, upi_id: e.target.value.toLowerCase().replace(/\s+/g, '') })}
                       placeholder="e.g. username@okhdfcbank"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-mono focus:outline-none focus:border-amber-500 transition-colors"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 text-xs font-mono focus:outline-none focus:border-amber-500 transition-colors"
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block">Instant UPI payment handle</span>
                   </div>
@@ -5177,7 +5177,7 @@ export const AdminPanel: React.FC = () => {
                       onChange={(e) => setEditUserForm({ ...editUserForm, pan_number: e.target.value.toUpperCase().replace(/\s+/g, '') })}
                       placeholder="e.g. ABCDE1234F"
                       maxLength={10}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs font-mono uppercase focus:outline-none focus:border-amber-500 transition-colors"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 text-xs font-mono uppercase focus:outline-none focus:border-amber-500 transition-colors"
                     />
                     <span className="text-[10px] text-slate-500 mt-0.5 block">10-character alphanumeric PAN</span>
                   </div>
@@ -5235,7 +5235,7 @@ export const AdminPanel: React.FC = () => {
                   <Truck size={18} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-black text-white flex items-center gap-2">
+                  <h3 className="text-sm font-black text-slate-100 flex items-center gap-2">
                     <span>Postal Parcel Dispatch & Tracking</span>
                     <span className="font-mono text-amber-400 font-bold">#Order 00{selectedDispatchOrder.id}</span>
                   </h3>
@@ -5246,7 +5246,7 @@ export const AdminPanel: React.FC = () => {
               </div>
               <button
                 onClick={() => setIsDispatchModalOpen(false)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                className="text-slate-400 hover:text-slate-100 p-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 <X size={18} />
               </button>

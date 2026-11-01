@@ -1446,7 +1446,7 @@ export const ProductDetails: React.FC = () => {
                 type="button"
                 onClick={handleLightboxZoomOut}
                 disabled={lightboxZoom <= 1}
-                className="p-1.5 hover:bg-slate-800 text-slate-300 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent rounded-full transition-colors cursor-pointer"
+                className="p-1.5 hover:bg-slate-800 text-slate-300 hover:text-slate-100 disabled:opacity-30 disabled:hover:bg-transparent rounded-full transition-colors cursor-pointer"
                 title="Zoom out (-)"
               >
                 <ZoomOut size={16} />
@@ -1457,7 +1457,7 @@ export const ProductDetails: React.FC = () => {
                 type="button"
                 onClick={handleLightboxZoomIn}
                 disabled={lightboxZoom >= MAX_ZOOM}
-                className="p-1.5 hover:bg-slate-800 text-slate-300 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent rounded-full transition-colors cursor-pointer"
+                className="p-1.5 hover:bg-slate-800 text-slate-300 hover:text-slate-100 disabled:opacity-30 disabled:hover:bg-transparent rounded-full transition-colors cursor-pointer"
                 title="Zoom in (+)"
               >
                 <ZoomIn size={16} />
@@ -1486,7 +1486,7 @@ export const ProductDetails: React.FC = () => {
               <button
                 type="button"
                 onClick={toggleBrowserFullscreen}
-                className="p-1.5 hover:bg-slate-800 text-slate-300 hover:text-white rounded-full transition-colors cursor-pointer hidden sm:flex"
+                className="p-1.5 hover:bg-slate-800 text-slate-300 hover:text-slate-100 rounded-full transition-colors cursor-pointer hidden sm:flex"
                 title={isBrowserFullscreen ? 'Exit browser fullscreen' : 'Enter browser fullscreen'}
               >
                 {isBrowserFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
@@ -1549,7 +1549,7 @@ export const ProductDetails: React.FC = () => {
                 <button
                   type="button"
                   onClick={handlePrevImageLightbox}
-                  className="absolute left-3 p-3 bg-slate-900/80 hover:bg-amber-500 hover:text-slate-950 text-white rounded-full transition-colors cursor-pointer shadow-lg backdrop-blur-md z-20"
+                  className="absolute left-3 p-3 bg-slate-900/80 hover:bg-amber-500 hover:text-slate-950 text-slate-100 rounded-full transition-colors cursor-pointer shadow-lg backdrop-blur-md z-20"
                   title="Previous image (← or swipe)"
                 >
                   <ChevronLeft size={22} />
@@ -1557,7 +1557,7 @@ export const ProductDetails: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleNextImageLightbox}
-                  className="absolute right-3 p-3 bg-slate-900/80 hover:bg-amber-500 hover:text-slate-950 text-white rounded-full transition-colors cursor-pointer shadow-lg backdrop-blur-md z-20"
+                  className="absolute right-3 p-3 bg-slate-900/80 hover:bg-amber-500 hover:text-slate-950 text-slate-100 rounded-full transition-colors cursor-pointer shadow-lg backdrop-blur-md z-20"
                   title="Next image (→ or swipe)"
                 >
                   <ChevronRight size={22} />

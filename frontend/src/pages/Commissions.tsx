@@ -122,7 +122,7 @@ export const Commissions: React.FC = () => {
     <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
       {/* Header */}
       <div className="border-b border-slate-800 pb-4 mb-6">
-        <h1 className="text-xl sm:text-2xl font-black text-white">Commissions Ledger</h1>
+        <h1 className="text-xl sm:text-2xl font-black text-slate-100">Commissions Ledger</h1>
         <p className="text-slate-400 text-xs mt-0.5">
           Review your earnings. Track your 1:1 matching bonuses (with 10% auto-deduction: 2% TDS + 8% 5-level sponsor distribution: 4% direct sponsor + 1% for 4 uplines), sponsor matching overrides, and progressive level monthly royalties in real-time.
         </p>
@@ -135,7 +135,7 @@ export const Commissions: React.FC = () => {
           <div className="flex justify-between items-start">
             <div>
               <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Total Lifetime Earnings</span>
-              <div className="text-2xl font-black text-white font-mono mt-1.5">₹{totalEarned.toFixed(2)}</div>
+              <div className="text-2xl font-black text-slate-100 font-mono mt-1.5">₹{totalEarned.toFixed(2)}</div>
             </div>
             <div className="p-2 bg-slate-950 text-amber-400 rounded-lg border border-slate-800">
               <IndianRupee size={20} />
@@ -214,7 +214,7 @@ export const Commissions: React.FC = () => {
               className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
                 activeFilter === 'all'
                   ? 'bg-amber-500 text-slate-950 shadow-sm'
-                  : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-white'
+                  : 'bg-slate-950 text-slate-400 border border-slate-800 hover:text-slate-100'
               }`}
             >
               All ({commissions.length})

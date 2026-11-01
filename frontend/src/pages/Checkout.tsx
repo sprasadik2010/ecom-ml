@@ -183,7 +183,7 @@ export const Checkout: React.FC = () => {
         <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-full mb-4 border border-emerald-500/20">
           <CheckCircle2 size={56} className="text-emerald-400" />
         </div>
-        <h1 className="text-2xl font-black text-white mb-2">Order Placed Successfully!</h1>
+        <h1 className="text-2xl font-black text-slate-100 mb-2">Order Placed Successfully!</h1>
 
         {lastPlacedOrder && (
           <div className="flex flex-wrap items-center justify-center gap-2 mb-4 font-mono text-xs">
@@ -241,7 +241,7 @@ export const Checkout: React.FC = () => {
         <ArrowLeft size={14} /> Return to Cart
       </Link>
 
-      <h1 className="text-xl sm:text-2xl font-black text-white mb-6">UPI Secured Checkout</h1>
+      <h1 className="text-xl sm:text-2xl font-black text-slate-100 mb-6">UPI Secured Checkout</h1>
 
       {error && (
         <div className="bg-red-950/30 border border-red-900 text-red-400 text-xs p-4 rounded-md mb-6 font-semibold flex items-center gap-2">
@@ -493,7 +493,7 @@ export const Checkout: React.FC = () => {
 
             <div className="border-t border-slate-850 pt-4 flex justify-between items-baseline">
               <span className="text-slate-200 font-bold">Payable Amount:</span>
-              <span className="text-2xl font-black text-white font-mono">₹{totalAmount.toFixed(2)}</span>
+              <span className="text-2xl font-black text-slate-100 font-mono">₹{totalAmount.toFixed(2)}</span>
             </div>
 
             <button

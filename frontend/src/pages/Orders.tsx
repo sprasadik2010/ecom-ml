@@ -207,7 +207,7 @@ export const Orders: React.FC = () => {
               <ShoppingBag size={22} />
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-black text-white">My Orders & Tracking</h1>
+              <h1 className="text-xl sm:text-2xl font-black text-slate-100">My Orders & Tracking</h1>
               <p className="text-slate-400 text-xs mt-0.5">
                 Track your package shipments, consignment tracking numbers, delivery progress, and personal SW volume credits.
               </p>
@@ -231,7 +231,7 @@ export const Orders: React.FC = () => {
           <div className="flex justify-between items-start">
             <div>
               <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Total Orders</span>
-              <div className="text-xl font-black text-white font-mono mt-1">{totalOrdersCount}</div>
+              <div className="text-xl font-black text-slate-100 font-mono mt-1">{totalOrdersCount}</div>
             </div>
             <div className="p-2 bg-slate-950 text-slate-300 rounded-lg border border-slate-800">
               <Package size={18} />
@@ -248,7 +248,7 @@ export const Orders: React.FC = () => {
           <div className="flex justify-between items-start">
             <div>
               <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Approved Spending</span>
-              <div className="text-xl font-black text-white font-mono mt-1">₹{totalAmountSpent.toFixed(2)}</div>
+              <div className="text-xl font-black text-slate-100 font-mono mt-1">₹{totalAmountSpent.toFixed(2)}</div>
             </div>
             <div className="p-2 bg-slate-950 text-emerald-400 rounded-lg border border-slate-800">
               <IndianRupee size={18} />
@@ -543,7 +543,7 @@ export const Orders: React.FC = () => {
                     <div className="flex items-center gap-5">
                       <div className="text-left md:text-right">
                         <span className="text-[9px] text-slate-500 uppercase font-black tracking-wider block">Total Amount</span>
-                        <span className="font-mono font-black text-white text-base">₹{order.total_amount.toFixed(2)}</span>
+                        <span className="font-mono font-black text-slate-100 text-base">₹{order.total_amount.toFixed(2)}</span>
                       </div>
 
                       <div className="text-left md:text-right">
@@ -582,7 +582,7 @@ export const Orders: React.FC = () => {
                                 </span>
                               </div>
                               <div className="text-[11px] text-slate-400 mt-0.5">
-                                Carrier: <strong className="text-white">{order.courier_name || 'Express Courier'}</strong>
+                                Carrier: <strong className="text-slate-100">{order.courier_name || 'Express Courier'}</strong>
                                 {order.dispatched_at && (
                                   <span> • Dispatched on {new Date(order.dispatched_at).toLocaleDateString()}</span>
                                 )}
