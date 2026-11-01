@@ -16,8 +16,8 @@ class Settings:
     MIN_PURCHASE_FOR_ACTIVATION: float = float(os.getenv("MIN_PURCHASE_FOR_ACTIVATION", "1.0"))   # 1 SW to become active member
 
     # UPI Payment Configuration
-    UPI_ID: str = os.getenv("UPI_ID", "merchant@okhdfcbank")
-    UPI_NAME: str = os.getenv("UPI_NAME", "Business Store")
+    UPI_ID: str = os.getenv("UPI_ID", "sharathponnammu@oksbi")
+    UPI_NAME: str = os.getenv("UPI_NAME", "sharath kumar")
 
     # ImgBB Cloud Image Hosting
     IMGBB_API_KEY: str = os.getenv("IMGBB_API_KEY", "")

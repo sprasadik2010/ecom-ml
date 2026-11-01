@@ -17,6 +17,7 @@ import {
   Hash
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import paymentQrImage from '../assets/payment_qr.jpg';
 
 export const Checkout: React.FC = () => {
   const { items, totalAmount, totalSw, clearCart } = useCart();
@@ -29,9 +30,9 @@ export const Checkout: React.FC = () => {
   const [error, setError] = useState('');
   const [copiedUpi, setCopiedUpi] = useState(false);
 
-  // Merchant UPI Config from backend
-  const [merchantUpiId, setMerchantUpiId] = useState('merchant@okhdfcbank');
-  const [merchantUpiName, setMerchantUpiName] = useState('Business Store');
+  // Merchant UPI Config from backend (Sharath Kumar)
+  const [merchantUpiId, setMerchantUpiId] = useState('sharathponnammu@oksbi');
+  const [merchantUpiName, setMerchantUpiName] = useState('sharath kumar');
 
   // Form states
   const [fullName, setFullName] = useState(user?.full_name || '');
@@ -65,11 +66,8 @@ export const Checkout: React.FC = () => {
     fetchPaymentConfig();
   }, []);
 
-  // Construct Dynamic UPI Deep-link URI (NPCI standard)
-  const upiDeepLink = `upi://pay?pa=${encodeURIComponent(merchantUpiId)}&pn=${encodeURIComponent(merchantUpiName)}&am=${totalAmount.toFixed(2)}&cu=INR&tn=${encodeURIComponent(`Order Purchase ${Date.now()}`)}`;
-
-  // Generate dynamic QR Code URL
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=8&data=${encodeURIComponent(upiDeepLink)}`;
+  // Construct Dynamic UPI Deep-link URI (NPCI standard with Google Pay aid parameter)
+  const upiDeepLink = `upi://pay?pa=${encodeURIComponent(merchantUpiId)}&pn=${encodeURIComponent(merchantUpiName)}&am=${totalAmount.toFixed(2)}&cu=INR&tn=${encodeURIComponent(`Order Purchase ${Date.now()}`)}&aid=uGICAgIDVx_jpXQ`;
 
   const handleCopyUpiId = () => {
     navigator.clipboard.writeText(merchantUpiId);
@@ -351,37 +349,44 @@ export const Checkout: React.FC = () => {
 
             {/* QR Code & Direct Pay Layout */}
             <div className="flex flex-col md:flex-row items-center gap-5 sm:gap-6 bg-slate-950/60 p-3.5 sm:p-5 rounded-xl border border-slate-800">
-              {/* QR Code Graphic with Amount Badge */}
-              <div className="text-center shrink-0">
-                <div className="p-3 bg-white rounded-xl shadow-lg inline-block border-2 border-slate-200">
+              {/* Attached Official UPI QR Code Card */}
+              <div className="text-center shrink-0 flex flex-col items-center">
+                <div className="p-2 bg-white rounded-2xl shadow-xl inline-block border-2 border-slate-200 overflow-hidden max-w-[210px] sm:max-w-[240px]">
                   <img
-                    src={qrCodeUrl}
-                    alt="UPI Payment QR Code"
-                    className="w-44 h-44 sm:w-48 sm:h-48 object-contain"
+                    src={paymentQrImage}
+                    alt="UPI Payment QR Code - Sharath Kumar"
+                    className="w-full h-auto object-contain rounded-xl"
                   />
-                  <div className="mt-1 text-center">
-                    <span className="text-[10px] font-extrabold text-slate-900 block font-mono">
-                      AMOUNT: ₹{totalAmount.toFixed(2)}
+                  <div className="mt-2 py-1.5 px-2 bg-amber-500/10 border border-amber-500/30 rounded-lg text-center">
+                    <span className="text-[11px] font-black text-slate-900 block font-mono">
+                      PAYABLE AMOUNT: ₹{totalAmount.toFixed(2)}
                     </span>
                   </div>
                 </div>
                 <div className="mt-2 text-[10px] text-slate-400 font-mono">
-                  Scan with any UPI App
+                  Scan to pay with any UPI app
                 </div>
               </div>
 
               {/* UPI Payment Instructions & Deep Link */}
               <div className="flex-1 space-y-3.5 text-xs">
                 <div>
-                  <span className="text-slate-400 text-[11px] block">Payee / Merchant UPI ID:</span>
+                  <span className="text-slate-400 text-[11px] block">Payee / Account Name:</span>
+                  <div className="font-bold text-slate-100 text-sm capitalize mt-0.5">
+                    {merchantUpiName}
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-slate-400 text-[11px] block">Payee UPI ID (VPA):</span>
                   <div className="flex flex-wrap items-center gap-2 mt-1">
-                    <span className="font-mono font-bold text-amber-400 bg-slate-900 px-3 py-1.5 rounded border border-slate-800 text-xs sm:text-sm select-all break-all">
+                    <span className="font-mono font-bold text-amber-500 bg-slate-900 px-3 py-1.5 rounded border border-slate-800 text-xs sm:text-sm select-all break-all">
                       {merchantUpiId}
                     </span>
                     <button
                       type="button"
                       onClick={handleCopyUpiId}
-                      className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 font-semibold text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                      className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-200 rounded border border-slate-700 font-semibold text-xs inline-flex items-center gap-1.5 transition-colors cursor-pointer"
                       title="Copy UPI ID"
                     >
                       {copiedUpi ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
