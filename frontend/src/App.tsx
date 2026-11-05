@@ -22,6 +22,7 @@ import { Categories } from './pages/Categories';
 import { About } from './pages/About';
 import { Blog } from './pages/Blog';
 import { Contact } from './pages/Contact';
+import { FloatingWhatsApp } from './components/FloatingWhatsApp';
 import bwLogo from './assets/bwLogo.jpeg';
 
 // Protected Route for authenticated members (Admins are redirected to /admin)
@@ -208,7 +209,7 @@ export const App: React.FC = () => {
                       <li><span className="text-[#8C7077]">Tracked Courier Dispatch</span></li>
                       <li><span className="text-[#8C7077]">Instant UPI Verification</span></li>
                       <li><Link to="/return-policy" className="hover:text-[#A8435D] text-[#8C2E42] font-semibold transition-colors underline decoration-[#B8586E]/40">3-Day Damage Return Policy</Link></li>
-                      <li><Link to="/contact" className="hover:text-[#A8435D] transition-colors text-[#8C7077]">Support: 24/7 Helpline</Link></li>
+                      <li><a href="https://wa.me/919446707043?text=Hello%20BuyWay!" target="_blank" rel="noopener noreferrer" className="hover:text-[#A8435D] transition-colors text-[#8C7077]">WhatsApp: +91 94467 07043</a></li>
                     </ul>
                   </div>
                 </div>
@@ -218,6 +219,9 @@ export const App: React.FC = () => {
                 </div>
               </div>
             </footer>
+
+            {/* Floating WhatsApp Support (Guest / Non-logged in visitors) */}
+            <FloatingWhatsApp />
           </div>
         </CartProvider>
       </AuthProvider>

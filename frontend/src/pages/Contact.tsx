@@ -102,14 +102,19 @@ export const Contact: React.FC = () => {
           </div>
 
           <div className="bg-white p-6 rounded-3xl border border-[#EFE2DE] shadow-xs space-y-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#FAF2E8] text-[#C07718] flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-2xl bg-[#E8F5EF] text-[#25D366] flex items-center justify-center font-bold">
               <Phone size={20} />
             </div>
-            <h4 className="font-serif text-base text-[#331B21] font-semibold">Helpline</h4>
-            <p className="text-xs text-[#7A6369]">Mon - Sat: 9:00 AM - 7:00 PM IST</p>
-            <span className="text-xs font-bold text-[#331B21] block pt-1">
-              1800-BUYWAY-CARE
-            </span>
+            <h4 className="font-serif text-base text-[#331B21] font-semibold">WhatsApp & Helpline</h4>
+            <p className="text-xs text-[#7A6369]">Direct WhatsApp messaging & inquiries.</p>
+            <a
+              href="https://wa.me/919446707043?text=Hello%20BuyWay!%20I%20have%20an%20inquiry."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-bold text-[#0D7A5C] hover:underline block pt-1"
+            >
+              +91 94467 07043
+            </a>
           </div>
 
           <div className="bg-white p-6 rounded-3xl border border-[#EFE2DE] shadow-xs space-y-3">
