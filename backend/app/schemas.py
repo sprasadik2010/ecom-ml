@@ -74,6 +74,8 @@ class UserResponse(UserBase):
     total_matched_sw: float = 0.0
     left_100_nodes: int = 0
     right_100_nodes: int = 0
+    left_combined_sw: float = 0.0
+    right_combined_sw: float = 0.0
     wallet_balance: float
     current_level: int = 0
     level_name: str = "Member"
@@ -183,6 +185,8 @@ class TreeNodeResponse(BaseModel):
     total_matched_sw: float = 0.0
     left_100_nodes: int = 0
     right_100_nodes: int = 0
+    left_combined_sw: float = 0.0
+    right_combined_sw: float = 0.0
     current_level: int = 0
     level_name: str = "Member"
     left_child: Optional["TreeNodeResponse"] = None

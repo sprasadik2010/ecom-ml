@@ -6,7 +6,7 @@ from .config import settings
 
 logger = logging.getLogger(__name__)
 
-# Standard Level Definitions with Royalty Schemes (Levels 1 to 10)
+# Standard Level Definitions with Royalty Schemes (Levels 1 to 10) - Revised Plan
 LEVEL_CONFIG = {
     1: {
         "level": 1,
@@ -15,16 +15,16 @@ LEVEL_CONFIG = {
         "target_sw": 100.0,
         "monthly_amount": 1000.0,
         "duration_months": 2,
-        "target_description": "Both child nodes reach 100 SW (100 SW each side)"
+        "target_description": "Achieve 100 SW on each side."
     },
     2: {
         "level": 2,
         "name": "Level 2 (Promoter)",
-        "target_nodes": 2,
-        "target_sw": 200.0,
+        "target_nodes": 1,
+        "target_sw": 100.0,
         "monthly_amount": 2000.0,
         "duration_months": 3,
-        "target_description": "Any 2 nodes in each side reach 100 SW (200 SW each side)"
+        "target_description": "At least 1 node on each side must achieve 100 SW."
     },
     3: {
         "level": 3,
@@ -33,7 +33,7 @@ LEVEL_CONFIG = {
         "target_sw": 400.0,
         "monthly_amount": 5000.0,
         "duration_months": 3,
-        "target_description": "Any 4 nodes in each side reach 100 SW (400 SW each side)"
+        "target_description": "Combine SW from any number of nodes to achieve 400 SW on each side (in multiples of 100 SW)."
     },
     4: {
         "level": 4,
@@ -42,7 +42,7 @@ LEVEL_CONFIG = {
         "target_sw": 800.0,
         "monthly_amount": 8000.0,
         "duration_months": 4,
-        "target_description": "Any 8 nodes in each side reach 100 SW (800 SW each side)"
+        "target_description": "Combine SW from any number of nodes to achieve 800 SW on each side (in multiples of 100 SW)."
     },
     5: {
         "level": 5,
@@ -51,7 +51,7 @@ LEVEL_CONFIG = {
         "target_sw": 1600.0,
         "monthly_amount": 12500.0,
         "duration_months": 4,
-        "target_description": "Any 16 nodes in each side reach 100 SW (1,600 SW each side)"
+        "target_description": "Combine SW from any number of nodes to achieve 1,600 SW on each side."
     },
     6: {
         "level": 6,
@@ -60,7 +60,7 @@ LEVEL_CONFIG = {
         "target_sw": 3200.0,
         "monthly_amount": 20000.0,
         "duration_months": 4,
-        "target_description": "Any 32 nodes in each side reach 100 SW (3,200 SW each side)"
+        "target_description": "Combine SW from any number of nodes to achieve 3,200 SW on each side."
     },
     7: {
         "level": 7,
@@ -69,7 +69,7 @@ LEVEL_CONFIG = {
         "target_sw": 6400.0,
         "monthly_amount": 40000.0,
         "duration_months": 5,
-        "target_description": "Any 64 nodes in each side reach 100 SW (6,400 SW each side)"
+        "target_description": "Combine SW from any number of nodes to achieve 6,400 SW on each side."
     },
     8: {
         "level": 8,
@@ -78,7 +78,7 @@ LEVEL_CONFIG = {
         "target_sw": 12800.0,
         "monthly_amount": 70000.0,
         "duration_months": 5,
-        "target_description": "Any 128 nodes in each side reach 100 SW (12,800 SW each side)"
+        "target_description": "Combine SW from any number of nodes to achieve 12,800 SW on each side."
     },
     9: {
         "level": 9,
@@ -87,7 +87,7 @@ LEVEL_CONFIG = {
         "target_sw": 25600.0,
         "monthly_amount": 100000.0,
         "duration_months": 5,
-        "target_description": "Any 256 nodes in each side reach 100 SW (25,600 SW each side)"
+        "target_description": "Combine SW from any number of nodes to achieve 25,600 SW on each side."
     },
     10: {
         "level": 10,
@@ -96,7 +96,7 @@ LEVEL_CONFIG = {
         "target_sw": 51200.0,
         "monthly_amount": 100000.0,
         "duration_months": 5,
-        "target_description": "Any 512 nodes in each side reach 100 SW (51,200 SW each side)"
+        "target_description": "Combine SW from any number of nodes to achieve 51,200 SW on each side."
     }
 }
 
@@ -216,88 +216,108 @@ def award_level_promotion(db: Session, user: User, level: int):
         logger.info(f"PROMOTED user {user.username} to {cfg['name']}. Month 1 royalty ₹{monthly_amount} credited.")
 
 
-def get_user_qualified_nodes(db: Session, user: User) -> tuple[int, int]:
+def get_user_qualified_nodes(db: Session, user: User) -> tuple[int, int, float, float]:
     """
-    Counts the number of downline nodes in the Left subtree and Right subtree
-    that have accumulated at least 100 personal SW (personal_sw >= 100).
-    Returns (left_100_nodes, right_100_nodes).
+    Evaluates Left subtree and Right subtree for the user:
+    1. Count of nodes with personal_sw >= 100 (left_100_nodes, right_100_nodes)
+    2. Combined qualifying SW in multiples of 100 SW (left_combined_sw, right_combined_sw)
+    Returns (left_100_nodes, right_100_nodes, left_combined_sw, right_combined_sw).
     """
     all_users = db.query(User).filter(User.is_admin == False).all()
     user_map = {u.id: u for u in all_users}
     
-    def count_subtree(child_id: int | None) -> int:
+    def evaluate_subtree(child_id: int | None) -> tuple[int, float]:
         if not child_id or child_id not in user_map:
-            return 0
-        count = 0
+            return 0, 0.0
+        node_count = 0
+        combined_sw = 0.0
         queue = [child_id]
         while queue:
             cid = queue.pop(0)
             u = user_map.get(cid)
             if not u:
                 continue
-            if (u.personal_sw or 0.0) >= 100.0:
-                count += 1
+            psw = float(u.personal_sw or 0.0)
+            if psw >= 100.0:
+                node_count += 1
+                combined_sw += float(int(psw // 100) * 100)
             if u.left_child_id and u.left_child_id in user_map:
                 queue.append(u.left_child_id)
             if u.right_child_id and u.right_child_id in user_map:
                 queue.append(u.right_child_id)
-        return count
+        return node_count, combined_sw
 
-    left_count = count_subtree(user.left_child_id)
-    right_count = count_subtree(user.right_child_id)
-    return left_count, right_count
+    left_count, left_sw = evaluate_subtree(user.left_child_id)
+    right_count, right_sw = evaluate_subtree(user.right_child_id)
+    return left_count, right_count, left_sw, right_sw
 
 
 def evaluate_and_award_levels(db: Session):
     """
-    Evaluates rank/level qualifications across users based on:
-    Strict qualified node targets (each node must have accumulated >= 100 personal SW):
-       - Level 1: 1 node on each side (both child nodes reach 100 SW)
-       - Level 2: 2 nodes on each side reach 100 SW (200 SW each side)
-       - Level 3: 4 nodes on each side reach 100 SW (400 SW each side)
-       - Level 4: 8 nodes on each side reach 100 SW (800 SW each side)
-       - Level 5: 16 nodes on each side reach 100 SW (1,600 SW each side)
-       - Level 6: 32 nodes on each side reach 100 SW (3,200 SW each side)
-       - Level 7: 64 nodes on each side reach 100 SW (6,400 SW each side)
-       - Level 8: 128 nodes on each side reach 100 SW (12,800 SW each side)
-       - Level 9: 256 nodes on each side reach 100 SW (25,600 SW each side)
-       - Level 10: 512 nodes on each side reach 100 SW (51,200 SW each side)
+    Evaluates rank/level qualifications across users based on Revised 10-Level Royalty Plan:
+    1. Level 1 – Associate: Achieve 100 SW on each side (total_left_sw >= 100 and total_right_sw >= 100, or combined >= 100).
+    2. Level 2 – Promoter: At least 1 node on each side must achieve 100 SW (left_100_nodes >= 1 and right_100_nodes >= 1).
+    3. Level 3 – Team Leader: Combine SW from any number of nodes to achieve 400 SW on each side (in multiples of 100 SW).
+    4. Level 4 – Senior Team Leader: Combine SW from any number of nodes to achieve 800 SW on each side (in multiples of 100 SW).
+    5. Level 5 – Team Manager: Combine SW from any number of nodes to achieve 1,600 SW on each side.
+    6. Level 6 – Senior Team Manager: Combine SW from any number of nodes to achieve 3,200 SW on each side.
+    7. Level 7 – Area Manager: Combine SW from any number of nodes to achieve 6,400 SW on each side.
+    8. Level 8 – Regional Manager: Combine SW from any number of nodes to achieve 12,800 SW on each side.
+    9. Level 9 – Manager: Combine SW from any number of nodes to achieve 25,600 SW on each side.
+    10. Level 10 – Senior Manager: Combine SW from any number of nodes to achieve 51,200 SW on each side.
+    Note: From Level 3 onwards, SW from multiple nodes can be combined to meet the required target. Each side must independently achieve its target, in multiples of 100 SW.
     """
     users = db.query(User).filter(User.is_admin == False).all()
     user_map = {u.id: u for u in users}
 
-    def count_subtree(child_id: int | None) -> int:
+    def evaluate_subtree(child_id: int | None) -> tuple[int, float]:
         if not child_id or child_id not in user_map:
-            return 0
-        count = 0
+            return 0, 0.0
+        node_count = 0
+        combined_sw = 0.0
         queue = [child_id]
         while queue:
             cid = queue.pop(0)
             u = user_map.get(cid)
             if not u:
                 continue
-            if (u.personal_sw or 0.0) >= 100.0:
-                count += 1
+            psw = float(u.personal_sw or 0.0)
+            if psw >= 100.0:
+                node_count += 1
+                combined_sw += float(int(psw // 100) * 100)
             if u.left_child_id and u.left_child_id in user_map:
                 queue.append(u.left_child_id)
             if u.right_child_id and u.right_child_id in user_map:
                 queue.append(u.right_child_id)
-        return count
+        return node_count, combined_sw
 
     for u in users:
         curr_lvl = u.current_level or 0
-        left_nodes = count_subtree(u.left_child_id)
-        right_nodes = count_subtree(u.right_child_id)
+        left_nodes, left_comb_sw = evaluate_subtree(u.left_child_id)
+        right_nodes, right_comb_sw = evaluate_subtree(u.right_child_id)
+        tot_left = float(u.total_left_sw or 0.0)
+        tot_right = float(u.total_right_sw or 0.0)
         
         # Check and award all eligible levels sequentially
         for target_lvl in range(curr_lvl + 1, 11):
             target_cfg = LEVEL_CONFIG.get(target_lvl)
             if not target_cfg:
                 break
-            required_nodes = target_cfg.get("target_nodes", 1)
             
-            # Level qualification strictly requires enough >=100 SW nodes on both left and right sides
-            if left_nodes >= required_nodes and right_nodes >= required_nodes:
+            target_sw = float(target_cfg.get("target_sw", 100.0))
+            is_qualified = False
+
+            if target_lvl == 1:
+                # Level 1 - Associate: Achieve 100 SW on each side
+                is_qualified = (max(tot_left, left_comb_sw) >= 100.0 and max(tot_right, right_comb_sw) >= 100.0)
+            elif target_lvl == 2:
+                # Level 2 - Promoter: At least 1 node on each side must achieve 100 SW
+                is_qualified = (left_nodes >= 1 and right_nodes >= 1)
+            else:
+                # Level 3 to 10: Combine SW from any number of nodes to achieve target_sw on each side (in multiples of 100 SW)
+                is_qualified = (left_comb_sw >= target_sw and right_comb_sw >= target_sw)
+
+            if is_qualified:
                 award_level_promotion(db, u, target_lvl)
             else:
                 break

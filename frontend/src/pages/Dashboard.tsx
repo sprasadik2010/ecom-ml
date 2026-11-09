@@ -56,16 +56,16 @@ const DEFAULT_LEVELS: LevelDefinition[] = [
     target_sw: 100.0,
     monthly_amount: 1000.0,
     duration_months: 2,
-    target_description: "Both child nodes reach 100 SW (100 SW each side)"
+    target_description: "Achieve 100 SW on each side."
   },
   {
     level: 2,
     name: "Level 2 (Promoter)",
-    target_nodes: 2,
-    target_sw: 200.0,
+    target_nodes: 1,
+    target_sw: 100.0,
     monthly_amount: 2000.0,
     duration_months: 3,
-    target_description: "Any 2 nodes in each side reach 100 SW (200 SW each side)"
+    target_description: "At least 1 node on each side must achieve 100 SW."
   },
   {
     level: 3,
@@ -74,7 +74,7 @@ const DEFAULT_LEVELS: LevelDefinition[] = [
     target_sw: 400.0,
     monthly_amount: 5000.0,
     duration_months: 3,
-    target_description: "Any 4 nodes in each side reach 100 SW (400 SW each side)"
+    target_description: "Combine SW from any number of nodes to achieve 400 SW on each side (in multiples of 100 SW)."
   },
   {
     level: 4,
@@ -83,7 +83,7 @@ const DEFAULT_LEVELS: LevelDefinition[] = [
     target_sw: 800.0,
     monthly_amount: 8000.0,
     duration_months: 4,
-    target_description: "Any 8 nodes in each side reach 100 SW (800 SW each side)"
+    target_description: "Combine SW from any number of nodes to achieve 800 SW on each side (in multiples of 100 SW)."
   },
   {
     level: 5,
@@ -92,7 +92,7 @@ const DEFAULT_LEVELS: LevelDefinition[] = [
     target_sw: 1600.0,
     monthly_amount: 12500.0,
     duration_months: 4,
-    target_description: "Any 16 nodes in each side reach 100 SW (1,600 SW each side)"
+    target_description: "Combine SW from any number of nodes to achieve 1,600 SW on each side."
   },
   {
     level: 6,
@@ -101,7 +101,7 @@ const DEFAULT_LEVELS: LevelDefinition[] = [
     target_sw: 3200.0,
     monthly_amount: 20000.0,
     duration_months: 4,
-    target_description: "Any 32 nodes in each side reach 100 SW (3,200 SW each side)"
+    target_description: "Combine SW from any number of nodes to achieve 3,200 SW on each side."
   },
   {
     level: 7,
@@ -110,7 +110,7 @@ const DEFAULT_LEVELS: LevelDefinition[] = [
     target_sw: 6400.0,
     monthly_amount: 40000.0,
     duration_months: 5,
-    target_description: "Any 64 nodes in each side reach 100 SW (6,400 SW each side)"
+    target_description: "Combine SW from any number of nodes to achieve 6,400 SW on each side."
   },
   {
     level: 8,
@@ -119,7 +119,7 @@ const DEFAULT_LEVELS: LevelDefinition[] = [
     target_sw: 12800.0,
     monthly_amount: 70000.0,
     duration_months: 5,
-    target_description: "Any 128 nodes in each side reach 100 SW (12,800 SW each side)"
+    target_description: "Combine SW from any number of nodes to achieve 12,800 SW on each side."
   },
   {
     level: 9,
@@ -128,7 +128,7 @@ const DEFAULT_LEVELS: LevelDefinition[] = [
     target_sw: 25600.0,
     monthly_amount: 100000.0,
     duration_months: 5,
-    target_description: "Any 256 nodes in each side reach 100 SW (25,600 SW each side)"
+    target_description: "Combine SW from any number of nodes to achieve 25,600 SW on each side."
   },
   {
     level: 10,
@@ -137,7 +137,7 @@ const DEFAULT_LEVELS: LevelDefinition[] = [
     target_sw: 51200.0,
     monthly_amount: 100000.0,
     duration_months: 5,
-    target_description: "Any 512 nodes in each side reach 100 SW (51,200 SW each side)"
+    target_description: "Combine SW from any number of nodes to achieve 51,200 SW on each side."
   }
 ];
 
@@ -488,15 +488,52 @@ export const Dashboard: React.FC = () => {
   const left100Nodes = user.left_100_nodes || 0;
   const right100Nodes = user.right_100_nodes || 0;
   const matched100Nodes = Math.min(left100Nodes, right100Nodes);
+  const leftCombinedSw = user.left_combined_sw != null ? user.left_combined_sw : (left100Nodes * 100);
+  const rightCombinedSw = user.right_combined_sw != null ? user.right_combined_sw : (right100Nodes * 100);
 
   const nextLevelNumber = Math.min((user.current_level || 0) + 1, 10);
   const nextLevelDef = levelDefs.find(l => l.level === nextLevelNumber) || levelDefs[0];
-  const targetNodes = nextLevelDef?.target_nodes || 1;
   const targetSw = nextLevelDef?.target_sw || 100;
 
-  const leftNodeProgress = Math.min((left100Nodes / targetNodes) * 100, 100);
-  const rightNodeProgress = Math.min((right100Nodes / targetNodes) * 100, 100);
-  const overallProgress = Math.min(leftNodeProgress, rightNodeProgress);
+  // Level-specific progress metrics
+  let leftProgress = 0;
+  let rightProgress = 0;
+  let leftCurrentDisplay = '';
+  let rightCurrentDisplay = '';
+  let needDisplay = '';
+  let isReadyForPromotion = false;
+
+  if (nextLevelNumber === 1) {
+    const leftVal = Math.max(user.total_left_sw || 0, leftCombinedSw);
+    const rightVal = Math.max(user.total_right_sw || 0, rightCombinedSw);
+    leftProgress = Math.min((leftVal / 100) * 100, 100);
+    rightProgress = Math.min((rightVal / 100) * 100, 100);
+    leftCurrentDisplay = `Left Leg: ${leftVal.toLocaleString('en-IN')} / 100 SW`;
+    rightCurrentDisplay = `Right Leg: ${rightVal.toLocaleString('en-IN')} / 100 SW`;
+    const needL = Math.max(0, 100 - leftVal);
+    const needR = Math.max(0, 100 - rightVal);
+    needDisplay = `Need ${needL.toLocaleString('en-IN')}L • ${needR.toLocaleString('en-IN')}R SW more`;
+    isReadyForPromotion = leftVal >= 100 && rightVal >= 100;
+  } else if (nextLevelNumber === 2) {
+    leftProgress = Math.min((left100Nodes / 1) * 100, 100);
+    rightProgress = Math.min((right100Nodes / 1) * 100, 100);
+    leftCurrentDisplay = `Left Leg: ${left100Nodes} / 1 Nodes (≥100 SW)`;
+    rightCurrentDisplay = `Right Leg: ${right100Nodes} / 1 Nodes (≥100 SW)`;
+    const needL = Math.max(0, 1 - left100Nodes);
+    const needR = Math.max(0, 1 - right100Nodes);
+    needDisplay = `Need ${needL}L • ${needR}R more`;
+    isReadyForPromotion = left100Nodes >= 1 && right100Nodes >= 1;
+  } else {
+    // Level 3 to 10: Combine SW from any number of nodes (in multiples of 100 SW)
+    leftProgress = Math.min((leftCombinedSw / targetSw) * 100, 100);
+    rightProgress = Math.min((rightCombinedSw / targetSw) * 100, 100);
+    leftCurrentDisplay = `Left Leg: ${leftCombinedSw.toLocaleString('en-IN')} / ${targetSw.toLocaleString('en-IN')} SW`;
+    rightCurrentDisplay = `Right Leg: ${rightCombinedSw.toLocaleString('en-IN')} / ${targetSw.toLocaleString('en-IN')} SW`;
+    const needL = Math.max(0, targetSw - leftCombinedSw);
+    const needR = Math.max(0, targetSw - rightCombinedSw);
+    needDisplay = `Need ${needL.toLocaleString('en-IN')}L • ${needR.toLocaleString('en-IN')}R SW more`;
+    isReadyForPromotion = leftCombinedSw >= targetSw && rightCombinedSw >= targetSw;
+  }
 
   const getLevelBadgeColor = (lvl: number) => {
     switch (lvl) {
@@ -1265,7 +1302,7 @@ export const Dashboard: React.FC = () => {
           </div>
 
           <p className="text-xs text-slate-400 leading-normal mb-5 font-normal">
-            For every 1 matching point on Left & Right legs you earn <span className="text-emerald-400 font-bold">₹10</span>. In addition, unlock 10 progressive monthly royalty streams starting at <span className="text-amber-400 font-bold">₹1,000/mo</span> up to <span className="text-amber-400 font-bold">₹5,12,000/mo</span> as your team nodes achieve 100 SW on both sides!
+            For every 1 matching point on Left & Right legs you earn <span className="text-emerald-400 font-bold">₹10</span>. In addition, unlock 10 progressive monthly royalty streams starting at <span className="text-amber-400 font-bold">₹1,000/mo</span> up to <span className="text-amber-400 font-bold">₹1,00,000/mo</span>. From Level 3 onwards, SW from multiple nodes can be combined to meet the required target in multiples of 100 SW!
           </p>
 
           {/* Current Level / Next Milestone Status Box */}
@@ -1285,32 +1322,32 @@ export const Dashboard: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3 bg-slate-900/80 p-3 rounded-md border border-slate-800">
                 <div>
                   <div className="flex justify-between text-[10px] text-slate-400 font-mono mb-1">
-                    <span>Left Leg: {left100Nodes} / {targetNodes} Nodes (≥100 SW)</span>
-                    <span className={left100Nodes >= targetNodes ? 'text-emerald-400 font-bold' : 'text-slate-400'}>
-                      {leftNodeProgress.toFixed(0)}%
+                    <span>{leftCurrentDisplay}</span>
+                    <span className={leftProgress >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}>
+                      {leftProgress.toFixed(0)}%
                     </span>
                   </div>
                   <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
                     <div
-                      className={`h-full rounded-full transition-all duration-500 ${left100Nodes >= targetNodes ? 'bg-emerald-400' : 'bg-amber-500'
+                      className={`h-full rounded-full transition-all duration-500 ${leftProgress >= 100 ? 'bg-emerald-400' : 'bg-amber-500'
                         }`}
-                      style={{ width: `${leftNodeProgress}%` }}
+                      style={{ width: `${leftProgress}%` }}
                     />
                   </div>
                 </div>
 
                 <div>
                   <div className="flex justify-between text-[10px] text-slate-400 font-mono mb-1">
-                    <span>Right Leg: {right100Nodes} / {targetNodes} Nodes (≥100 SW)</span>
-                    <span className={right100Nodes >= targetNodes ? 'text-emerald-400 font-bold' : 'text-slate-400'}>
-                      {rightNodeProgress.toFixed(0)}%
+                    <span>{rightCurrentDisplay}</span>
+                    <span className={rightProgress >= 100 ? 'text-emerald-400 font-bold' : 'text-slate-400'}>
+                      {rightProgress.toFixed(0)}%
                     </span>
                   </div>
                   <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
                     <div
-                      className={`h-full rounded-full transition-all duration-500 ${right100Nodes >= targetNodes ? 'bg-emerald-400' : 'bg-amber-500'
+                      className={`h-full rounded-full transition-all duration-500 ${rightProgress >= 100 ? 'bg-emerald-400' : 'bg-amber-500'
                         }`}
-                      style={{ width: `${rightNodeProgress}%` }}
+                      style={{ width: `${rightProgress}%` }}
                     />
                   </div>
                 </div>
@@ -1320,13 +1357,13 @@ export const Dashboard: React.FC = () => {
                 <span>
                   Monthly Reward: <strong className="text-emerald-400">₹{nextLevelDef.monthly_amount.toLocaleString('en-IN')}/mo for {nextLevelDef.duration_months} Months</strong> (Total ₹{(nextLevelDef.monthly_amount * nextLevelDef.duration_months).toLocaleString('en-IN')})
                 </span>
-                {left100Nodes >= targetNodes && right100Nodes >= targetNodes ? (
+                {isReadyForPromotion ? (
                   <span className="text-emerald-400 font-bold flex items-center gap-1">
                     <CheckCircle2 size={13} /> Ready for Promotion!
                   </span>
                 ) : (
                   <span className="text-slate-400 font-mono text-[10px]">
-                    Need {Math.max(0, targetNodes - left100Nodes)}L &bull; {Math.max(0, targetNodes - right100Nodes)}R more
+                    {needDisplay}
                   </span>
                 )}
               </div>
@@ -1397,7 +1434,9 @@ export const Dashboard: React.FC = () => {
                           {lvl.target_description}
                         </div>
                         <div className="text-[10px] text-amber-400/80 font-mono mt-0.5">
-                          Target: {lvl.target_nodes} node{lvl.target_nodes > 1 ? 's' : ''} with ≥100 SW on each side ({lvl.target_sw.toLocaleString('en-IN')} SW)
+                          {lvl.level === 1 && `Target: 100 SW on each side`}
+                          {lvl.level === 2 && `Target: At least 1 node with ≥100 SW on each side`}
+                          {lvl.level >= 3 && `Target: Combined ${lvl.target_sw.toLocaleString('en-IN')} SW on each side (multiples of 100 SW)`}
                         </div>
                       </div>
                     </div>
@@ -1422,7 +1461,7 @@ export const Dashboard: React.FC = () => {
 
         <div className="mt-5 pt-3 border-t border-slate-850 flex items-center justify-between text-[11px] text-slate-400">
           <span>Levels 1 to 10 Royalty Ladder</span>
-          <span className="text-amber-400 font-mono font-bold">10 Progressive Ranks</span>
+          <span className="text-amber-400 font-mono font-bold">From Level 3: Combined SW in 100 SW multiples</span>
         </div>
       </div>
 

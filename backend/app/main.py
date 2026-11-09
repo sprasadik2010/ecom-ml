@@ -1166,7 +1166,8 @@ def admin_process_monthly_rewards(
     current_admin: models.User = Depends(auth.get_current_admin),
     db: Session = Depends(get_db)
 ):
-    from .mlm import process_pending_monthly_rewards
+    from .mlm import process_pending_monthly_rewards, evaluate_and_award_levels
+    evaluate_and_award_levels(db)
     res = process_pending_monthly_rewards(db)
     return {
         "processed_count": res["processed_count"],

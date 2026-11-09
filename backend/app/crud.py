@@ -212,7 +212,7 @@ def get_genealogy_tree(db: Session, root_user_id: int, current_depth: int = 0, m
     if not user:
         return None
         
-    left_100, right_100 = get_user_qualified_nodes(db, user)
+    left_100, right_100, left_sw, right_sw = get_user_qualified_nodes(db, user)
     node = {
         "id": user.id,
         "username": user.username,
@@ -228,6 +228,8 @@ def get_genealogy_tree(db: Session, root_user_id: int, current_depth: int = 0, m
         "total_matched_sw": user.total_matched_sw or 0.0,
         "left_100_nodes": left_100,
         "right_100_nodes": right_100,
+        "left_combined_sw": left_sw,
+        "right_combined_sw": right_sw,
         "current_level": user.current_level or 0,
         "level_name": user.level_name or "Member",
         "left_child": None,

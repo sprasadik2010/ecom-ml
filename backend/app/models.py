@@ -106,7 +106,7 @@ class User(Base):
         if not session or not self.left_child_id:
             return 0
         from .mlm import get_user_qualified_nodes
-        left, _ = get_user_qualified_nodes(session, self)
+        left, _, _, _ = get_user_qualified_nodes(session, self)
         return left
 
     @property
@@ -116,8 +116,28 @@ class User(Base):
         if not session or not self.right_child_id:
             return 0
         from .mlm import get_user_qualified_nodes
-        _, right = get_user_qualified_nodes(session, self)
+        _, right, _, _ = get_user_qualified_nodes(session, self)
         return right
+
+    @property
+    def left_combined_sw(self) -> float:
+        from sqlalchemy.orm import object_session
+        session = object_session(self)
+        if not session or not self.left_child_id:
+            return 0.0
+        from .mlm import get_user_qualified_nodes
+        _, _, left_sw, _ = get_user_qualified_nodes(session, self)
+        return left_sw
+
+    @property
+    def right_combined_sw(self) -> float:
+        from sqlalchemy.orm import object_session
+        session = object_session(self)
+        if not session or not self.right_child_id:
+            return 0.0
+        from .mlm import get_user_qualified_nodes
+        _, _, _, right_sw = get_user_qualified_nodes(session, self)
+        return right_sw
 
 
 
