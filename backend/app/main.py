@@ -711,6 +711,36 @@ def get_my_orders(current_user: models.User = Depends(auth.get_current_user), db
     return orders
 
 
+@app.put("/orders/{order_id}/cancel", response_model=schemas.OrderResponse)
+def user_cancel_order(
+    order_id: int,
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Allows a customer to cancel their own pending order before admin approval.
+    Restores product inventory stock.
+    """
+    order = db.query(models.Order).filter(models.Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found.")
+    if order.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Unauthorized to cancel this order.")
+    if order.status != "pending":
+        raise HTTPException(status_code=400, detail="Only pending orders can be cancelled.")
+    
+    # Restore product inventory stock
+    for item in order.items:
+        product = db.query(models.Product).filter(models.Product.id == item.product_id).first()
+        if product:
+            product.stock += item.quantity
+    
+    order.status = "cancelled"
+    db.commit()
+    db.refresh(order)
+    return order
+
+
 # --- Commission & Reward Endpoints ---
 
 @app.get("/commissions/my", response_model=List[schemas.CommissionResponse])

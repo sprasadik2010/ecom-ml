@@ -28,6 +28,7 @@ import {
   Copy,
   QrCode,
   Truck,
+  Smartphone,
   ExternalLink,
   Printer,
   MapPin,
@@ -2726,23 +2727,34 @@ export const AdminPanel: React.FC = () => {
                               </div>
 
                               {o.upi_trans_id ? (
-                                <div className="flex items-center gap-1 mt-1.5">
-                                  <span className="font-mono text-emerald-400 bg-slate-950 px-1.5 py-0.5 rounded border border-emerald-500/20 text-[10px] font-bold">
-                                    UTR: {o.upi_trans_id}
-                                  </span>
-                                  <button
-                                    onClick={() => {
-                                      navigator.clipboard.writeText(o.upi_trans_id || '');
-                                      triggerSuccess(`Copied UTR: ${o.upi_trans_id}`);
-                                    }}
-                                    className="p-1 text-slate-400 hover:text-slate-200 bg-slate-950 rounded border border-slate-800 transition-colors cursor-pointer"
-                                    title="Copy UTR to verify in Bank"
-                                  >
-                                    <Copy size={10} />
-                                  </button>
+                                <div className="flex items-center gap-1 mt-1.5 flex-wrap">
+                                  {o.upi_trans_id.includes('UPI-APP-CONFIRMED') || o.upi_trans_id.includes('Self-Confirmed') ? (
+                                    <span className="font-mono text-cyan-300 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-500/30 text-[10px] font-bold flex items-center gap-1" title={o.upi_trans_id}>
+                                      <Smartphone size={10} className="text-cyan-400" />
+                                      UPI App Paid (1-Tap Confirmed)
+                                    </span>
+                                  ) : (
+                                    <>
+                                      <span className="font-mono text-emerald-400 bg-slate-950 px-1.5 py-0.5 rounded border border-emerald-500/20 text-[10px] font-bold">
+                                        UTR: {o.upi_trans_id}
+                                      </span>
+                                      <button
+                                        onClick={() => {
+                                          navigator.clipboard.writeText(o.upi_trans_id || '');
+                                          triggerSuccess(`Copied UTR: ${o.upi_trans_id}`);
+                                        }}
+                                        className="p-1 text-slate-400 hover:text-slate-200 bg-slate-950 rounded border border-slate-800 transition-colors cursor-pointer"
+                                        title="Copy UTR to verify in Bank"
+                                      >
+                                        <Copy size={10} />
+                                      </button>
+                                    </>
+                                  )}
                                 </div>
                               ) : (
-                                <div className="text-[10px] text-slate-500 font-mono mt-1">No UTR logged</div>
+                                <div className="text-[10px] text-amber-400/90 font-mono mt-1 flex items-center gap-1">
+                                  <Clock size={10} /> Order Placed (Pending Payment)
+                                </div>
                               )}
 
                               {o.upi_payer_vpa && (
@@ -3023,9 +3035,20 @@ export const AdminPanel: React.FC = () => {
                               <span className="font-mono text-slate-100 font-black text-sm">₹{o.total_amount.toFixed(2)}</span>
                               <span className="text-amber-400 font-mono font-bold ml-2">({o.total_sw} SW)</span>
                             </div>
-                            {o.upi_trans_id && (
-                              <span className="font-mono text-emerald-400 text-[10px] font-bold">
-                                UTR: {o.upi_trans_id}
+                            {o.upi_trans_id ? (
+                              o.upi_trans_id.includes('UPI-APP-CONFIRMED') || o.upi_trans_id.includes('Self-Confirmed') ? (
+                                <span className="font-mono text-cyan-300 bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-500/30 text-[10px] font-bold flex items-center gap-1">
+                                  <Smartphone size={10} className="text-cyan-400" />
+                                  App Paid
+                                </span>
+                              ) : (
+                                <span className="font-mono text-emerald-400 text-[10px] font-bold">
+                                  UTR: {o.upi_trans_id}
+                                </span>
+                              )
+                            ) : (
+                              <span className="font-mono text-amber-400/80 text-[10px] flex items-center gap-1">
+                                <Clock size={10} /> Pending
                               </span>
                             )}
                           </div>
